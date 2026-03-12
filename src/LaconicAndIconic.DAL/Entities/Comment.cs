@@ -6,6 +6,6 @@ public class Comment : BaseEntity
     public int AuthorId { get; set; }
     public string Content { get; set; } = string.Empty;
 
-    public Recipe Recipe { get; set; } = null!;
-    public User Author { get; set; } = null!;
+    public required Recipe Recipe { get; set; }
+    public required User Author { get; set; }
 }

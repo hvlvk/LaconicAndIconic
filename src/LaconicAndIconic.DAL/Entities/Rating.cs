@@ -6,6 +6,6 @@ public class Rating : BaseEntity
     public int UserId { get; set; }
     public int Score { get; set; }
 
-    public Recipe Recipe { get; set; } = null!;
-    public User User { get; set; } = null!;
+    public required Recipe Recipe { get; set; }
+    public required User User { get; set; }
 }

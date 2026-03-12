@@ -37,7 +37,7 @@ namespace LaconicAndIconic.DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Email = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Role = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -86,7 +86,7 @@ namespace LaconicAndIconic.DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RecipeId = table.Column<int>(type: "integer", nullable: false),
                     AuthorId = table.Column<int>(type: "integer", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -141,15 +141,15 @@ namespace LaconicAndIconic.DAL.Migrations
                 columns: new[] { "Id", "CreatedAt", "Name", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5285), "Сніданки", null },
-                    { 2, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5288), "Перші страви", null },
-                    { 3, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5291), "Основні страви", null },
-                    { 4, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5294), "Салати", null },
-                    { 5, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5296), "Десерти", null },
-                    { 6, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5298), "Закуски", null },
-                    { 7, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5301), "Випічка", null },
-                    { 8, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5303), "Вегетаріанські страви", null },
-                    { 9, new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5307), "Напої", null }
+                    { 1, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6748), "Сніданки", null },
+                    { 2, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6751), "Перші страви", null },
+                    { 3, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6752), "Основні страви", null },
+                    { 4, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6754), "Салати", null },
+                    { 5, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6756), "Десерти", null },
+                    { 6, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6758), "Закуски", null },
+                    { 7, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6759), "Випічка", null },
+                    { 8, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6761), "Вегетаріанські страви", null },
+                    { 9, new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6762), "Напої", null }
                 });
 
             migrationBuilder.CreateIndex(

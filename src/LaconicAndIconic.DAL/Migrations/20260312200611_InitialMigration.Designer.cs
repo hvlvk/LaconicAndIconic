@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LaconicAndIconic.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260312192100_InitialMigration")]
+    [Migration("20260312200611_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -55,55 +55,55 @@ namespace LaconicAndIconic.DAL.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5285),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6748),
                             Name = "Сніданки"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5288),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6751),
                             Name = "Перші страви"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5291),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6752),
                             Name = "Основні страви"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5294),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6754),
                             Name = "Салати"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5296),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6756),
                             Name = "Десерти"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5298),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6758),
                             Name = "Закуски"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5301),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6759),
                             Name = "Випічка"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5303),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6761),
                             Name = "Вегетаріанські страви"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 3, 12, 19, 20, 59, 744, DateTimeKind.Utc).AddTicks(5307),
+                            CreatedAt = new DateTime(2026, 3, 12, 20, 6, 10, 606, DateTimeKind.Utc).AddTicks(6762),
                             Name = "Напої"
                         });
                 });
@@ -121,7 +121,8 @@ namespace LaconicAndIconic.DAL.Migrations
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -234,7 +235,8 @@ namespace LaconicAndIconic.DAL.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Role")
                         .IsRequired()
