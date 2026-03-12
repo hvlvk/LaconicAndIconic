@@ -1,3 +1,4 @@
+using System.Reflection;
 using LaconicAndIconic.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,16 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Recipe> Recipes => Set<Recipe>();
+    public DbSet<Rating> Ratings => Set<Rating>();
+    public DbSet<Comment> Comments => Set<Comment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 
     public override int SaveChanges()
