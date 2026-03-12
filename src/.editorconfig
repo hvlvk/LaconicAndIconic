@@ -10,12 +10,8 @@ insert_final_newline = true
 
 [*.cs]
 # C# Coding Conventions
-dotnet_diagnostic.RCS1001.severity = warning # Add summary element to documentation comment.
 dotnet_diagnostic.RCS1003.severity = warning # Add braces to if-else statement.
-dotnet_diagnostic.RCS1018.severity = warning # Add accessibility modifiers.
 dotnet_diagnostic.RCS1036.severity = warning # Remove redundant empty line.
-dotnet_diagnostic.RCS1057.severity = warning # Use compound assignment.
-dotnet_diagnostic.RCS1077.severity = warning # Optimize LINQ usage.
 dotnet_diagnostic.RCS1080.severity = warning # Use 'Count/Length' property instead of 'Any()' method.
 dotnet_diagnostic.RCS1141.severity = warning # Add question mark to null-check.
 dotnet_diagnostic.RCS1163.severity = warning # Unused parameter.
