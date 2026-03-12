@@ -10,6 +10,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CCA7DB34-96AB-456E-AE12-C291B7716EED}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		.editorconfig = .editorconfig
+		Directory.Packages.props = Directory.Packages.props
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaconicAndIconic.DAL", "LaconicAndIconic.DAL\LaconicAndIconic.DAL.csproj", "{57F476C5-70A2-4EFB-9143-4A615EEB5E50}"
@@ -40,5 +43,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AD31B67B-E0F8-4EE5-A195-917997C8214C} = {5B7356F7-6CB9-4CF8-8ACC-6664574769BB}
+		{82157D2F-B84E-4215-A3F2-A1B42303E8BE} = {5B7356F7-6CB9-4CF8-8ACC-6664574769BB}
+		{57F476C5-70A2-4EFB-9143-4A615EEB5E50} = {5B7356F7-6CB9-4CF8-8ACC-6664574769BB}
 	EndGlobalSection
 EndGlobal
