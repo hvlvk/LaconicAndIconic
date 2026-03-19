@@ -76,6 +76,12 @@ public partial class AuthService : IAuthService
         return result;
     }
 
+    public async Task LogoutAsync()
+    {
+        await _signInManager.SignOutAsync();
+        _logger.LogInformation("User logged out");
+    }
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to register user with email {Email}.")]
     private static partial void LogRegistrationAttempt(ILogger logger, string email);
 
