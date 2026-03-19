@@ -1,17 +1,18 @@
 using System.Reflection;
 using LaconicAndIconic.DAL.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace LaconicAndIconic.DAL.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<Rating> Ratings => Set<Rating>();
@@ -39,6 +40,20 @@ public class ApplicationDbContext : DbContext
     {
         var entries = ChangeTracker.Entries<BaseEntity>();
         foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreatedAt = DateTime.UtcNow;
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        var userEntries = ChangeTracker.Entries<User>();
+        foreach (var entry in userEntries)
         {
             if (entry.State == EntityState.Added)
             {

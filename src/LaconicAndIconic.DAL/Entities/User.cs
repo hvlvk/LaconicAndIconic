@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+
 namespace LaconicAndIconic.DAL.Entities;
 
-public class User : BaseEntity
+public class User : IdentityUser<int>
 {
-    public string Username { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? UpdatedAt { get; set; }
 
     public ICollection<Recipe> Recipes { get; set; } = [];
     public ICollection<Rating> Ratings { get; set; } = [];

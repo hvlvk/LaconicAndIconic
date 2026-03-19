@@ -8,9 +8,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasKey(u => u.Id);
-
-        builder.Property(u => u.Username)
+        builder.Property(u => u.UserName)
             .IsRequired()
             .HasMaxLength(50);
 
@@ -21,15 +19,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .IsRequired()
             .HasMaxLength(100);
-
-        builder.Property(u => u.Role)
-            .IsRequired()
-            .HasMaxLength(15);
-
-        builder.HasIndex(u => u.Email)
-            .IsUnique();
-
-        builder.HasIndex(u => u.Username)
-            .IsUnique();
     }
 }
