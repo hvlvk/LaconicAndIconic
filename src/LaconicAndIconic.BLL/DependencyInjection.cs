@@ -9,6 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddBusinessLogicLayer(this IServiceCollection services)
     {
         services.AddScoped<IExampleService, ExampleService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
