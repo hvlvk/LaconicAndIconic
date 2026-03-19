@@ -10,6 +10,6 @@ public class Recipe : BaseEntity
 
     public Category Category { get; set; } = null!;
     public User Author { get; set; } = null!;
-    public ICollection<Rating> Ratings { get; set; } = [];
-    public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<Rating> Ratings { get; } = [];
+    public ICollection<Comment> Comments { get; } = [];
 }

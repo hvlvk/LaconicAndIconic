@@ -8,7 +8,7 @@ public class User : IdentityUser<int>
 
     public DateTime? UpdatedAt { get; set; }
 
-    public ICollection<Recipe> Recipes { get; set; } = [];
-    public ICollection<Rating> Ratings { get; set; } = [];
-    public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<Recipe> Recipes { get; } = [];
+    public ICollection<Rating> Ratings { get; } = [];
+    public ICollection<Comment> Comments { get; } = [];
 }
