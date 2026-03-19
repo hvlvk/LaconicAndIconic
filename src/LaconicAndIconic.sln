@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaconicAndIconic.DAL", "Lac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaconicAndIconic.BLL", "LaconicAndIconic.BLL\LaconicAndIconic.BLL.csproj", "{82157D2F-B84E-4215-A3F2-A1B42303E8BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LaconicAndIconic.Tests", "LaconicAndIconic.Tests\LaconicAndIconic.Tests.csproj", "{F41041C5-8AD9-4A7D-AFCD-342A79D257A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{82157D2F-B84E-4215-A3F2-A1B42303E8BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82157D2F-B84E-4215-A3F2-A1B42303E8BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82157D2F-B84E-4215-A3F2-A1B42303E8BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F41041C5-8AD9-4A7D-AFCD-342A79D257A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F41041C5-8AD9-4A7D-AFCD-342A79D257A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F41041C5-8AD9-4A7D-AFCD-342A79D257A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F41041C5-8AD9-4A7D-AFCD-342A79D257A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AD31B67B-E0F8-4EE5-A195-917997C8214C} = {5B7356F7-6CB9-4CF8-8ACC-6664574769BB}
