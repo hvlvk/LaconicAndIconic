@@ -20,3 +20,20 @@ dotnet_diagnostic.RCS1213.severity = warning # Remove unused member declaration.
 
 # ROSLYNATOR
 # See: https://github.com/dotnet/roslynator/blob/main/docs/analyzers/README.md
+
+# CA1515: ViewModels/DTOs/requests must be public — internal-by-default doesn't apply here.
+dotnet_diagnostic.CA1515.severity = none
+# CA1062: Validate parameter is non-null — DI runtime guarantees injected params are non-null.
+dotnet_diagnostic.CA1062.severity = none
+# CA2007: Do not require ConfigureAwait — this is an ASP.NET Core app, not a reusable library.
+dotnet_diagnostic.CA2007.severity = none
+
+[**/Migrations/**.cs]
+# CA1861: EF Core auto-generated migration files — constant arrays are acceptable in generated code.
+dotnet_diagnostic.CA1861.severity = none
+
+[**/*.Tests/**.cs]
+# CA1707: Unit test methods use the Method_Scenario_ExpectedResult pattern with underscores.
+# This is the naming convention explicitly recommended by Microsoft:
+# https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices#naming-your-tests
+dotnet_diagnostic.CA1707.severity = none
