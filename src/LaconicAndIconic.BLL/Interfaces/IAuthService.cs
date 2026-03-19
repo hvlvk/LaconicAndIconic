@@ -7,4 +7,5 @@ public interface IAuthService
 {
     Task<LoginResult> LoginAsync(string email, string password, bool rememberMe);
     Task<IdentityResult> RegisterAsync(RegisterRequest request);
+    Task LogoutAsync();
 }
