@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using LaconicAndIconic.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LaconicAndIconic.Web.Controllers;
@@ -21,6 +22,13 @@ public class HomeController : Controller
 
     [HttpGet]
     public IActionResult Privacy()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult Dashboard()
     {
         return View();
     }
