@@ -1,5 +1,6 @@
 :root {
     --ck-bg: #FDF5EF;
+    --ck-header-bg: #FDF6F0;
     --ck-white: #FFFFFF;
     --ck-orange: #E8913A;
     --ck-orange-hover: #D4802E;
@@ -27,8 +28,9 @@ body {
 /* ── App header (main / details pages) ── */
 
 .ck-header {
-    background: var(--ck-bg);
+    background: var(--ck-header-bg);
     border-bottom: 1px solid var(--ck-border);
+    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.08);
     padding: 14px 32px;
     display: flex;
     align-items: center;

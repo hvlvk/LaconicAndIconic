@@ -1,9 +1,26 @@
 body.auth-page {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     padding: 24px;
+}
+
+.auth-brand {
+    position: absolute;
+    top: 24px;
+    left: 32px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ck-text);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+}
+
+.auth-brand:hover {
+    color: var(--ck-text);
+    text-decoration: none;
 }
 
 .auth-wrap {

@@ -79,6 +79,7 @@ public class AccountController : Controller
 
         if (result.Succeeded)
         {
+            await _authService.LoginAsync(model.Email, model.Password, rememberMe: false);
             return RedirectToAction("Index", "Home");
         }
 
