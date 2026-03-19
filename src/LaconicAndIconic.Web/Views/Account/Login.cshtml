@@ -2,39 +2,73 @@
 
 @{
     ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<h2>Login</h2>
+<div class="auth-wrapper">
+    <div class="auth-brand">Cookit</div>
+    <div class="auth-card">
+        <div class="auth-collage">
+            @for (var i = 1; i <= 6; i++)
+            {
+                <picture>
+                    <source srcset="~/images/login/food-@(i).webp" type="image/webp"/>
+                    <img src="~/images/login/food-@(i).jpg" alt="Food @i"
+                         onerror="this.parentElement.outerHTML='<div class=\'collage-placeholder\'>&#127858;</div>'"/>
+                </picture>
+            }
+        </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div class="auth-form-section">
+            <h2>@("Вітаємо в Cookit")</h2>
+            <p class="auth-subtitle">@("Авторизуйтесь, щоб продовжити")</p>
 
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" autocomplete="email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="auth-validation-summary">
+                        <div asp-validation-summary="All"></div>
+                    </div>
+                }
 
-            <div class="form-group mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" autocomplete="current-password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <div class="form-check">
-                    <input asp-for="RememberMe" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label"></label>
+                <div class="auth-input-group">
+                    <span class="auth-icon">&#9993;</span>
+                    <input asp-for="Email" placeholder="Email" autocomplete="email"/>
+                    <span asp-validation-for="Email"></span>
                 </div>
-            </div>
 
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
+                <div class="auth-input-group">
+                    <span class="auth-icon">&#128274;</span>
+                    <input asp-for="Password" type="password" id="passwordInput" placeholder="@("Пароль")" autocomplete="current-password"/>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">&#128065;</button>
+                    <span asp-validation-for="Password"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="auth-remember-row">
+                        <input asp-for="RememberMe"/>
+                        <label asp-for="RememberMe">@("Запам'ятати мене")</label>
+                    </div>
+                    <a class="auth-forgot-link mb-0" href="#">@("Забули пароль?")</a>
+                </div>
+
+                <button type="submit" class="auth-submit-btn">@("Увійти")</button>
+            </form>
+
+            <div class="auth-alt-action">
+                @("Ще не маєте акаунту?")
+                <a href="#">@("Зареєструватись")</a>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
+    <script>
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+    </script>
 }

@@ -1,0 +1,232 @@
+.auth-body {
+    background-color: #FDF5EF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 960px;
+}
+
+.auth-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2D2D2D;
+    margin-bottom: 1rem;
+}
+
+.auth-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    display: flex;
+    min-height: 480px;
+}
+
+/* Left side — image collage */
+.auth-collage {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    min-width: 0;
+}
+
+.auth-collage img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.auth-collage .collage-placeholder {
+    background: linear-gradient(135deg, #F5D6B8, #E8C4A0);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+/* Right side — form */
+.auth-form-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+}
+
+.auth-form-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2D2D2D;
+    margin-bottom: 0.25rem;
+}
+
+.auth-form-section .auth-subtitle {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+.auth-input-group {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.auth-input-group .auth-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B0B0B0;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.auth-input-group input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+    border: 1.5px solid #E8E8E8;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: #FAFAFA;
+    color: #2D2D2D;
+    transition: border-color 0.2s;
+}
+
+.auth-input-group input:focus {
+    outline: none;
+    border-color: #E8913A;
+    box-shadow: 0 0 0 3px rgba(232, 145, 58, 0.1);
+}
+
+.auth-input-group input::placeholder {
+    color: #B0B0B0;
+}
+
+.auth-input-group .toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #B0B0B0;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.1rem;
+}
+
+.auth-forgot-link {
+    display: block;
+    text-align: right;
+    color: #E8913A;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+}
+
+.auth-forgot-link:hover {
+    color: #D07A2A;
+    text-decoration: underline;
+}
+
+.auth-submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #E8913A;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.auth-submit-btn:hover {
+    background-color: #D07A2A;
+}
+
+.auth-alt-action {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.auth-alt-action a {
+    color: #E8913A;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.auth-alt-action a:hover {
+    color: #D07A2A;
+}
+
+.auth-remember-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.auth-remember-row input[type="checkbox"] {
+    accent-color: #E8913A;
+    margin-right: 0.5rem;
+}
+
+.auth-remember-row label {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0;
+}
+
+/* Validation errors */
+.auth-validation-summary {
+    background: #FFF3F3;
+    border: 1px solid #FFCDD2;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #C62828;
+}
+
+.auth-validation-summary ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.field-validation-error {
+    color: #C62828;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-card {
+        flex-direction: column;
+    }
+
+    .auth-collage {
+        max-height: 200px;
+    }
+
+    .auth-form-section {
+        padding: 2rem 1.5rem;
+    }
+}
