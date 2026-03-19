@@ -149,6 +149,10 @@ body.auth-page {
     text-decoration: underline;
 }
 
+.auth-submit {
+    margin-top: 10px;
+}
+
 .auth-alt {
     text-align: center;
     margin-top: 20px;
