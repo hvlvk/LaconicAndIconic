@@ -21,4 +21,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Identity.UI" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Views\Auth\" />
+    </ItemGroup>
+
 </Project>
