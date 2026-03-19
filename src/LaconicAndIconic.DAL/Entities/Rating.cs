@@ -7,5 +7,5 @@ public class Rating : BaseEntity
     public int Score { get; set; }
 
     public required Recipe Recipe { get; set; }
-    public required User User { get; set; }
+    public required ApplicationUser User { get; set; }
 }

@@ -1,0 +1,165 @@
+:root {
+    --ck-bg: #FDF5EF;
+    --ck-header-bg: #FDF6F0;
+    --ck-white: #FFFFFF;
+    --ck-orange: #E8913A;
+    --ck-orange-hover: #D4802E;
+    --ck-text: #2B2B2B;
+    --ck-text-muted: #8C8C8C;
+    --ck-border: #E5E1DC;
+    --ck-input-bg: #FAF8F6;
+    --ck-error: #C44040;
+    --ck-error-bg: #FFF0F0;
+    --ck-radius: 10px;
+    --ck-radius-lg: 14px;
+    --ck-radius-pill: 50px;
+}
+
+html {
+    font-size: 15px;
+}
+
+body {
+    background: var(--ck-bg);
+    color: var(--ck-text);
+    margin: 0;
+}
+
+/* ── App header (main / details pages) ── */
+
+.ck-header {
+    background: var(--ck-header-bg);
+    border-bottom: 1px solid var(--ck-border);
+    box-shadow: 0 1px 4px rgba(60, 40, 20, 0.08);
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.ck-brand {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ck-text);
+    text-decoration: none;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+}
+
+.ck-brand:hover {
+    color: var(--ck-text);
+    text-decoration: none;
+}
+
+.ck-search {
+    flex: 1;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.ck-search input {
+    width: 100%;
+    padding: 10px 16px 10px 42px;
+    border: 1px solid var(--ck-border);
+    border-radius: var(--ck-radius);
+    background: var(--ck-white);
+    font-size: 0.93rem;
+    color: var(--ck-text);
+}
+
+.ck-search input::placeholder {
+    color: var(--ck-text-muted);
+}
+
+.ck-search input:focus {
+    outline: none;
+    border-color: var(--ck-orange);
+}
+
+.ck-search svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ck-text-muted);
+    pointer-events: none;
+}
+
+.ck-header-icons {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-shrink: 0;
+}
+
+.ck-header-icons a,
+.ck-header-icons button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--ck-text);
+    display: flex;
+    align-items: center;
+}
+
+.ck-header-icons svg {
+    width: 24px;
+    height: 24px;
+}
+
+.ck-header-icons .ck-heart-active svg {
+    color: #E85454;
+    fill: #E85454;
+}
+
+/* ── Shared form elements ── */
+
+.ck-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    background: var(--ck-orange);
+    color: var(--ck-white);
+    border: none;
+    border-radius: var(--ck-radius-pill);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.ck-btn:hover {
+    background: var(--ck-orange-hover);
+    color: var(--ck-white);
+}
+
+.ck-btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--ck-orange);
+    color: var(--ck-orange);
+}
+
+.ck-btn-outline:hover {
+    background: var(--ck-orange);
+    color: var(--ck-white);
+}
+
+.ck-btn-block {
+    display: block;
+    width: 100%;
+}
+
+.ck-link {
+    color: var(--ck-orange);
+    text-decoration: underline;
+}
+
+.ck-link:hover {
+    color: var(--ck-orange-hover);
+}

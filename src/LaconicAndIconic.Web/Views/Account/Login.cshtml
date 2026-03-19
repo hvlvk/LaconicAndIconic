@@ -1,0 +1,74 @@
+@model LaconicAndIconic.Web.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Вхід";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-collage">
+            @for (var i = 1; i <= 6; i++)
+            {
+                <img src="~/images/login/food-@(i).jpg" alt=""
+                     onerror="this.outerHTML='<div class=placeholder-cell></div>'"/>
+            }
+        </div>
+
+        <div class="auth-form">
+            <h1>Вітаємо в Cookit</h1>
+            <p class="subtitle">Авторизуйтесь, щоб продовжити</p>
+
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="auth-errors">
+                        <div asp-validation-summary="All"></div>
+                    </div>
+                }
+
+                <div class="input-field">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="16" x="2" y="4" rx="2"/>
+                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
+                    <input asp-for="Email" placeholder="Email" autocomplete="email"/>
+                    <span asp-validation-for="Email"></span>
+                </div>
+
+                <div class="input-field">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input asp-for="Password" type="password" id="pw" placeholder="Пароль" autocomplete="current-password"/>
+                    <button type="button" class="pw-toggle" onclick="var p=document.getElementById('pw');p.type=p.type==='password'?'text':'password'">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                    <span asp-validation-for="Password"></span>
+                </div>
+
+                <div class="forgot-row">
+                    <a href="#">Забули пароль?</a>
+                </div>
+
+                <input type="hidden" asp-for="RememberMe" value="false"/>
+                <button type="submit" class="ck-btn ck-btn-block">Увійти</button>
+            </form>
+
+            <div class="auth-alt">
+                Ще не маєте акаунту?
+                <a asp-controller="Account" asp-action="Register">Зареєструватись</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

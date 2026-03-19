@@ -4,5 +4,14 @@
     <AnalysisMode>All</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <!--
+      CA1062: Validate arguments of public methods — framework handles nulls (DI, EF, MVC binding)
+      CA1054: URI parameters should not be strings — returnUrl as string is standard MVC convention
+      CA1724: Type names should not match namespaces — DependencyInjection is a project convention
+      CA1848: Use LoggerMessage delegates — overkill, standard ILogger extensions are fine
+      CA1861: Avoid constant arrays as arguments — only fires in auto-generated migrations
+      CA2007: Do not directly await a Task — ConfigureAwait not needed in ASP.NET Core
+    -->
+    <NoWarn>$(NoWarn);CA1062;CA1054;CA1724;CA1848;CA1861;CA2007</NoWarn>
   </PropertyGroup>
 </Project>

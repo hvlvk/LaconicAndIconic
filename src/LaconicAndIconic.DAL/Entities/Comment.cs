@@ -7,5 +7,5 @@ public class Comment : BaseEntity
     public string Content { get; set; } = string.Empty;
 
     public required Recipe Recipe { get; set; }
-    public required User Author { get; set; }
+    public required ApplicationUser Author { get; set; }
 }

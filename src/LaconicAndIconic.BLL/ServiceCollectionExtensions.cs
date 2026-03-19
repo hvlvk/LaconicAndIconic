@@ -4,11 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LaconicAndIconic.BLL;
 
-public static class DependencyInjection
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBusinessLogicLayer(this IServiceCollection services)
     {
         services.AddScoped<IExampleService, ExampleService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
