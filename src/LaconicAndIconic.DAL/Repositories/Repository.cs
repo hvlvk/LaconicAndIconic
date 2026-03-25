@@ -6,31 +6,31 @@ namespace LaconicAndIconic.DAL.Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {
-    private readonly ApplicationDbContext _context;
+    protected ApplicationDbContext Context { get; }
 
     public Repository(ApplicationDbContext context)
     {
-        _context = context;
+        Context = context;
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
-        => await _context.Set<T>().ToListAsync();
+        => await Context.Set<T>().ToListAsync();
 
     public async Task<T?> GetByIdAsync(int id)
-        => await _context.Set<T>().FindAsync(id);
+        => await Context.Set<T>().FindAsync(id);
 
     public async Task AddAsync(T entity)
-        => await _context.Set<T>().AddAsync(entity);
+        => await Context.Set<T>().AddAsync(entity);
 
     public void Update(T entity)
-        => _context.Set<T>().Update(entity);
+        => Context.Set<T>().Update(entity);
 
     public void Remove(T entity)
-        => _context.Set<T>().Remove(entity);
+        => Context.Set<T>().Remove(entity);
 
     public async Task<bool> ExistsAsync(int id)
-        => await _context.Set<T>().FindAsync(id) is not null;
+        => await Context.Set<T>().FindAsync(id) is not null;
 
     public async Task SaveChangesAsync()
-        => await _context.SaveChangesAsync();
+        => await Context.SaveChangesAsync();
 }
