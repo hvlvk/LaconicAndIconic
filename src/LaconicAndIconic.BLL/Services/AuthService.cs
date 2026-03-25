@@ -1,6 +1,7 @@
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
+using LaconicAndIconic.DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -9,47 +10,47 @@ namespace LaconicAndIconic.BLL.Services;
 public partial class AuthService : IAuthService
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         SignInManager<ApplicationUser> signInManager,
-        UserManager<ApplicationUser> userManager,
+        IUserRepository userRepository,
         ILogger<AuthService> logger)
     {
         _signInManager = signInManager;
-        _userManager = userManager;
+        _userRepository = userRepository;
         _logger = logger;
     }
 
-    public async Task<LoginResult> LoginAsync(string email, string password, bool rememberMe)
+    public async Task<Result<LoginResult>> LoginAsync(string email, string password, bool rememberMe)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _userRepository.FindByEmailAsync(email);
         if (user is null)
         {
             _logger.LogWarning("Login attempt for non-existent email: {Email}", email);
-            return LoginResult.InvalidCredentials;
+            return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
+        var signInResult = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
 
-        if (result.Succeeded)
+        if (signInResult.Succeeded)
         {
             _logger.LogInformation("User {Email} logged in successfully", email);
-            return LoginResult.Success;
+            return Result<LoginResult>.Success(LoginResult.Success);
         }
 
-        if (result.IsLockedOut)
+        if (signInResult.IsLockedOut)
         {
             _logger.LogWarning("User account locked out for email: {Email}", email);
-            return LoginResult.LockedOut;
+            return Result<LoginResult>.Success(LoginResult.LockedOut);
         }
 
         _logger.LogWarning("Invalid credentials for email: {Email}", email);
-        return LoginResult.InvalidCredentials;
+        return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
     }
 
-    public async Task<IdentityResult> RegisterAsync(RegisterRequest request)
+    public async Task<Result> RegisterAsync(RegisterRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
 
@@ -61,25 +62,24 @@ public partial class AuthService : IAuthService
             Email = request.Email,
         };
 
-        var result = await _userManager.CreateAsync(user, request.Password).ConfigureAwait(false);
+        var identityResult = await _userRepository.CreateAsync(user, request.Password);
 
-        if (result.Succeeded)
+        if (identityResult.Succeeded)
         {
             LogRegistrationSuccess(_logger, request.UserName);
-        }
-        else
-        {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            LogRegistrationFailure(_logger, request.Email, errors);
+            return Result.Success();
         }
 
-        return result;
+        var errors = string.Join(" ", identityResult.Errors.Select(e => e.Description));
+        LogRegistrationFailure(_logger, request.Email, errors);
+        return Result.Failure(errors);
     }
 
-    public async Task LogoutAsync()
+    public async Task<Result> LogoutAsync()
     {
         await _signInManager.SignOutAsync();
         _logger.LogInformation("User logged out");
+        return Result.Success();
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Attempting to register user with email {Email}.")]
