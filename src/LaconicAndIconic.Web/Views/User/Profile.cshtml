@@ -4,6 +4,19 @@
 }
 
 <div class="user-profile">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background-color: var(--ck-input-bg); border-left: 4px solid var(--ck-orange); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-text);">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div style="background-color: var(--ck-error-bg); border-left: 4px solid var(--ck-error); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-error);">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
     <!-- User Header Section -->
     <div class="user-header">
         <div class="user-avatar-wrapper" style="position: relative; display: inline-block; width: 120px; height: 120px;">
@@ -92,8 +105,16 @@
                                 </svg>
                                 0.0
                             </span>
-                            <span class="recipe-author">@($"@{Model.UserName}")</span>      
+                            <span class="recipe-author">@($"@{Model.UserName}")</span>
                         </div>
+                        @if (Model.IsOwnProfile)
+                        {
+                            <div style="margin-top: 10px;">
+                                <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
+                                    <button type="submit" class="ck-btn ck-btn-danger" style="background-color: var(--ck-error); color: white; padding: 6px 12px; font-size: 0.85rem; border: none; border-radius: var(--ck-radius-pill); cursor: pointer;">Видалити</button>
+                                </form>
+                            </div>
+                        }
                     </div>
                 </div>
             }
