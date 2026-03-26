@@ -29,10 +29,11 @@ public class UserController : Controller
 
         var viewModel = new UserProfileViewModel
         {
+            Id = result.Value.Id,
             UserName = result.Value.UserName,
             IsOwnProfile = User.GetUserId() == id
         };
 
-        return View("~/Views/Home/UserProfile.cshtml", viewModel);
+        return View(viewModel);
     }
 }
