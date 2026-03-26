@@ -1,6 +1,9 @@
 using LaconicAndIconic.BLL;
 using LaconicAndIconic.DAL;
+using LaconicAndIconic.Web.Middleware;
 using LaconicAndIconic.Web.Seeding;
+using LaconicAndIconic.Web.Services;
+using LaconicAndIconic.BLL.Interfaces;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +16,7 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfig
 builder.Services.AddControllersWithViews();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
+builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -22,11 +26,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
@@ -43,4 +43,4 @@ app.MapControllerRoute(
 
 await TestUserSeeder.SeedAsync(app.Services);
 
-app.Run();
+await app.RunAsync();

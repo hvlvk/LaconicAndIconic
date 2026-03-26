@@ -1,5 +1,7 @@
 using LaconicAndIconic.DAL.Data;
 using LaconicAndIconic.DAL.Entities;
+using LaconicAndIconic.DAL.Interfaces;
+using LaconicAndIconic.DAL.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +30,9 @@ public static class ServiceCollectionExtensions
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

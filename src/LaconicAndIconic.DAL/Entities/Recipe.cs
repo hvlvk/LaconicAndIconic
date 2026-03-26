@@ -6,6 +6,7 @@ public class Recipe : BaseEntity
     public int AuthorId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? ImagePath { get; set; }
     public int PrepTimeMin { get; set; }
 
     public Category Category { get; set; } = null!;

@@ -1,0 +1,137 @@
+﻿@model LaconicAndIconic.Web.Models.UserProfileViewModel
+@{
+    ViewData["Title"] = "Профіль користувача";
+}
+
+<div class="user-profile">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background-color: var(--ck-input-bg); border-left: 4px solid var(--ck-orange); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-text);">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div style="background-color: var(--ck-error-bg); border-left: 4px solid var(--ck-error); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-error);">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- User Header Section -->
+    <div class="user-header">
+        <div class="user-avatar-wrapper" style="position: relative; display: inline-block; width: 120px; height: 120px;">
+            <div class="user-avatar" style="width: 120px; height: 120px; margin: 0;">
+                @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                {
+                    <img src="@Model.ProfilePicturePath" alt="@Model.UserName profile picture" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                }
+                else
+                {
+                    <div style="width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #888;">
+                        <span>Photo</span>
+                    </div>
+                }
+            </div>
+
+            @if (Model.IsOwnProfile)
+            {
+                <form asp-controller="User" asp-action="UpdateProfilePicture" method="post" enctype="multipart/form-data" id="profilePictureForm">
+                    <label for="profilePictureInput" class="edit-avatar-btn" style="position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 1px solid #ccc;" title="Edit Profile Picture">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </label>
+                    <input type="file" id="profilePictureInput" name="profilePicture" accept="image/*" style="display: none;" onchange="document.getElementById('profilePictureForm').submit();" />
+                </form>
+            }
+        </div>
+        <div class="user-info">
+            <h1 class="user-name">@Model.UserName</h1>
+            <div class="user-stats">
+                <span class="stat">32 рецепти</span>
+                <span class="stat-divider">|</span>
+                <span class="stat">122 підписники</span>
+            </div>
+        </div>
+        @if (!Model.IsOwnProfile)
+        {
+            <button class="ck-btn subscribe-btn">Підписатись</button>
+        }
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="profile-tabs">
+        <button class="tab-btn active">Рецепти</button>
+        @if (Model.IsOwnProfile)
+        {
+            <button class="tab-btn">Збережені</button>
+            <button class="tab-btn">Списки</button>
+        }
+    </div>
+
+    <!-- Recipe Cards Grid -->
+    <div class="recipe-grid">
+        @if (!Model.Recipes.Any())
+        {
+            <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Немає рецептів.</p>
+        }
+        else
+        {
+            @foreach (var recipe in Model.Recipes)
+            {
+                <div class="recipe-card">
+                    <div class="recipe-image">
+                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                        {
+                            <img src="@recipe.ImagePath" alt="@recipe.Title">
+                        }
+                        else
+                        {
+                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                        }
+                        <button class="favorite-btn">    
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="recipe-details">
+                        <h3 class="recipe-title">@recipe.Title</h3>
+                        <div class="recipe-meta">
+                            <span class="recipe-rating">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                0.0
+                            </span>
+                            <span class="recipe-author">@($"@{Model.UserName}")</span>
+                        </div>
+                        @if (Model.IsOwnProfile)
+                        {
+                            <div style="margin-top: 10px;">
+                                <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
+                                    <button type="submit" class="ck-btn ck-btn-danger" style="background-color: var(--ck-error); color: white; padding: 6px 12px; font-size: 0.85rem; border: none; border-radius: var(--ck-radius-pill); cursor: pointer;">Видалити</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Add New Recipe Button -->
+    <div class="add-recipe-container">
+        @if (Model.IsOwnProfile)
+        {
+            <a asp-controller="Recipe" asp-action="Create" class="ck-btn add-recipe-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Додати новий рецепт
+            </a>
+        }
+    </div>
+</div>
