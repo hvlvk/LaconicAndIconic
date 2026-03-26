@@ -11,10 +11,12 @@ namespace LaconicAndIconic.Web.Controllers;
 public class UserController : Controller
 {
     private readonly IUserService _userService;
+    private readonly IRecipeService _recipeService;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IRecipeService recipeService)
     {
         _userService = userService;
+        _recipeService = recipeService;
     }
 
     [HttpGet("User/{id:int}")]
@@ -28,12 +30,15 @@ public class UserController : Controller
             return NotFound();
         }
 
+        var recipesResult = await _recipeService.GetRecipesByAuthorIdAsync(id);
+
         var viewModel = new UserProfileViewModel
         {
             Id = result.Value.Id,
             UserName = result.Value.UserName,
             ProfilePicturePath = result.Value.ProfilePicturePath,
-            IsOwnProfile = User.GetUserId() == id
+            IsOwnProfile = User.GetUserId() == id,
+            Recipes = recipesResult.IsSuccess && recipesResult.Value != null ? recipesResult.Value : []
         };
 
         return View(viewModel);

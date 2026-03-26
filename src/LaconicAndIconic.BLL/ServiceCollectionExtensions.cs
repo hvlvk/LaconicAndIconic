@@ -10,6 +10,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IRecipeService, RecipeService>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         return services;
     }

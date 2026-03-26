@@ -14,13 +14,15 @@ namespace LaconicAndIconic.Tests.Controllers;
 public sealed class UserControllerTests : IDisposable
 {
     private readonly Mock<IUserService> _userServiceMock;
+    private readonly Mock<IRecipeService> _recipeServiceMock;
     private readonly UserController _controller;
 
     public UserControllerTests()
     {
         _userServiceMock = new Mock<IUserService>();
+        _recipeServiceMock = new Mock<IRecipeService>();
 
-        _controller = new UserController(_userServiceMock.Object)
+        _controller = new UserController(_userServiceMock.Object, _recipeServiceMock.Object)
         {
             ControllerContext = new ControllerContext
             {
@@ -73,9 +75,14 @@ public sealed class UserControllerTests : IDisposable
         SetUserContext(userId);
 
         var userDto = new UserProfileDto { Id = userId, UserName = "testuser" };
+        var recipesDto = new List<RecipeDto>();
         _userServiceMock
             .Setup(s => s.GetUserProfileByIdAsync(userId))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
+            
+        _recipeServiceMock
+            .Setup(s => s.GetRecipesByAuthorIdAsync(userId))
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
 
         // Act
         var result = await _controller.Profile(userId) as ViewResult;
@@ -99,9 +106,14 @@ public sealed class UserControllerTests : IDisposable
         SetUserContext(loggedInUserId);
 
         var userDto = new UserProfileDto { Id = targetUserId, UserName = "otheruser" };
+        var recipesDto = new List<RecipeDto>();
         _userServiceMock
             .Setup(s => s.GetUserProfileByIdAsync(targetUserId))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
+            
+        _recipeServiceMock
+            .Setup(s => s.GetRecipesByAuthorIdAsync(targetUserId))
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
 
         // Act
         var result = await _controller.Profile(targetUserId) as ViewResult;
@@ -122,9 +134,14 @@ public sealed class UserControllerTests : IDisposable
         SetUserContext(null); // Unauthenticated
 
         var userDto = new UserProfileDto { Id = targetUserId, UserName = "otheruser" };
+        var recipesDto = new List<RecipeDto>();
         _userServiceMock
             .Setup(s => s.GetUserProfileByIdAsync(targetUserId))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
+            
+        _recipeServiceMock
+            .Setup(s => s.GetRecipesByAuthorIdAsync(targetUserId))
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
 
         // Act
         var result = await _controller.Profile(targetUserId) as ViewResult;
