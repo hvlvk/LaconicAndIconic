@@ -48,4 +48,19 @@ public class RecipeController : Controller
         ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Помилка при створенні рецепту");
         return View(model);
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = User.GetUserId();
+        var result = await _recipeService.DeleteRecipeAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+
+        return RedirectToAction("Profile", "User", new { id = userId });
+    }
 }

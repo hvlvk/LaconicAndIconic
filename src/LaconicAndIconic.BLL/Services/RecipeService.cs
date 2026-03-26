@@ -86,4 +86,23 @@ public class RecipeService : IRecipeService
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
+
+    public async Task<Result> DeleteRecipeAsync(int recipeId, int authorId)
+    {
+        var recipe = await _recipeRepository.GetByIdAsync(recipeId);
+        if (recipe == null)
+        {
+            return Result.Failure("Recipe not found");
+        }
+
+        if (recipe.AuthorId != authorId)
+        {
+            return Result.Failure("You can only delete your own recipes");
+        }
+
+        _recipeRepository.Remove(recipe);
+        await _recipeRepository.SaveChangesAsync();
+
+        return Result.Success();
+    }
 }

@@ -106,4 +106,59 @@ public class RecipeServiceTests
         Assert.Equal(2, result.Value!.Count());
         Assert.Equal("R1", result.Value!.First().Title);
     }
+
+    [Fact]
+    public async Task DeleteRecipeAsync_ExistingRecipeAndValidAuthor_ReturnsSuccess()
+    {
+        // Arrange
+        var recipeId = 1;
+        var authorId = 1;
+        var recipe = new Recipe { Id = recipeId, AuthorId = authorId };
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync(recipe);
+
+        // Act
+        var result = await _service.DeleteRecipeAsync(recipeId, authorId);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _recipeRepositoryMock.Verify(r => r.Remove(recipe), Times.Once);
+        _recipeRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteRecipeAsync_RecipeNotFound_ReturnsFailure()
+    {
+        // Arrange
+        var recipeId = 99;
+        var authorId = 1;
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync((Recipe?)null);
+
+        // Act
+        var result = await _service.DeleteRecipeAsync(recipeId, authorId);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Recipe not found", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DeleteRecipeAsync_WrongAuthor_ReturnsFailure()
+    {
+        // Arrange
+        var recipeId = 1;
+        var authorId = 2; // the requester
+        var recipe = new Recipe { Id = recipeId, AuthorId = 1 }; // original author is 1
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync(recipe);
+
+        // Act
+        var result = await _service.DeleteRecipeAsync(recipeId, authorId);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("You can only delete your own recipes", result.ErrorMessage);
+        _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
+    }
 }
