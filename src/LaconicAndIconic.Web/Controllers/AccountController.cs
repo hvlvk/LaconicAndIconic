@@ -8,12 +8,10 @@ namespace LaconicAndIconic.Web.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthService _authService;
-    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IAuthService authService, ILogger<AccountController> logger)
+    public AccountController(IAuthService authService)
     {
         _authService = authService;
-        _logger = logger;
     }
 
     [HttpGet]
@@ -36,14 +34,12 @@ public class AccountController : Controller
 
         var result = await _authService.LoginAsync(model.Email, model.Password, model.RememberMe);
 
-        switch (result)
+        switch (result.Value)
         {
             case LoginResult.Success:
-                _logger.LogInformation("User {Email} logged in via web", model.Email);
                 return RedirectToLocal(returnUrl);
 
             case LoginResult.LockedOut:
-                _logger.LogWarning("Locked out user attempted login: {Email}", model.Email);
                 ModelState.AddModelError(string.Empty, "Account is locked out. Please try again later.");
                 return View(model);
 
@@ -77,17 +73,13 @@ public class AccountController : Controller
 
         var result = await _authService.RegisterAsync(request);
 
-        if (result.Succeeded)
+        if (result.IsSuccess)
         {
             await _authService.LoginAsync(model.Email, model.Password, rememberMe: false);
             return RedirectToAction("Index", "Home");
         }
 
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
-
+        ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Registration failed.");
         return View(model);
     }
 

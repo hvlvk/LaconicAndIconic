@@ -1,5 +1,6 @@
 using LaconicAndIconic.BLL;
 using LaconicAndIconic.DAL;
+using LaconicAndIconic.Web.Middleware;
 using LaconicAndIconic.Web.Seeding;
 using Serilog;
 
@@ -22,11 +23,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
@@ -43,4 +40,4 @@ app.MapControllerRoute(
 
 await TestUserSeeder.SeedAsync(app.Services);
 
-app.Run();
+await app.RunAsync();
