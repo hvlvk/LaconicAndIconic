@@ -1,0 +1,51 @@
+using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Models;
+using LaconicAndIconic.Web.Extensions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LaconicAndIconic.Web.Controllers;
+
+[Authorize]
+public class RecipeController : Controller
+{
+    private readonly IRecipeService _recipeService;
+    private readonly ICategoryService _categoryService;
+
+    public RecipeController(IRecipeService recipeService, ICategoryService categoryService)
+    {
+        _recipeService = recipeService;
+        _categoryService = categoryService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        var categoryResult = await _categoryService.GetAllCategoriesAsync();
+        ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
+        return View(new CreateRecipeDto());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CreateRecipeDto model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var categoryResult = await _categoryService.GetAllCategoriesAsync();
+            ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
+            return View(model);
+        }
+
+        var userId = User.GetUserId();
+
+        var result = await _recipeService.CreateRecipeAsync(userId, model);
+        if (result.IsSuccess)
+        {
+            return RedirectToAction("Profile", "User", new { id = userId });
+        }
+
+        ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Помилка при створенні рецепту");
+        return View(model);
+    }
+}
