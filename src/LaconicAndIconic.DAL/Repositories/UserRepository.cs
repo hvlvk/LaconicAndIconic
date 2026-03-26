@@ -1,3 +1,4 @@
+using System.Globalization;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,9 @@ public class UserRepository : IUserRepository
 
     public Task<ApplicationUser?> FindByEmailAsync(string email)
         => _userManager.FindByEmailAsync(email);
+
+    public Task<ApplicationUser?> FindByIdAsync(int id)
+        => _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture));
 
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
         => _userManager.CreateAsync(user, password);

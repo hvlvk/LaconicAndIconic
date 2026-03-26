@@ -1,0 +1,75 @@
+﻿@model LaconicAndIconic.Web.Models.UserProfileViewModel
+@{
+    ViewData["Title"] = "Профіль користувача";
+}
+
+<div class="user-profile">
+    <!-- User Header Section -->
+    <div class="user-header">
+        <div class="user-avatar">
+            <span>User photo</span>
+        </div>
+        <div class="user-info">
+            <h1 class="user-name">@Model.UserName</h1>
+            <div class="user-stats">
+                <span class="stat">32 рецепти</span>
+                <span class="stat-divider">|</span>
+                <span class="stat">122 підписники</span>
+            </div>
+        </div>
+        @if (!Model.IsOwnProfile)
+        {
+            <button class="ck-btn subscribe-btn">Підписатись</button>
+        }
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="profile-tabs">
+        <button class="tab-btn active">Рецепти</button>
+        @if (Model.IsOwnProfile)
+        {
+            <button class="tab-btn">Збережені</button>
+            <button class="tab-btn">Списки</button>
+        }
+    </div>
+
+    <!-- Recipe Cards Grid -->
+    <div class="recipe-grid">
+        @for (int i = 0; i < 5; i++)
+        {
+            <div class="recipe-card">
+                <div class="recipe-image">
+                    <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Ванільні кекси">
+                    <button class="favorite-btn @(i == 1 ? "active" : "")">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="@(i == 1 ? "currentColor" : "none")" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="recipe-details">
+                    <h3 class="recipe-title">Ванільні кекси</h3>
+                    <div class="recipe-meta">
+                        <span class="recipe-rating">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            4.7
+                        </span>
+                        <span class="recipe-author">@("@")user_001</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Add New Recipe Button -->
+    <div class="add-recipe-container">
+        <button class="ck-btn add-recipe-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Додати новий рецепт
+        </button>
+    </div>
+</div>
