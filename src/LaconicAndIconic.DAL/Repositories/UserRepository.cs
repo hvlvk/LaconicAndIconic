@@ -22,4 +22,10 @@ public class UserRepository : IUserRepository
 
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
         => _userManager.CreateAsync(user, password);
+
+    public Task<IdentityResult> UpdateAsync(ApplicationUser user)
+        => _userManager.UpdateAsync(user);
+
+    public Task<ApplicationUser?> FindByUserNameAsync(string username)
+        => _userManager.FindByNameAsync(username);
 }

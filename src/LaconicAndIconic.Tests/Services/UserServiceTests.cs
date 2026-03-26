@@ -1,3 +1,4 @@
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
@@ -11,12 +12,14 @@ namespace LaconicAndIconic.Tests.Services;
 public class UserServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<IFileService> _fileServiceMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
-        _userService = new UserService(_userRepositoryMock.Object);
+        _fileServiceMock = new Mock<IFileService>();
+        _userService = new UserService(_userRepositoryMock.Object, _fileServiceMock.Object);
     }
 
     [Fact]

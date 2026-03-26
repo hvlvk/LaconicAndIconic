@@ -6,8 +6,32 @@
 <div class="user-profile">
     <!-- User Header Section -->
     <div class="user-header">
-        <div class="user-avatar">
-            <span>User photo</span>
+        <div class="user-avatar-wrapper" style="position: relative; display: inline-block; width: 120px; height: 120px;">
+            <div class="user-avatar" style="width: 120px; height: 120px; margin: 0;">
+                @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                {
+                    <img src="@Model.ProfilePicturePath" alt="@Model.UserName profile picture" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                }
+                else
+                {
+                    <div style="width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #888;">
+                        <span>Photo</span>
+                    </div>
+                }
+            </div>
+
+            @if (Model.IsOwnProfile)
+            {
+                <form asp-controller="User" asp-action="UpdateProfilePicture" method="post" enctype="multipart/form-data" id="profilePictureForm">
+                    <label for="profilePictureInput" class="edit-avatar-btn" style="position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 1px solid #ccc;" title="Edit Profile Picture">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                    </label>
+                    <input type="file" id="profilePictureInput" name="profilePicture" accept="image/*" style="display: none;" onchange="document.getElementById('profilePictureForm').submit();" />
+                </form>
+            }
         </div>
         <div class="user-info">
             <h1 class="user-name">@Model.UserName</h1>
