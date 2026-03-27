@@ -1,8 +1,47 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using LaconicAndIconic.BLL.Models
+@model IEnumerable<RecipeDto>
+@{
+    ViewData["Title"] = "Recipes";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="recipe-grid">
+    @if (!Model.Any())
+    {
+        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">No recipes yet. Be the first to share one!</p>
+    }
+    else
+    {
+        @foreach (var recipe in Model)
+        {
+            <div class="recipe-card">
+                <div class="recipe-image">
+                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                    {
+                        <img src="@recipe.ImagePath" alt="@recipe.Title">
+                    }
+                    else
+                    {
+                        <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                    }
+                    <button class="favorite-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="recipe-details">
+                    <h3 class="recipe-title">@recipe.Title</h3>
+                    <div class="recipe-meta">
+                        <span class="recipe-rating">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            0.0
+                        </span>
+                        <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
 </div>

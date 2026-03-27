@@ -161,4 +161,80 @@ public class RecipeServiceTests
         Assert.Equal("You can only delete your own recipes", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
     }
+
+    // --- GetAllRecipesAsync tests ---
+
+    [Fact]
+    public async Task GetAllRecipesAsync_RecipesExist_ReturnsMappedDtosOrderedByDateDescending()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var recipes = new List<Recipe>
+        {
+            new Recipe { Id = 1, Title = "Older", AuthorId = 1, CreatedAt = now.AddHours(-1) },
+            new Recipe { Id = 2, Title = "Newer", AuthorId = 1, CreatedAt = now }
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>()))
+            .ReturnsAsync(recipes);
+
+        // Act
+        var result = await _service.GetAllRecipesAsync();
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(2, result.Value!.Count());
+        Assert.Equal("Newer", result.Value!.First().Title);
+    }
+
+    [Fact]
+    public async Task GetAllRecipesAsync_NoRecipes_ReturnsSuccessWithEmptyCollection()
+    {
+        // Arrange
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>()))
+            .ReturnsAsync([]);
+
+        // Act
+        var result = await _service.GetAllRecipesAsync();
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Empty(result.Value!);
+    }
+
+    [Fact]
+    public async Task GetAllRecipesAsync_RecipesExist_MapsCategoryNameAndAuthorName()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 1,
+            Title = "Pasta",
+            Category = new Category { Name = "Italian" },
+            Author = new ApplicationUser { UserName = "chef" }
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>()))
+            .ReturnsAsync([recipe]);
+
+        // Act
+        var result = await _service.GetAllRecipesAsync();
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var dto = Assert.Single(result.Value!);
+        Assert.Equal("Italian", dto.CategoryName);
+        Assert.Equal("chef", dto.AuthorName);
+    }
 }

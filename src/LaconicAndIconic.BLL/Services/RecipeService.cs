@@ -87,6 +87,29 @@ public class RecipeService : IRecipeService
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
 
+    public async Task<Result<IEnumerable<RecipeDto>>> GetAllRecipesAsync()
+    {
+        var recipes = await _recipeRepository
+            .FindAsync(_ => true, r => r.Category, r => r.Author);
+
+        var dtos = recipes
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new RecipeDto
+            {
+                Id = r.Id,
+                Title = r.Title,
+                Description = r.Description,
+                ImagePath = r.ImagePath,
+                PrepTimeMin = r.PrepTimeMin,
+                CategoryId = r.CategoryId,
+                CategoryName = r.Category?.Name ?? string.Empty,
+                AuthorId = r.AuthorId,
+                AuthorName = r.Author?.UserName ?? string.Empty
+            });
+
+        return Result<IEnumerable<RecipeDto>>.Success(dtos);
+    }
+
     public async Task<Result> DeleteRecipeAsync(int recipeId, int authorId)
     {
         var recipe = await _recipeRepository.GetByIdAsync(recipeId);
