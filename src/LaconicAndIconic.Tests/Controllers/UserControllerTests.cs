@@ -15,14 +15,19 @@ public sealed class UserControllerTests : IDisposable
 {
     private readonly Mock<IUserService> _userServiceMock;
     private readonly Mock<IRecipeService> _recipeServiceMock;
+    private readonly Mock<IFavoriteService> _favoriteServiceMock;
     private readonly UserController _controller;
 
     public UserControllerTests()
     {
         _userServiceMock = new Mock<IUserService>();
         _recipeServiceMock = new Mock<IRecipeService>();
+        _favoriteServiceMock = new Mock<IFavoriteService>();
+        _favoriteServiceMock
+            .Setup(s => s.GetFavoritesByUserAsync(It.IsAny<int>()))
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(new List<RecipeDto>()));
 
-        _controller = new UserController(_userServiceMock.Object, _recipeServiceMock.Object)
+        _controller = new UserController(_userServiceMock.Object, _recipeServiceMock.Object, _favoriteServiceMock.Object)
         {
             ControllerContext = new ControllerContext
             {

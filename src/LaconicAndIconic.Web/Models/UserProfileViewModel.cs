@@ -10,4 +10,5 @@ public class UserProfileViewModel
     public string? ProfilePicturePath { get; set; }
     public bool IsOwnProfile { get; set; }
     public IEnumerable<RecipeDto> Recipes { get; set; } = [];
+    public IEnumerable<RecipeDto> Favorites { get; set; } = [];
 }

@@ -1,13 +1,13 @@
 @using LaconicAndIconic.BLL.Models
 @model IEnumerable<RecipeDto>
 @{
-    ViewData["Title"] = "My Favorites";
+    ViewData["Title"] = "Збережені";
 }
 
 <div class="recipe-grid">
     @if (!Model.Any())
     {
-        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">You haven't saved any recipes yet.</p>
+        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Ви ще не зберегли жодного рецепта.</p>
     }
     else
     {
@@ -23,21 +23,25 @@
                     {
                         <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
                     }
+                    <button type="button" class="favorite-btn active" data-recipe-id="@recipe.Id">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="recipe-details">
                     <h3 class="recipe-title">
-                        <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id">@recipe.Title</a>
+                        <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
                     </h3>
                     <div class="recipe-meta">
                         <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
                     </div>
-                    <form method="post" asp-controller="Favorites" asp-action="Remove">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="recipeId" value="@recipe.Id" />
-                        <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                    </form>
                 </div>
             </div>
         }
     }
 </div>
+
+@section Scripts {
+    <partial name="_FavoriteToggleScript" />
+}

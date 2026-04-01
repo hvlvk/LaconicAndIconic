@@ -62,69 +62,121 @@
 
     <!-- Navigation Tabs -->
     <div class="profile-tabs">
-        <button class="tab-btn active">Рецепти</button>
+        <button class="tab-btn active" data-tab="recipes">Рецепти</button>
         @if (Model.IsOwnProfile)
         {
-            <button class="tab-btn">Збережені</button>
+            <button class="tab-btn" data-tab="favorites">Збережені</button>
             <button class="tab-btn">Списки</button>
         }
     </div>
 
-    <!-- Recipe Cards Grid -->
-    <div class="recipe-grid">
-        @if (!Model.Recipes.Any())
-        {
-            <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Немає рецептів.</p>
-        }
-        else
-        {
-            @foreach (var recipe in Model.Recipes)
+    <!-- Recipes Tab -->
+    <div class="tab-content" id="tab-recipes">
+        <div class="recipe-grid">
+            @if (!Model.Recipes.Any())
             {
-                <div class="recipe-card">
-                    <div class="recipe-image" style="position: relative;">
-                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
-                        {
-                            <img src="@recipe.ImagePath" alt="@recipe.Title">
-                        }
-                        else
-                        {
-                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
-                        }
-                        <form asp-controller="Favorites" asp-action="Add" method="post" style="position: absolute; top: 10px; right: 10px; margin: 0;">
-                            <input type="hidden" name="recipeId" value="@recipe.Id" />
-                            <button type="submit" class="favorite-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                    <div class="recipe-details">
-                        <h3 class="recipe-title">
-                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
-                        </h3>
-                        <div class="recipe-meta">
-                            <span class="recipe-rating">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                                0.0
-                            </span>
-                            <span class="recipe-author">@($"@{Model.UserName}")</span>
-                        </div>
-                        @if (Model.IsOwnProfile)
-                        {
-                            <div style="margin-top: 10px;">
-                                <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
-                                    <button type="submit" class="ck-btn ck-btn-danger" style="background-color: var(--ck-error); color: white; padding: 6px 12px; font-size: 0.85rem; border: none; border-radius: var(--ck-radius-pill); cursor: pointer;">Видалити</button>
-                                </form>
-                            </div>
-                        }
-                    </div>
-                </div>
+                <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Немає рецептів.</p>
             }
-        }
+            else
+            {
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <div class="recipe-card">
+                        <div class="recipe-image">
+                            @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                            {
+                                <img src="@recipe.ImagePath" alt="@recipe.Title">
+                            }
+                            else
+                            {
+                                <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                            }
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button type="button" class="favorite-btn" data-recipe-id="@recipe.Id">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                        <div class="recipe-details">
+                            <h3 class="recipe-title">
+                                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
+                            </h3>
+                            <div class="recipe-meta">
+                                <span class="recipe-rating">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    0.0
+                                </span>
+                                <span class="recipe-author">@($"@{Model.UserName}")</span>
+                            </div>
+                            @if (Model.IsOwnProfile)
+                            {
+                                <div style="margin-top: 10px;">
+                                    <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
+                                        <button type="submit" class="ck-btn ck-btn-danger" style="background-color: var(--ck-error); color: white; padding: 6px 12px; font-size: 0.85rem; border: none; border-radius: var(--ck-radius-pill); cursor: pointer;">Видалити</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
     </div>
+
+    <!-- Favorites Tab -->
+    @if (Model.IsOwnProfile)
+    {
+        <div class="tab-content" id="tab-favorites" style="display: none;">
+            <div class="recipe-grid">
+                @if (!Model.Favorites.Any())
+                {
+                    <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Ви ще не зберегли жодного рецепта.</p>
+                }
+                else
+                {
+                    @foreach (var recipe in Model.Favorites)
+                    {
+                        <div class="recipe-card">
+                            <div class="recipe-image">
+                                @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                                {
+                                    <img src="@recipe.ImagePath" alt="@recipe.Title">
+                                }
+                                else
+                                {
+                                    <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                                }
+                                <button type="button" class="favorite-btn active" data-recipe-id="@recipe.Id">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="recipe-details">
+                                <h3 class="recipe-title">
+                                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
+                                </h3>
+                                <div class="recipe-meta">
+                                    <span class="recipe-rating">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        0.0
+                                    </span>
+                                    <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
 
     <!-- Add New Recipe Button -->
     <div class="add-recipe-container">
@@ -140,3 +192,27 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_FavoriteToggleScript" />
+    <script>
+        $(function () {
+            $('.profile-tabs .tab-btn[data-tab]').on('click', function () {
+                var tab = $(this).data('tab');
+                $('.profile-tabs .tab-btn').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').hide();
+                $('#tab-' + tab).show();
+            });
+
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab');
+            if (tab) {
+                var tabBtn = $('.profile-tabs .tab-btn[data-tab="' + tab + '"]');
+                if (tabBtn.length) {
+                    tabBtn.trigger('click');
+                }
+            }
+        });
+    </script>
+}

@@ -39,4 +39,21 @@ public class FavoritesController : Controller
         await _favoriteService.RemoveFavoriteAsync(User.GetUserId(), recipeId);
         return RedirectToAction("Details", "Recipe", new { id = recipeId });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Toggle(int recipeId)
+    {
+        var isFavorited = await _favoriteService.IsFavoriteAsync(User.GetUserId(), recipeId);
+        if (isFavorited)
+        {
+            await _favoriteService.RemoveFavoriteAsync(User.GetUserId(), recipeId);
+        }
+        else
+        {
+            await _favoriteService.AddFavoriteAsync(User.GetUserId(), recipeId);
+        }
+
+        return Json(new { favorited = !isFavorited });
+    }
 }

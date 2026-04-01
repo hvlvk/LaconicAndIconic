@@ -1,0 +1,34 @@
+<script>
+$(function () {
+    $(document).on('click', '.favorite-btn[data-recipe-id]', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var btn = $(this);
+        var recipeId = btn.data('recipe-id');
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        if (!token) {
+            token = $('meta[name="RequestVerificationToken"]').attr('content');
+        }
+
+        $.ajax({
+            url: '/Favorites/Toggle',
+            type: 'POST',
+            data: { recipeId: recipeId },
+            headers: { 'RequestVerificationToken': token },
+            success: function (data) {
+                var svg = btn.find('svg');
+                if (data.favorited) {
+                    btn.addClass('active');
+                    svg.attr('fill', 'currentColor');
+                } else {
+                    btn.removeClass('active');
+                    svg.attr('fill', 'none');
+                }
+            }
+        });
+    });
+});
+</script>
+@Html.AntiForgeryToken()

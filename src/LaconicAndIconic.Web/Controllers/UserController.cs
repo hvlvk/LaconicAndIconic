@@ -12,11 +12,13 @@ public class UserController : Controller
 {
     private readonly IUserService _userService;
     private readonly IRecipeService _recipeService;
+    private readonly IFavoriteService _favoriteService;
 
-    public UserController(IUserService userService, IRecipeService recipeService)
+    public UserController(IUserService userService, IRecipeService recipeService, IFavoriteService favoriteService)
     {
         _userService = userService;
         _recipeService = recipeService;
+        _favoriteService = favoriteService;
     }
 
     [HttpGet("User/{id:int}")]
@@ -32,13 +34,25 @@ public class UserController : Controller
 
         var recipesResult = await _recipeService.GetRecipesByAuthorIdAsync(id);
 
+        var isOwnProfile = User.GetUserId() == id;
+        IEnumerable<BLL.Models.RecipeDto> favorites = [];
+        if (isOwnProfile)
+        {
+            var favResult = await _favoriteService.GetFavoritesByUserAsync(id);
+            if (favResult.IsSuccess && favResult.Value != null)
+            {
+                favorites = favResult.Value;
+            }
+        }
+
         var viewModel = new UserProfileViewModel
         {
             Id = result.Value.Id,
             UserName = result.Value.UserName,
             ProfilePicturePath = result.Value.ProfilePicturePath,
-            IsOwnProfile = User.GetUserId() == id,
-            Recipes = recipesResult.IsSuccess && recipesResult.Value != null ? recipesResult.Value : []
+            IsOwnProfile = isOwnProfile,
+            Recipes = recipesResult.IsSuccess && recipesResult.Value != null ? recipesResult.Value : [],
+            Favorites = favorites
         };
 
         return View(viewModel);
