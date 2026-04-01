@@ -44,6 +44,31 @@ public class RecipeController : Controller
         });
     }
 
+    [HttpGet("Recipe/{id:int}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Details(int id)
+    {
+        var result = await _recipeService.GetRecipeByIdAsync(id);
+        if (!result.IsSuccess || result.Value == null)
+        {
+            return NotFound();
+        }
+
+        var model = new RecipeDetailsViewModel
+        {
+            Id = result.Value.Id,
+            Title = result.Value.Title,
+            Description = result.Value.Description,
+            ImagePath = result.Value.ImagePath,
+            PrepTimeMin = result.Value.PrepTimeMin,
+            CategoryName = result.Value.CategoryName,
+            AuthorId = result.Value.AuthorId,
+            AuthorName = result.Value.AuthorName
+        };
+
+        return View(model);
+    }
+
     [HttpGet]
     public async Task<IActionResult> Create()
     {

@@ -88,8 +88,24 @@ public class RecipeServiceTests
         var authorId = 1;
         var recipes = new List<Recipe>
         {
-            new Recipe { Id = 1, Title = "R1", AuthorId = authorId, CreatedAt = DateTime.UtcNow },
-            new Recipe { Id = 2, Title = "R2", AuthorId = authorId, CreatedAt = DateTime.UtcNow.AddMinutes(-10) }
+            new Recipe
+            {
+                Id = 1,
+                Title = "R1",
+                AuthorId = authorId,
+                CreatedAt = DateTime.UtcNow,
+                Category = new Category { Name = "Dinner" },
+                Author = new ApplicationUser { UserName = "chef1" }
+            },
+            new Recipe
+            {
+                Id = 2,
+                Title = "R2",
+                AuthorId = authorId,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-10),
+                Category = new Category { Name = "Dessert" },
+                Author = new ApplicationUser { UserName = "chef2" }
+            }
         };
 
         _recipeRepositoryMock.Setup(r => r.FindAsync(
@@ -105,6 +121,57 @@ public class RecipeServiceTests
         Assert.NotNull(result.Value);
         Assert.Equal(2, result.Value!.Count());
         Assert.Equal("R1", result.Value!.First().Title);
+    }
+
+    [Fact]
+    public async Task GetRecipeByIdAsync_RecipeExists_ReturnsMappedDto()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 5,
+            Title = "Pasta",
+            Description = "Tasty",
+            PrepTimeMin = 20,
+            CategoryId = 2,
+            AuthorId = 3,
+            Category = new Category { Name = "Italian" },
+            Author = new ApplicationUser { UserName = "chef" }
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>()))
+            .ReturnsAsync([recipe]);
+
+        // Act
+        var result = await _service.GetRecipeByIdAsync(5);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("Pasta", result.Value!.Title);
+        Assert.Equal("Italian", result.Value.CategoryName);
+        Assert.Equal("chef", result.Value.AuthorName);
+    }
+
+    [Fact]
+    public async Task GetRecipeByIdAsync_RecipeDoesNotExist_ReturnsFailure()
+    {
+        // Arrange
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>()))
+            .ReturnsAsync([]);
+
+        // Act
+        var result = await _service.GetRecipeByIdAsync(404);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Recipe not found", result.ErrorMessage);
     }
 
     [Fact]
@@ -171,8 +238,24 @@ public class RecipeServiceTests
         var now = DateTime.UtcNow;
         var recipes = new List<Recipe>
         {
-            new Recipe { Id = 1, Title = "Older", AuthorId = 1, CreatedAt = now.AddHours(-1) },
-            new Recipe { Id = 2, Title = "Newer", AuthorId = 1, CreatedAt = now }
+            new Recipe
+            {
+                Id = 1,
+                Title = "Older",
+                AuthorId = 1,
+                CreatedAt = now.AddHours(-1),
+                Category = new Category { Name = "Cat1" },
+                Author = new ApplicationUser { UserName = "chef1" }
+            },
+            new Recipe
+            {
+                Id = 2,
+                Title = "Newer",
+                AuthorId = 1,
+                CreatedAt = now,
+                Category = new Category { Name = "Cat2" },
+                Author = new ApplicationUser { UserName = "chef2" }
+            }
         };
 
         _recipeRepositoryMock

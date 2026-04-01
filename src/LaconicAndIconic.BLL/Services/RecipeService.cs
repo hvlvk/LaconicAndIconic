@@ -64,6 +64,19 @@ public class RecipeService : IRecipeService
         return Result<RecipeDto>.Success(responseDto);
     }
 
+    public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId)
+    {
+        var recipes = await _recipeRepository.FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author);
+        var recipe = recipes.FirstOrDefault();
+
+        if (recipe == null)
+        {
+            return Result<RecipeDto>.Failure("Recipe not found");
+        }
+
+        return Result<RecipeDto>.Success(MapToDto(recipe));
+    }
+
     public async Task<Result<IEnumerable<RecipeDto>>> GetRecipesByAuthorIdAsync(int authorId)
     {
         var recipes = await _recipeRepository
@@ -71,18 +84,7 @@ public class RecipeService : IRecipeService
 
         var dtos = recipes
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new RecipeDto
-            {
-                Id = r.Id,
-                Title = r.Title,
-                Description = r.Description,
-                ImagePath = r.ImagePath,
-                PrepTimeMin = r.PrepTimeMin,
-                CategoryId = r.CategoryId,
-                CategoryName = r.Category?.Name ?? string.Empty,
-                AuthorId = r.AuthorId,
-                AuthorName = r.Author?.UserName ?? string.Empty
-            });
+            .Select(MapToDto);
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
@@ -94,18 +96,7 @@ public class RecipeService : IRecipeService
 
         var dtos = recipes
             .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new RecipeDto
-            {
-                Id = r.Id,
-                Title = r.Title,
-                Description = r.Description,
-                ImagePath = r.ImagePath,
-                PrepTimeMin = r.PrepTimeMin,
-                CategoryId = r.CategoryId,
-                CategoryName = r.Category?.Name ?? string.Empty,
-                AuthorId = r.AuthorId,
-                AuthorName = r.Author?.UserName ?? string.Empty
-            });
+            .Select(MapToDto);
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
@@ -129,18 +120,9 @@ public class RecipeService : IRecipeService
         return Result.Success();
     }
 
-    public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId)
+    private static RecipeDto MapToDto(Recipe recipe)
     {
-        var recipes = await _recipeRepository
-            .FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author);
-
-        var recipe = recipes.FirstOrDefault();
-        if (recipe is null)
-        {
-            return Result<RecipeDto>.Failure("Recipe not found");
-        }
-
-        var dto = new RecipeDto
+        return new RecipeDto
         {
             Id = recipe.Id,
             Title = recipe.Title,
@@ -148,11 +130,9 @@ public class RecipeService : IRecipeService
             ImagePath = recipe.ImagePath,
             PrepTimeMin = recipe.PrepTimeMin,
             CategoryId = recipe.CategoryId,
-            CategoryName = recipe.Category?.Name ?? string.Empty,
+            CategoryName = recipe.Category.Name,
             AuthorId = recipe.AuthorId,
-            AuthorName = recipe.Author?.UserName ?? string.Empty
+            AuthorName = recipe.Author.UserName ?? string.Empty
         };
-
-        return Result<RecipeDto>.Success(dto);
     }
 }
