@@ -90,14 +90,16 @@
                         {
                             <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
                         }
-                        <button class="favorite-btn">    
+                        <button class="favorite-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
                         </button>
                     </div>
                     <div class="recipe-details">
-                        <h3 class="recipe-title">@recipe.Title</h3>
+                        <h3 class="recipe-title">
+                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
+                        </h3>
                         <div class="recipe-meta">
                             <span class="recipe-rating">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
