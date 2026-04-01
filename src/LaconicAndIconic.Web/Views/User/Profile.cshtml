@@ -81,7 +81,7 @@
             @foreach (var recipe in Model.Recipes)
             {
                 <div class="recipe-card">
-                    <div class="recipe-image">
+                    <div class="recipe-image" style="position: relative;">
                         @if (!string.IsNullOrEmpty(recipe.ImagePath))
                         {
                             <img src="@recipe.ImagePath" alt="@recipe.Title">
@@ -90,11 +90,14 @@
                         {
                             <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
                         }
-                        <button class="favorite-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </button>
+                        <form asp-controller="Favorites" asp-action="Add" method="post" style="position: absolute; top: 10px; right: 10px; margin: 0;">
+                            <input type="hidden" name="recipeId" value="@recipe.Id" />
+                            <button type="submit" class="favorite-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </button>
+                        </form>
                     </div>
                     <div class="recipe-details">
                         <h3 class="recipe-title">

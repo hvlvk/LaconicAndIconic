@@ -229,12 +229,42 @@
         <div>
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
-                <a href="#" class="recipe-save" title="Save recipe">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    Зберегти
-                </a>
+@if (User.Identity?.IsAuthenticated == true)
+                {
+                    if (Model.IsFavorited)
+                    {
+                        <form asp-controller="Favorites" asp-action="Remove" method="post" style="margin: 0;">
+                            <input type="hidden" name="recipeId" value="@Model.Id" />
+                            <button type="submit" class="recipe-save" style="cursor: pointer; background: #fff3e8; border-color: var(--ck-orange); color: var(--ck-orange);">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; color: var(--ck-orange);">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                Збережено
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-controller="Favorites" asp-action="Add" method="post" style="margin: 0;">
+                            <input type="hidden" name="recipeId" value="@Model.Id" />
+                            <button type="submit" class="recipe-save" style="cursor: pointer;">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                                Зберегти
+                            </button>
+                        </form>
+                    }
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="recipe-save" title="Log in to save">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Зберегти
+                    </a>
+                }
             </div>
 
             <div class="recipe-meta">

@@ -2,8 +2,10 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Controllers;
 using LaconicAndIconic.Web.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
 
 namespace LaconicAndIconic.Tests.Controllers;
 
@@ -16,7 +18,15 @@ public sealed class RecipeControllerTests : IDisposable
     {
         _recipeServiceMock = new Mock<IRecipeService>();
         var categoryServiceMock = new Mock<ICategoryService>();
-        _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object);
+        var favoriteServiceMock = new Mock<IFavoriteService>();
+        _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object, favoriteServiceMock.Object);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity())
+            }
+        };
     }
 
     public void Dispose()
