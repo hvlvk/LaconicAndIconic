@@ -1,0 +1,61 @@
+@using LaconicAndIconic.BLL.Models
+@model LaconicAndIconic.Web.Models.RecipeDetailsViewModel
+@{
+    ViewData["Title"] = Model.Recipe.Title;
+}
+
+<div class="recipe-detail-container">
+    <div class="recipe-detail-card">
+        <div class="recipe-detail-image">
+            @if (!string.IsNullOrEmpty(Model.Recipe.ImagePath))
+            {
+                <img src="@Model.Recipe.ImagePath" alt="@Model.Recipe.Title" class="recipe-img" />
+            }
+            else
+            {
+                <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=600&h=400&fit=crop" alt="Placeholder" class="recipe-img" />
+            }
+        </div>
+        <div class="recipe-detail-body">
+            <h1 class="recipe-detail-title">@Model.Recipe.Title</h1>
+            <div class="recipe-detail-meta">
+                <span class="recipe-meta-item">
+                    <strong>Category:</strong> @Model.Recipe.CategoryName
+                </span>
+                <span class="recipe-meta-item">
+                    <strong>Author:</strong> @@@Model.Recipe.AuthorName
+                </span>
+                <span class="recipe-meta-item">
+                    <strong>Prep time:</strong> @Model.Recipe.PrepTimeMin min
+                </span>
+            </div>
+            <p class="recipe-detail-description">@Model.Recipe.Description</p>
+
+            <div class="recipe-favorite-action">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @if (Model.IsFavorited)
+                    {
+                        <form method="post" asp-controller="Favorites" asp-action="Remove">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="recipeId" value="@Model.Recipe.Id" />
+                            <button type="submit" class="btn btn-outline-danger">Remove from Favorites</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form method="post" asp-controller="Favorites" asp-action="Add">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="recipeId" value="@Model.Recipe.Id" />
+                            <button type="submit" class="btn btn-primary">Add to Favorites</button>
+                        </form>
+                    }
+                }
+                else
+                {
+                    <p><a asp-controller="Account" asp-action="Login">Log in</a> to save this recipe to your favorites.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -128,4 +128,31 @@ public class RecipeService : IRecipeService
 
         return Result.Success();
     }
+
+    public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId)
+    {
+        var recipes = await _recipeRepository
+            .FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author);
+
+        var recipe = recipes.FirstOrDefault();
+        if (recipe is null)
+        {
+            return Result<RecipeDto>.Failure("Recipe not found");
+        }
+
+        var dto = new RecipeDto
+        {
+            Id = recipe.Id,
+            Title = recipe.Title,
+            Description = recipe.Description,
+            ImagePath = recipe.ImagePath,
+            PrepTimeMin = recipe.PrepTimeMin,
+            CategoryId = recipe.CategoryId,
+            CategoryName = recipe.Category?.Name ?? string.Empty,
+            AuthorId = recipe.AuthorId,
+            AuthorName = recipe.Author?.UserName ?? string.Empty
+        };
+
+        return Result<RecipeDto>.Success(dto);
+    }
 }
