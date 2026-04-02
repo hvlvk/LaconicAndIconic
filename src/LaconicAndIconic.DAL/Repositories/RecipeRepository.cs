@@ -14,57 +14,40 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
 
     public async Task<RecipeSearchResult> SearchAsync(RecipeSearchFilter filter)
     {
-        var dbQuery = Context.Set<Recipe>().AsNoTracking();
+        var dbQuery = Context.Set<Recipe>()
+            .Include(r => r.Category)
+            .Include(r => r.Author)
+            .AsNoTracking();
 
         if (filter.CategoryId.HasValue)
         {
             dbQuery = dbQuery.Where(r => r.CategoryId == filter.CategoryId.Value);
         }
 
-        var candidates = await dbQuery.Select(r => new RecipeSearchCandidate
-        {
-            Id = r.Id,
-            Title = r.Title,
-            Description = r.Description,
-            CategoryName = r.Category.Name,
-            CreatedAt = r.CreatedAt,
-            PrepTimeMin = r.PrepTimeMin
-        }).ToListAsync();
+        var candidates = await dbQuery.ToListAsync();
 
-        IEnumerable<RecipeSearchCandidate> filteredResults = candidates;
+        IEnumerable<Recipe> filteredResults = candidates;
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
             var searchWords = filter.SearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            filteredResults = filteredResults.Where(c =>
+            filteredResults = filteredResults.Where(r =>
                 searchWords.All(word =>
-                    c.Title.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    c.CategoryName.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    (c.Description?.Contains(word, StringComparison.OrdinalIgnoreCase) ?? false)));
+                    r.Title.Contains(word, StringComparison.OrdinalIgnoreCase) ||
+                    r.Category.Name.Contains(word, StringComparison.OrdinalIgnoreCase) ||
+                    r.Description.Contains(word, StringComparison.OrdinalIgnoreCase)));
         }
 
         var sortedResults = ApplySorting(filteredResults, filter.SortBy).ToList();
 
         var totalCount = sortedResults.Count;
-        var pagedIds = sortedResults
+        var pagedRecipes = sortedResults
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .Select(c => c.Id)
-            .ToList();
-
-        var recipes = await Context.Set<Recipe>()
-            .Include(r => r.Category)
-            .Include(r => r.Author)
-            .Where(r => pagedIds.Contains(r.Id))
-            .AsNoTracking()
-            .ToListAsync();
-
-        var finalRecipes = recipes
-            .OrderBy(r => pagedIds.IndexOf(r.Id))
             .ToList();
 
         return new RecipeSearchResult
         {
-            Recipes = finalRecipes,
+            Recipes = pagedRecipes,
             TotalCount = totalCount,
             PageNumber = filter.PageNumber,
             PageSize = filter.PageSize,
@@ -74,17 +57,7 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
         };
     }
 
-    private sealed class RecipeSearchCandidate
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string CategoryName { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public int PrepTimeMin { get; set; }
-    }
-
-    private static IEnumerable<RecipeSearchCandidate> ApplySorting(IEnumerable<RecipeSearchCandidate> query, string? sortBy)
+    private static IEnumerable<Recipe> ApplySorting(IEnumerable<Recipe> query, string? sortBy)
     {
         return sortBy switch
         {
