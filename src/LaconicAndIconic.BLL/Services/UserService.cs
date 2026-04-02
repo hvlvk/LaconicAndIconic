@@ -42,7 +42,7 @@ public class UserService : IUserService
         bool isSubscribed = false;
         if (currentUserId.HasValue)
         {
-            isSubscribed = await _subscriptionRepository.CountAsync(s => s.UserId == id && s.FollowerId == currentUserId.Value) > 0;
+            isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == id && s.FollowerId == currentUserId.Value);
         }
 
         var dto = new UserProfileDto
