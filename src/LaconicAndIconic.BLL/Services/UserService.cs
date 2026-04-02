@@ -36,13 +36,13 @@ public class UserService : IUserService
             return Result<UserProfileDto>.Failure("Користувача не знайдено");
         }
 
-        var followers = await _subscriptionRepository.FindAsync(s => s.UserId == id);
-        var following = await _subscriptionRepository.FindAsync(s => s.FollowerId == id);
+        var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == id);
+        var followingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == id);
         
         bool isSubscribed = false;
         if (currentUserId.HasValue)
         {
-            isSubscribed = followers.Any(s => s.FollowerId == currentUserId.Value);
+            isSubscribed = await _subscriptionRepository.CountAsync(s => s.UserId == id && s.FollowerId == currentUserId.Value) > 0;
         }
 
         var dto = new UserProfileDto
@@ -50,8 +50,8 @@ public class UserService : IUserService
             Id = user.Id,
             UserName = user.UserName ?? string.Empty,
             ProfilePicturePath = user.ProfilePicturePath,
-            FollowerCount = followers.Count(),
-            FollowingCount = following.Count(),
+            FollowerCount = followerCount,
+            FollowingCount = followingCount,
             IsSubscribed = isSubscribed
         };
 

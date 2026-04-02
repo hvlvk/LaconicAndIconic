@@ -30,6 +30,9 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.Where(predicate).ToListAsync();
     }
 
+    public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
+        => await Context.Set<T>().CountAsync(predicate);
+
     public async Task AddAsync(T entity)
         => await Context.Set<T>().AddAsync(entity);
 

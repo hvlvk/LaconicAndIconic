@@ -18,6 +18,10 @@ public sealed class RecipeControllerTests : IDisposable
         var categoryServiceMock = new Mock<ICategoryService>();
         var userServiceMock = new Mock<IUserService>();
         _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object, userServiceMock.Object);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext()
+        };
     }
 
     public void Dispose()
