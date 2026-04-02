@@ -1,19 +1,17 @@
-using System.Linq.Expressions;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class RecipeService : IRecipeService
 {
-    private readonly IRepository<Recipe> _recipeRepository;
+    private readonly IRecipeRepository _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
 
-    public RecipeService(IRepository<Recipe> recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
+    public RecipeService(IRecipeRepository recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
     {
         _recipeRepository = recipeRepository;
         _fileService = fileService;
@@ -124,58 +122,16 @@ public class RecipeService : IRecipeService
 
     public async Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter)
     {
-        var dbQuery = _recipeRepository.GetQueryable().AsNoTracking();
-
-        if (filter.CategoryId.HasValue)
-        {
-            dbQuery = dbQuery.Where(r => r.CategoryId == filter.CategoryId.Value);
-        }
-
-        var candidates = await dbQuery.Select(r => new RecipeSearchCandidate
-        {
-            Id = r.Id,
-            Title = r.Title,
-            Description = r.Description,
-            CategoryName = r.Category.Name,
-            CreatedAt = r.CreatedAt,
-            PrepTimeMin = r.PrepTimeMin
-        }).ToListAsync();
-
-        IEnumerable<RecipeSearchCandidate> filteredResults = candidates;
-        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
-        {
-            var searchWords = filter.SearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            filteredResults = filteredResults.Where(c =>
-                searchWords.All(word =>
-                    c.Title.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    c.CategoryName.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    (c.Description != null && c.Description.Contains(word, StringComparison.OrdinalIgnoreCase))));
-        }
-
-        var sortedResults = ApplySorting(filteredResults, filter.SortBy).ToList();
-
-        var totalCount = sortedResults.Count;
-        var pagedIds = sortedResults
-            .Skip((filter.PageNumber - 1) * filter.PageSize)
-            .Take(filter.PageSize)
-            .Select(c => c.Id)
-            .ToList();
-
-        var recipes = await _recipeRepository.GetQueryable()
-            .Include(r => r.Category)
-            .Include(r => r.Author)
-            .Where(r => pagedIds.Contains(r.Id))
-            .AsNoTracking()
-            .ToListAsync();
-
-        var finalRecipes = recipes
-            .OrderBy(r => pagedIds.IndexOf(r.Id))
-            .Select(MapToDto)
-            .ToList();
+        var (recipes, totalCount) = await _recipeRepository.SearchAsync(
+            filter.SearchTerm,
+            filter.CategoryId,
+            filter.SortBy,
+            filter.PageNumber,
+            filter.PageSize);
 
         var result = new RecipeSearchResultDto
         {
-            Recipes = finalRecipes,
+            Recipes = recipes.Select(MapToDto).ToList(),
             TotalCount = totalCount,
             PageNumber = filter.PageNumber,
             PageSize = filter.PageSize,
@@ -185,28 +141,6 @@ public class RecipeService : IRecipeService
         };
 
         return Result<RecipeSearchResultDto>.Success(result);
-    }
-
-    private sealed class RecipeSearchCandidate
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public string CategoryName { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public int PrepTimeMin { get; set; }
-    }
-
-    private static IEnumerable<RecipeSearchCandidate> ApplySorting(IEnumerable<RecipeSearchCandidate> query, string? sortBy)
-    {
-        return sortBy switch
-        {
-            "title_asc" => query.OrderBy(r => r.Title),
-            "title_desc" => query.OrderByDescending(r => r.Title),
-            "prepTime_asc" => query.OrderBy(r => r.PrepTimeMin),
-            "prepTime_desc" => query.OrderByDescending(r => r.PrepTimeMin),
-            _ => query.OrderByDescending(r => r.CreatedAt)
-        };
     }
 
     private static RecipeDto MapToDto(Recipe recipe)
