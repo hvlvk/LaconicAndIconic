@@ -7,11 +7,11 @@ namespace LaconicAndIconic.BLL.Services;
 
 public class RecipeService : IRecipeService
 {
-    private readonly IRecipeRepository _recipeRepository;
+    private readonly IRepository<Recipe> _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
 
-    public RecipeService(IRecipeRepository recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
+    public RecipeService(IRepository<Recipe> recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
     {
         _recipeRepository = recipeRepository;
         _fileService = fileService;
@@ -118,29 +118,6 @@ public class RecipeService : IRecipeService
         await _recipeRepository.SaveChangesAsync();
 
         return Result.Success();
-    }
-
-    public async Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter)
-    {
-        var (recipes, totalCount) = await _recipeRepository.SearchAsync(
-            filter.SearchTerm,
-            filter.CategoryId,
-            filter.SortBy,
-            filter.PageNumber,
-            filter.PageSize);
-
-        var result = new RecipeSearchResultDto
-        {
-            Recipes = recipes.Select(MapToDto).ToList(),
-            TotalCount = totalCount,
-            PageNumber = filter.PageNumber,
-            PageSize = filter.PageSize,
-            SearchTerm = filter.SearchTerm,
-            CategoryId = filter.CategoryId,
-            SortBy = filter.SortBy
-        };
-
-        return Result<RecipeSearchResultDto>.Success(result);
     }
 
     private static RecipeDto MapToDto(Recipe recipe)

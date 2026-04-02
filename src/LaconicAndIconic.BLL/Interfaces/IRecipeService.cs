@@ -9,5 +9,4 @@ public interface IRecipeService
     Task<Result<IEnumerable<RecipeDto>>> GetRecipesByAuthorIdAsync(int authorId);
     Task<Result<IEnumerable<RecipeDto>>> GetAllRecipesAsync();
     Task<Result> DeleteRecipeAsync(int recipeId, int authorId);
-    Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter);
 }

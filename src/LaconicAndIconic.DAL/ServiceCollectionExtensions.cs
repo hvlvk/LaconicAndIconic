@@ -32,7 +32,6 @@ public static class ServiceCollectionExtensions
             .AddDefaultTokenProviders();
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
         return services;

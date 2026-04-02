@@ -12,14 +12,14 @@ namespace LaconicAndIconic.Tests.Services;
 
 public class RecipeServiceTests
 {
-    private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
+    private readonly Mock<IRepository<Recipe>> _recipeRepositoryMock;
     private readonly Mock<IFileService> _fileServiceMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
     {
-        _recipeRepositoryMock = new Mock<IRecipeRepository>();
+        _recipeRepositoryMock = new Mock<IRepository<Recipe>>();
         _fileServiceMock = new Mock<IFileService>();
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _service = new RecipeService(_recipeRepositoryMock.Object, _fileServiceMock.Object, _categoryRepositoryMock.Object);
