@@ -17,6 +17,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Recipe> Recipes => Set<Recipe>();
     public DbSet<Rating> Ratings => Set<Rating>();
     public DbSet<Comment> Comments => Set<Comment>();
+    public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
