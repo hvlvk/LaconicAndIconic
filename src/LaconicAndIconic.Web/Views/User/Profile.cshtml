@@ -49,14 +49,27 @@
         <div class="user-info">
             <h1 class="user-name">@Model.UserName</h1>
             <div class="user-stats">
-                <span class="stat">32 рецепти</span>
+                <span class="stat">@Model.Recipes.Count() рецепти</span>
                 <span class="stat-divider">|</span>
-                <span class="stat">122 підписники</span>
+                <span class="stat">@Model.FollowerCount підписники</span>
+                <span class="stat-divider">|</span>
+                <span class="stat">@Model.FollowingCount підписки</span>
             </div>
         </div>
-        @if (!Model.IsOwnProfile)
+        @if (!Model.IsOwnProfile && User.Identity?.IsAuthenticated == true)
         {
-            <button class="ck-btn subscribe-btn">Підписатись</button>
+            if (Model.IsSubscribed)
+            {
+                <form asp-controller="User" asp-action="Unsubscribe" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="ck-btn ck-btn-secondary subscribe-btn">Відписатись</button>
+                </form>
+            }
+            else
+            {
+                <form asp-controller="User" asp-action="Subscribe" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="ck-btn subscribe-btn">Підписатись</button>
+                </form>
+            }
         }
     </div>
 

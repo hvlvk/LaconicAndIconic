@@ -13,13 +13,15 @@ public class UserServiceTests
 {
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IFileService> _fileServiceMock;
+    private readonly Mock<IRepository<UserSubscription>> _subscriptionRepositoryMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
         _fileServiceMock = new Mock<IFileService>();
-        _userService = new UserService(_userRepositoryMock.Object, _fileServiceMock.Object);
+        _subscriptionRepositoryMock = new Mock<IRepository<UserSubscription>>();
+        _userService = new UserService(_userRepositoryMock.Object, _fileServiceMock.Object, _subscriptionRepositoryMock.Object);
     }
 
     [Fact]
