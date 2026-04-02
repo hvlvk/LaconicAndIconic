@@ -10,6 +10,7 @@ public class RecipeDetailsViewModel
     public string CategoryName { get; set; } = string.Empty;
     public int AuthorId { get; set; }
     public string AuthorName { get; set; } = string.Empty;
+    public string? AuthorProfilePicturePath { get; set; }
     public bool IsSubscribedToAuthor { get; set; }
 }
 

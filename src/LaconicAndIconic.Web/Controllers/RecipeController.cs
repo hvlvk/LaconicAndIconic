@@ -53,6 +53,7 @@ public class RecipeController : Controller
             CategoryName = result.Value.CategoryName,
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
+            AuthorProfilePicturePath = result.Value.AuthorProfilePicturePath,
             IsSubscribedToAuthor = isSubscribed
         };
 

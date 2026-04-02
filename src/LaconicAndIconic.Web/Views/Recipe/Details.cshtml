@@ -259,7 +259,14 @@
             </div>
 
             <div class="recipe-author-row">
-                <span class="recipe-author-avatar">@(Model.AuthorName.Length > 0 ? Model.AuthorName.Substring(0, 1).ToUpper() : "U")</span>
+                @if (!string.IsNullOrEmpty(Model.AuthorProfilePicturePath))
+                {
+                    <img src="@Model.AuthorProfilePicturePath" alt="@Model.AuthorName" class="recipe-author-avatar" style="object-fit: cover;" />
+                }
+                else
+                {
+                    <span class="recipe-author-avatar">@(Model.AuthorName.Length > 0 ? Model.AuthorName.Substring(0, 1).ToUpper() : "U")</span>
+                }
                 <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" style="color: #4d4d4d; text-decoration: none;">@($"@{Model.AuthorName}")</a>
                 
                 @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
