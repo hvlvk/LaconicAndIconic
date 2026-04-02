@@ -1,7 +1,6 @@
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Controllers;
-using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -11,14 +10,12 @@ namespace LaconicAndIconic.Tests.Controllers;
 public sealed class HomeControllerTests : IDisposable
 {
     private readonly Mock<IRecipeService> _recipeServiceMock;
-    private readonly Mock<ICategoryService> _categoryServiceMock;
     private readonly HomeController _controller;
 
     public HomeControllerTests()
     {
         _recipeServiceMock = new Mock<IRecipeService>();
-        _categoryServiceMock = new Mock<ICategoryService>();
-        _controller = new HomeController(NullLogger<HomeController>.Instance, _recipeServiceMock.Object, _categoryServiceMock.Object);
+        _controller = new HomeController(NullLogger<HomeController>.Instance, _recipeServiceMock.Object);
     }
 
     public void Dispose()
@@ -28,76 +25,55 @@ public sealed class HomeControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Index_RecipesExist_ReturnsViewWithRecipeListViewModel()
+    public async Task Index_RecipesExist_ReturnsViewWithRecipeDtoCollection()
     {
         // Arrange
         var recipeDtoStub = new RecipeDto { Id = 1, Title = "Pasta", AuthorName = "chef" };
-        var searchResult = new RecipeSearchResultDto
-        {
-            Recipes = [recipeDtoStub],
-            TotalCount = 1,
-            PageNumber = 1,
-            PageSize = 10
-        };
-
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
-            .ReturnsAsync(Result<RecipeSearchResultDto>.Success(searchResult));
-
-        _categoryServiceMock
-            .Setup(s => s.GetAllCategoriesAsync())
-            .ReturnsAsync(Result<IEnumerable<CategoryDto>>.Success([]));
+            .Setup(s => s.GetAllRecipesAsync())
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success([recipeDtoStub]));
 
         // Act
-        var result = await _controller.Index(null, null, null);
+        var result = await _controller.Index();
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        var model = Assert.IsAssignableFrom<RecipeListViewModel>(viewResult.Model);
-        Assert.Single(model.Recipes);
-        Assert.Equal(recipeDtoStub.Title, model.Recipes[0].Title);
+        var model = Assert.IsAssignableFrom<IEnumerable<RecipeDto>>(viewResult.Model);
+        Assert.Single(model);
+        Assert.Equal(recipeDtoStub.Title, model.First().Title);
     }
 
     [Fact]
-    public async Task Index_NoRecipes_ReturnsViewWithEmptyRecipeCollection()
+    public async Task Index_NoRecipes_ReturnsViewWithEmptyCollection()
     {
         // Arrange
-        var searchResult = new RecipeSearchResultDto { Recipes = [], TotalCount = 0 };
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
-            .ReturnsAsync(Result<RecipeSearchResultDto>.Success(searchResult));
-
-        _categoryServiceMock
-            .Setup(s => s.GetAllCategoriesAsync())
-            .ReturnsAsync(Result<IEnumerable<CategoryDto>>.Success([]));
+            .Setup(s => s.GetAllRecipesAsync())
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(Enumerable.Empty<RecipeDto>()));
 
         // Act
-        var result = await _controller.Index(null, null, null);
+        var result = await _controller.Index();
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        var model = Assert.IsAssignableFrom<RecipeListViewModel>(viewResult.Model);
-        Assert.Empty(model.Recipes);
+        var model = Assert.IsAssignableFrom<IEnumerable<RecipeDto>>(viewResult.Model);
+        Assert.Empty(model);
     }
 
     [Fact]
-    public async Task Index_ServiceReturnsFailure_ReturnsViewWithEmptyRecipeCollection()
+    public async Task Index_ServiceReturnsFailure_ReturnsViewWithEmptyCollection()
     {
         // Arrange
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
-            .ReturnsAsync(Result<RecipeSearchResultDto>.Failure("error"));
-
-        _categoryServiceMock
-            .Setup(s => s.GetAllCategoriesAsync())
-            .ReturnsAsync(Result<IEnumerable<CategoryDto>>.Success([]));
+            .Setup(s => s.GetAllRecipesAsync())
+            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Failure("error"));
 
         // Act
-        var result = await _controller.Index(null, null, null);
+        var result = await _controller.Index();
 
         // Assert
         var viewResult = Assert.IsType<ViewResult>(result);
-        var model = Assert.IsAssignableFrom<RecipeListViewModel>(viewResult.Model);
-        Assert.Empty(model.Recipes);
+        var model = Assert.IsAssignableFrom<IEnumerable<RecipeDto>>(viewResult.Model);
+        Assert.Empty(model);
     }
 }

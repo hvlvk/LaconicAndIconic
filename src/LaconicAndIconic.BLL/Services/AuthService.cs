@@ -28,10 +28,7 @@ public partial class AuthService : IAuthService
         var user = await _userRepository.FindByEmailAsync(email);
         if (user is null)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning("Login attempt for non-existent email: {Email}", email);
-            }
+            _logger.LogWarning("Login attempt for non-existent email: {Email}", email);
             return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
         }
 
@@ -39,26 +36,17 @@ public partial class AuthService : IAuthService
 
         if (signInResult.Succeeded)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-            {
-                _logger.LogInformation("User {Email} logged in successfully", email);
-            }
+            _logger.LogInformation("User {Email} logged in successfully", email);
             return Result<LoginResult>.Success(LoginResult.Success);
         }
 
         if (signInResult.IsLockedOut)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-            {
-                _logger.LogWarning("User account locked out for email: {Email}", email);
-            }
+            _logger.LogWarning("User account locked out for email: {Email}", email);
             return Result<LoginResult>.Success(LoginResult.LockedOut);
         }
 
-        if (_logger.IsEnabled(LogLevel.Warning))
-        {
-            _logger.LogWarning("Invalid credentials for email: {Email}", email);
-        }
+        _logger.LogWarning("Invalid credentials for email: {Email}", email);
         return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
     }
 
@@ -83,20 +71,14 @@ public partial class AuthService : IAuthService
         }
 
         var errors = string.Join(" ", identityResult.Errors.Select(e => e.Description));
-        if (_logger.IsEnabled(LogLevel.Warning))
-        {
-            LogRegistrationFailure(_logger, request.Email, errors);
-        }
+        LogRegistrationFailure(_logger, request.Email, errors);
         return Result.Failure(errors);
     }
 
     public async Task<Result> LogoutAsync()
     {
         await _signInManager.SignOutAsync();
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation("User logged out");
-        }
+        _logger.LogInformation("User logged out");
         return Result.Success();
     }
 
