@@ -23,17 +23,15 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>>? predicate = null, params Expression<Func<T, object>>[] includes)
     {
         IQueryable<T> query = Context.Set<T>();
-        if (includes != null)
-        {
-            foreach (var include in includes)
-            {
-                query = query.Include(include);
-            }
-        }
-        
+
         if (predicate != null)
         {
             query = query.Where(predicate);
+        }
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
         }
         
         return await query.ToListAsync();
