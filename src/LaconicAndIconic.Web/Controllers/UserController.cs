@@ -68,7 +68,7 @@ public class UserController : Controller
     [HttpPost("User/{id:int}/Subscribe")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Subscribe(int id)
+    public async Task<IActionResult> Subscribe(int id, string? returnUrl = null)
     {
         var followerId = User.GetUserId();
 
@@ -83,13 +83,18 @@ public class UserController : Controller
             TempData["SuccessMessage"] = "Ви успішно підписалися!";
         }
 
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Profile), new { id });
     }
 
     [HttpPost("User/{id:int}/Unsubscribe")]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Unsubscribe(int id)
+    public async Task<IActionResult> Unsubscribe(int id, string? returnUrl = null)
     {
         var followerId = User.GetUserId();
 
@@ -102,6 +107,11 @@ public class UserController : Controller
         else
         {
             TempData["SuccessMessage"] = "Ви успішно відписалися!";
+        }
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
         }
 
         return RedirectToAction(nameof(Profile), new { id });

@@ -16,7 +16,8 @@ public sealed class RecipeControllerTests : IDisposable
     {
         _recipeServiceMock = new Mock<IRecipeService>();
         var categoryServiceMock = new Mock<ICategoryService>();
-        _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object);
+        var userServiceMock = new Mock<IUserService>();
+        _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object, userServiceMock.Object);
     }
 
     public void Dispose()
