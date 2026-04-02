@@ -96,8 +96,8 @@ public class UserService : IUserService
             return Result.Failure("Ви не можете підписатися самі на себе.");
         }
 
-        var userExists = await _userRepository.FindByIdAsync(userId);
-        if (userExists is null)
+        var userExists = await _userRepository.AnyAsync(u => u.Id == userId);
+        if (!userExists)
         {
             _logger.LogWarning("SubscribeAsync: Target User ID {UserId} was not found", userId);
             return Result.Failure("Користувача для підписки не знайдено.");

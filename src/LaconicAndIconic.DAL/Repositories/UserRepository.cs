@@ -20,6 +20,9 @@ public class UserRepository : IUserRepository
     public Task<ApplicationUser?> FindByIdAsync(int id)
         => _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture));
 
+    public Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<ApplicationUser, bool>> predicate)
+        => Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AnyAsync(_userManager.Users, predicate);
+
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
         => _userManager.CreateAsync(user, password);
 
