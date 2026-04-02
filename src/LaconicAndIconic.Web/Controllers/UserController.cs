@@ -80,7 +80,7 @@ public class UserController : Controller
         }
         else
         {
-            TempData["SuccessMessage"] = "Successfully subscribed!";
+            TempData["SuccessMessage"] = "Ви успішно підписалися!";
         }
 
         return RedirectToAction(nameof(Profile), new { id });
@@ -101,7 +101,7 @@ public class UserController : Controller
         }
         else
         {
-            TempData["SuccessMessage"] = "Successfully unsubscribed!";
+            TempData["SuccessMessage"] = "Ви успішно відписалися!";
         }
 
         return RedirectToAction(nameof(Profile), new { id });

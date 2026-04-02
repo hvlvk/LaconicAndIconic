@@ -4,6 +4,7 @@ using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace LaconicAndIconic.BLL.Services;
 
@@ -12,15 +13,18 @@ public class UserService : IUserService
     private readonly IUserRepository _userRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<UserSubscription> _subscriptionRepository;
+    private readonly ILogger<UserService> _logger;
 
     public UserService(
         IUserRepository userRepository, 
         IFileService fileService,
-        IRepository<UserSubscription> subscriptionRepository)
+        IRepository<UserSubscription> subscriptionRepository,
+        ILogger<UserService> logger)
     {
         _userRepository = userRepository;
         _fileService = fileService;
         _subscriptionRepository = subscriptionRepository;
+        _logger = logger;
     }
 
     public async Task<Result<UserProfileDto>> GetUserProfileByIdAsync(int id, int? currentUserId = null)
@@ -28,7 +32,8 @@ public class UserService : IUserService
         var user = await _userRepository.FindByIdAsync(id);
         if (user is null)
         {
-            return Result<UserProfileDto>.Failure("User not found");
+            _logger.LogWarning("GetUserProfileByIdAsync: User with ID {Id} was not found", id);
+            return Result<UserProfileDto>.Failure("Користувача не знайдено");
         }
 
         var followers = await _subscriptionRepository.FindAsync(s => s.UserId == id);
@@ -50,6 +55,7 @@ public class UserService : IUserService
             IsSubscribed = isSubscribed
         };
 
+        _logger.LogInformation("GetUserProfileByIdAsync: Successfully retrieved profile for user ID {Id}", id);
         return Result<UserProfileDto>.Success(dto);
     }
 
@@ -58,12 +64,14 @@ public class UserService : IUserService
         var user = await _userRepository.FindByIdAsync(id);
         if (user is null)
         {
-            return Result<string>.Failure("User not found");
+            _logger.LogWarning("UpdateProfilePictureAsync: User with ID {Id} not found", id);
+            return Result<string>.Failure("Користувача не знайдено");
         }
 
         if (file == null || file.Length == 0)
         {
-            return Result<string>.Failure("File is empty");
+            _logger.LogWarning("UpdateProfilePictureAsync: Attempted to upload an empty file for User ID {Id}", id);
+            return Result<string>.Failure("Файл порожній");
         }
 
         var newPath = await _fileService.SaveFileAsync(file, "profiles");
@@ -76,6 +84,7 @@ public class UserService : IUserService
         user.ProfilePicturePath = newPath;
         await _userRepository.UpdateAsync(user);
 
+        _logger.LogInformation("UpdateProfilePictureAsync: Successfully updated profile picture for User ID {Id}", id);
         return Result<string>.Success(newPath);
     }
 
@@ -83,13 +92,15 @@ public class UserService : IUserService
     {
         if (followerId == userId)
         {
-            return Result.Failure("Users cannot follow themselves.");
+            _logger.LogWarning("SubscribeAsync: User ID {FollowerId} attempted to follow themselves", followerId);
+            return Result.Failure("Ви не можете підписатися самі на себе.");
         }
 
         var userExists = await _userRepository.FindByIdAsync(userId);
         if (userExists is null)
         {
-            return Result.Failure("User to follow not found.");
+            _logger.LogWarning("SubscribeAsync: Target User ID {UserId} was not found", userId);
+            return Result.Failure("Користувача для підписки не знайдено.");
         }
 
         var existingSubscription = await _subscriptionRepository.FindAsync(
@@ -97,7 +108,8 @@ public class UserService : IUserService
 
         if (existingSubscription.Any())
         {
-            return Result.Failure("Already followed.");
+            _logger.LogWarning("SubscribeAsync: User ID {FollowerId} is already subscribed to User ID {UserId}", followerId, userId);
+            return Result.Failure("Ви вже підписані на цього користувача.");
         }
 
         var subscription = new UserSubscription
@@ -109,6 +121,7 @@ public class UserService : IUserService
         await _subscriptionRepository.AddAsync(subscription);
         await _subscriptionRepository.SaveChangesAsync();
 
+        _logger.LogInformation("SubscribeAsync: User ID {FollowerId} successfully subscribed to User ID {UserId}", followerId, userId);
         return Result.Success();
     }
 
@@ -120,12 +133,14 @@ public class UserService : IUserService
         var subscription = existingSubscription.FirstOrDefault();
         if (subscription is null)
         {
-            return Result.Failure("Not followed.");
+            _logger.LogWarning("UnsubscribeAsync: Subscription not found for user ID {FollowerId} following User ID {UserId}", followerId, userId);
+            return Result.Failure("Ви не підписані на цього користувача.");
         }
 
         _subscriptionRepository.Remove(subscription);
         await _subscriptionRepository.SaveChangesAsync();
 
+        _logger.LogInformation("UnsubscribeAsync: User ID {FollowerId} successfully unsubscribed from User ID {UserId}", followerId, userId);
         return Result.Success();
     }
 }

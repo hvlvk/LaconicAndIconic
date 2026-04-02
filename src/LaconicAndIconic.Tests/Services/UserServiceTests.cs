@@ -3,6 +3,7 @@ using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,6 +15,7 @@ public class UserServiceTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IFileService> _fileServiceMock;
     private readonly Mock<IRepository<UserSubscription>> _subscriptionRepositoryMock;
+    private readonly Mock<ILogger<UserService>> _loggerMock;
     private readonly UserService _userService;
 
     public UserServiceTests()
@@ -21,7 +23,12 @@ public class UserServiceTests
         _userRepositoryMock = new Mock<IUserRepository>();
         _fileServiceMock = new Mock<IFileService>();
         _subscriptionRepositoryMock = new Mock<IRepository<UserSubscription>>();
-        _userService = new UserService(_userRepositoryMock.Object, _fileServiceMock.Object, _subscriptionRepositoryMock.Object);
+        _loggerMock = new Mock<ILogger<UserService>>();
+        _userService = new UserService(
+            _userRepositoryMock.Object, 
+            _fileServiceMock.Object, 
+            _subscriptionRepositoryMock.Object,
+            _loggerMock.Object);
     }
 
     [Fact]
@@ -55,6 +62,6 @@ public class UserServiceTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Null(result.Value);
-        Assert.Equal("User not found", result.ErrorMessage);
+        Assert.Equal("Користувача не знайдено", result.ErrorMessage);
     }
 }
