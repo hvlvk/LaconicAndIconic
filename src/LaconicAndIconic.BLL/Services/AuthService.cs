@@ -28,7 +28,7 @@ public partial class AuthService : IAuthService
         var user = await _userRepository.FindByEmailAsync(email);
         if (user is null)
         {
-            _logger.LogWarning("Login attempt for non-existent email: {Email}", email);
+            LogLoginAttemptNonExistent(_logger, email);
             return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
         }
 
@@ -36,17 +36,17 @@ public partial class AuthService : IAuthService
 
         if (signInResult.Succeeded)
         {
-            _logger.LogInformation("User {Email} logged in successfully", email);
+            LogLoginSuccess(_logger, email);
             return Result<LoginResult>.Success(LoginResult.Success);
         }
 
         if (signInResult.IsLockedOut)
         {
-            _logger.LogWarning("User account locked out for email: {Email}", email);
+            LogAccountLockedOut(_logger, email);
             return Result<LoginResult>.Success(LoginResult.LockedOut);
         }
 
-        _logger.LogWarning("Invalid credentials for email: {Email}", email);
+        LogInvalidCredentials(_logger, email);
         return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
     }
 
@@ -78,7 +78,7 @@ public partial class AuthService : IAuthService
     public async Task<Result> LogoutAsync()
     {
         await _signInManager.SignOutAsync();
-        _logger.LogInformation("User logged out");
+        LogLogout(_logger);
         return Result.Success();
     }
 
@@ -90,4 +90,19 @@ public partial class AuthService : IAuthService
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Registration failed for {Email}. Errors: {Errors}.")]
     private static partial void LogRegistrationFailure(ILogger logger, string email, string errors);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Login attempt for non-existent email: {Email}.")]
+    private static partial void LogLoginAttemptNonExistent(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "User {Email} logged in successfully.")]
+    private static partial void LogLoginSuccess(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "User account locked out for email: {Email}.")]
+    private static partial void LogAccountLockedOut(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Invalid credentials for email: {Email}.")]
+    private static partial void LogInvalidCredentials(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "User logged out.")]
+    private static partial void LogLogout(ILogger logger);
 }

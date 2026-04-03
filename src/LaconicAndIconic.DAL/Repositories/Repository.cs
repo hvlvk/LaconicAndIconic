@@ -61,6 +61,9 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<bool> ExistsAsync(int id)
         => await Context.Set<T>().FindAsync(id) is not null;
 
+    public IQueryable<T> GetQueryable()
+        => Context.Set<T>();
+
     public async Task SaveChangesAsync()
         => await Context.SaveChangesAsync();
 }

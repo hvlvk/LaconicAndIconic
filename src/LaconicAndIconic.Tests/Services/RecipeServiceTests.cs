@@ -3,7 +3,6 @@ using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Linq.Expressions;
 using Xunit;
@@ -12,14 +11,14 @@ namespace LaconicAndIconic.Tests.Services;
 
 public class RecipeServiceTests
 {
-    private readonly Mock<IRepository<Recipe>> _recipeRepositoryMock;
+    private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly Mock<IFileService> _fileServiceMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
     {
-        _recipeRepositoryMock = new Mock<IRepository<Recipe>>();
+        _recipeRepositoryMock = new Mock<IRecipeRepository>();
         _fileServiceMock = new Mock<IFileService>();
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _service = new RecipeService(_recipeRepositoryMock.Object, _fileServiceMock.Object, _categoryRepositoryMock.Object);
@@ -63,7 +62,7 @@ public class RecipeServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Title is required", result.ErrorMessage);
+        Assert.Equal("Назва обов'язкова", result.ErrorMessage);
     }
 
     [Fact]
@@ -78,7 +77,7 @@ public class RecipeServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Category not found", result.ErrorMessage);
+        Assert.Equal("Категорія не знайдена", result.ErrorMessage);
     }
 
     [Fact]
@@ -171,7 +170,7 @@ public class RecipeServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Recipe not found", result.ErrorMessage);
+        Assert.Equal("Рецепт не знайдено", result.ErrorMessage);
     }
 
     [Fact]
@@ -207,7 +206,7 @@ public class RecipeServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Recipe not found", result.ErrorMessage);
+        Assert.Equal("Рецепт не знайдено", result.ErrorMessage);
     }
 
     [Fact]
@@ -225,7 +224,7 @@ public class RecipeServiceTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("You can only delete your own recipes", result.ErrorMessage);
+        Assert.Equal("Ви можете видаляти тільки свої рецепти", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
     }
 

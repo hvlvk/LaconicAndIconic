@@ -1,17 +1,19 @@
 ﻿@using LaconicAndIconic.BLL.Models
-@model IEnumerable<RecipeDto>
+@using LaconicAndIconic.Web.Models
+@model RecipeListViewModel
 @{
     ViewData["Title"] = "Recipes";
 }
 
+
 <div class="recipe-grid">
-    @if (!Model.Any())
+    @if (Model.Recipes.Count == 0)
     {
-        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">No recipes yet. Be the first to share one!</p>
+        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
     }
     else
     {
-        @foreach (var recipe in Model)
+        @foreach (var recipe in Model.Recipes)
         {
                 <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card" style="text-decoration: none; color: inherit; display: block;">
                 <div class="recipe-image">
@@ -45,3 +47,48 @@
         }
     }
 </div>
+
+@if (Model.TotalPages > 1)
+{
+    <div style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        @if (Model.HasPreviousPage)
+        {
+            <a asp-controller="Home" asp-action="Index"
+               asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-categoryId="@Model.CategoryId"
+               asp-route-sortBy="@Model.SortBy"
+               asp-route-pageNumber="@(Model.PageNumber - 1)"
+               style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; cursor: pointer;">
+                Previous
+            </a>
+        }
+        else
+        {
+            <button style="padding: 0.5rem 1rem; background-color: #ccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed;" disabled>
+                Previous
+            </button>
+        }
+
+        <span style="font-weight: 500; color: #333;">
+            Page @Model.PageNumber of @Model.TotalPages
+        </span>
+
+        @if (Model.HasNextPage)
+        {
+            <a asp-controller="Home" asp-action="Index"
+               asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-categoryId="@Model.CategoryId"
+               asp-route-sortBy="@Model.SortBy"
+               asp-route-pageNumber="@(Model.PageNumber + 1)"
+               style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; cursor: pointer;">
+                Next
+            </a>
+        }
+        else
+        {
+            <button style="padding: 0.5rem 1rem; background-color: #ccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed;" disabled>
+                Next
+            </button>
+        }
+    </div>
+}

@@ -7,11 +7,11 @@ namespace LaconicAndIconic.BLL.Services;
 
 public class RecipeService : IRecipeService
 {
-    private readonly IRepository<Recipe> _recipeRepository;
+    private readonly IRecipeRepository _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
 
-    public RecipeService(IRepository<Recipe> recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
+    public RecipeService(IRecipeRepository recipeRepository, IFileService fileService, IRepository<Category> categoryRepository)
     {
         _recipeRepository = recipeRepository;
         _fileService = fileService;
@@ -22,13 +22,13 @@ public class RecipeService : IRecipeService
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
-            return Result<RecipeDto>.Failure("Title is required");
+            return Result<RecipeDto>.Failure("Назва обов'язкова");
         }
 
         var categoryExists = await _categoryRepository.ExistsAsync(dto.CategoryId);
         if (!categoryExists)
         {
-            return Result<RecipeDto>.Failure("Category not found");
+            return Result<RecipeDto>.Failure("Категорія не знайдена");
         }
 
         string? imagePath = null;
@@ -71,7 +71,7 @@ public class RecipeService : IRecipeService
 
         if (recipe == null)
         {
-            return Result<RecipeDto>.Failure("Recipe not found");
+            return Result<RecipeDto>.Failure("Рецепт не знайдено");
         }
 
         return Result<RecipeDto>.Success(MapToDto(recipe));
@@ -106,18 +106,47 @@ public class RecipeService : IRecipeService
         var recipe = await _recipeRepository.GetByIdAsync(recipeId);
         if (recipe == null)
         {
-            return Result.Failure("Recipe not found");
+            return Result.Failure("Рецепт не знайдено");
         }
 
         if (recipe.AuthorId != authorId)
         {
-            return Result.Failure("You can only delete your own recipes");
+            return Result.Failure("Ви можете видаляти тільки свої рецепти");
         }
 
         _recipeRepository.Remove(recipe);
         await _recipeRepository.SaveChangesAsync();
 
         return Result.Success();
+    }
+
+    public async Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter)
+    {
+        var dalFilter = new RecipeSearchFilter
+        {
+            SearchTerm = filter.SearchTerm,
+            CategoryId = filter.CategoryId,
+            SortBy = filter.SortBy,
+            PageNumber = filter.PageNumber,
+            PageSize = filter.PageSize
+        };
+
+        var dalResult = await _recipeRepository.SearchAsync(dalFilter);
+
+        var dtos = dalResult.Recipes.Select(MapToDto).ToList();
+
+        var result = new RecipeSearchResultDto
+        {
+            Recipes = dtos,
+            TotalCount = dalResult.TotalCount,
+            PageNumber = dalResult.PageNumber,
+            PageSize = dalResult.PageSize,
+            SearchTerm = dalResult.SearchTerm,
+            CategoryId = dalResult.CategoryId,
+            SortBy = dalResult.SortBy
+        };
+
+        return Result<RecipeSearchResultDto>.Success(result);
     }
 
     private static RecipeDto MapToDto(Recipe recipe)
