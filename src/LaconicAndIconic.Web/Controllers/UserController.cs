@@ -23,7 +23,8 @@ public class UserController : Controller
     [Authorize]
     public async Task<IActionResult> Profile(int id)
     {
-        var result = await _userService.GetUserProfileByIdAsync(id);
+        var currentUserId = User.GetUserId();
+        var result = await _userService.GetUserProfileByIdAsync(id, currentUserId);
 
         if (!result.IsSuccess || result.Value == null)
         {
@@ -37,7 +38,10 @@ public class UserController : Controller
             Id = result.Value.Id,
             UserName = result.Value.UserName,
             ProfilePicturePath = result.Value.ProfilePicturePath,
-            IsOwnProfile = User.GetUserId() == id,
+            IsOwnProfile = currentUserId == id,
+            FollowerCount = result.Value.FollowerCount,
+            FollowingCount = result.Value.FollowingCount,
+            IsSubscribed = result.Value.IsSubscribed,
             Recipes = recipesResult.IsSuccess && recipesResult.Value != null ? recipesResult.Value : []
         };
 
@@ -59,5 +63,57 @@ public class UserController : Controller
         }
 
         return RedirectToAction(nameof(Profile), new { id = userId });
+    }
+
+    [HttpPost("User/{id:int}/Subscribe")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Subscribe(int id, string? returnUrl = null)
+    {
+        var followerId = User.GetUserId();
+
+        var result = await _userService.SubscribeAsync(followerId, id);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Ви успішно підписалися!";
+        }
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Profile), new { id });
+    }
+
+    [HttpPost("User/{id:int}/Unsubscribe")]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unsubscribe(int id, string? returnUrl = null)
+    {
+        var followerId = User.GetUserId();
+
+        var result = await _userService.UnsubscribeAsync(followerId, id);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Ви успішно відписалися!";
+        }
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Profile), new { id });
     }
 }

@@ -132,7 +132,8 @@ public class RecipeService : IRecipeService
             CategoryId = recipe.CategoryId,
             CategoryName = recipe.Category.Name,
             AuthorId = recipe.AuthorId,
-            AuthorName = recipe.Author.UserName ?? string.Empty
+            AuthorName = recipe.Author.UserName ?? string.Empty,
+            AuthorProfilePicturePath = recipe.Author?.ProfilePicturePath
         };
     }
 }

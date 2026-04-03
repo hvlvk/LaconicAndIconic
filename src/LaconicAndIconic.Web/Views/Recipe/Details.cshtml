@@ -259,9 +259,33 @@
             </div>
 
             <div class="recipe-author-row">
-                <span class="recipe-author-avatar">up</span>
+                @if (!string.IsNullOrEmpty(Model.AuthorProfilePicturePath))
+                {
+                    <img src="@Model.AuthorProfilePicturePath" alt="@Model.AuthorName" class="recipe-author-avatar" style="object-fit: cover;" />
+                }
+                else
+                {
+                    <span class="recipe-author-avatar">@(Model.AuthorName.Length > 0 ? Model.AuthorName.Substring(0, 1).ToUpper() : "U")</span>
+                }
                 <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" style="color: #4d4d4d; text-decoration: none;">@($"@{Model.AuthorName}")</a>
-                <button type="button" class="recipe-follow">Підписатись</button>
+                
+                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
+                {
+                    if (Model.IsSubscribedToAuthor)
+                    {
+                        <form asp-controller="User" asp-action="Unsubscribe" asp-route-id="@Model.AuthorId" method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit" class="recipe-follow" style="background:#e3953f; border: 1px solid #e3953f;">Відписатись</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-controller="User" asp-action="Subscribe" asp-route-id="@Model.AuthorId" method="post" class="d-inline">
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit" class="recipe-follow">Підписатись</button>
+                        </form>
+                    }
+                }
             </div>
 
             <p class="recipe-desc">@Model.Description</p>

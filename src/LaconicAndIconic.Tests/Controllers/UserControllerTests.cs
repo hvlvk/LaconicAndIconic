@@ -57,7 +57,7 @@ public sealed class UserControllerTests : IDisposable
         // Arrange
         var userId = 1;
         _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(userId))
+            .Setup(s => s.GetUserProfileByIdAsync(userId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Failure("Not found"));
 
         // Act
@@ -77,7 +77,7 @@ public sealed class UserControllerTests : IDisposable
         var userDto = new UserProfileDto { Id = userId, UserName = "testuser" };
         var recipesDto = new List<RecipeDto>();
         _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(userId))
+            .Setup(s => s.GetUserProfileByIdAsync(userId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
             
         _recipeServiceMock
@@ -108,7 +108,7 @@ public sealed class UserControllerTests : IDisposable
         var userDto = new UserProfileDto { Id = targetUserId, UserName = "otheruser" };
         var recipesDto = new List<RecipeDto>();
         _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(targetUserId))
+            .Setup(s => s.GetUserProfileByIdAsync(targetUserId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
             
         _recipeServiceMock
@@ -136,7 +136,7 @@ public sealed class UserControllerTests : IDisposable
         var userDto = new UserProfileDto { Id = targetUserId, UserName = "otheruser" };
         var recipesDto = new List<RecipeDto>();
         _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(targetUserId))
+            .Setup(s => s.GetUserProfileByIdAsync(targetUserId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
             
         _recipeServiceMock

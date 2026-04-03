@@ -11,4 +11,7 @@ public class ApplicationUser : IdentityUser<int>
     public ICollection<Recipe> Recipes { get; } = [];
     public ICollection<Rating> Ratings { get; } = [];
     public ICollection<Comment> Comments { get; } = [];
+    
+    public ICollection<UserSubscription> Followers { get; } = [];
+    public ICollection<UserSubscription> Following { get; } = [];
 }
