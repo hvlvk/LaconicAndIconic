@@ -8,6 +8,9 @@ public class Recipe : BaseEntity
     public string Description { get; set; } = string.Empty;
     public string? ImagePath { get; set; }
     public int PrepTimeMin { get; set; }
+    public int Servings { get; set; }
+    public string Ingredients { get; set; } = string.Empty;
+    public string CookingMethod { get; set; } = string.Empty;
 
     public Category Category { get; set; } = null!;
     public ApplicationUser Author { get; set; } = null!;

@@ -33,6 +33,9 @@ public class RecipeServiceTests
             Title = "Test Recipe",
             Description = "A delicious test recipe",
             PrepTimeMin = 30,
+            Servings = 4,
+            Ingredients = "Eggs\nMilk",
+            CookingMethod = "Mix\nBake",
             CategoryId = 1
         };
 
@@ -69,7 +72,16 @@ public class RecipeServiceTests
     public async Task CreateRecipeAsync_CategoryNotFound_ReturnsFailure()
     {
         // Arrange
-        var dto = new CreateRecipeDto { Title = "Title", CategoryId = 99 };
+        var dto = new CreateRecipeDto
+        {
+            Title = "Title",
+            Description = "Desc",
+            PrepTimeMin = 10,
+            Servings = 2,
+            Ingredients = "Item",
+            CookingMethod = "Step",
+            CategoryId = 99
+        };
         _categoryRepositoryMock.Setup(repo => repo.ExistsAsync(99)).ReturnsAsync(false);
 
         // Act
@@ -132,6 +144,9 @@ public class RecipeServiceTests
             Title = "Pasta",
             Description = "Tasty",
             PrepTimeMin = 20,
+            Servings = 2,
+            Ingredients = "Tomato\nPasta",
+            CookingMethod = "Boil\nServe",
             CategoryId = 2,
             AuthorId = 3,
             Category = new Category { Name = "Italian" },
@@ -153,6 +168,9 @@ public class RecipeServiceTests
         Assert.Equal("Pasta", result.Value!.Title);
         Assert.Equal("Italian", result.Value.CategoryName);
         Assert.Equal("chef", result.Value.AuthorName);
+        Assert.Equal(2, result.Value.Servings);
+        Assert.Equal("Tomato\nPasta", result.Value.Ingredients);
+        Assert.Equal("Boil\nServe", result.Value.CookingMethod);
     }
 
     [Fact]
@@ -226,6 +244,89 @@ public class RecipeServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Ви можете видаляти тільки свої рецепти", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateRecipeAsync_WrongAuthor_ReturnsFailure()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 7,
+            AuthorId = 1,
+            Title = "Old",
+            Description = "Old desc",
+            PrepTimeMin = 10,
+            CategoryId = 1
+        };
+
+        var updateDto = new UpdateRecipeDto
+        {
+            Title = "New",
+            Description = "New desc",
+            PrepTimeMin = 25,
+            Servings = 3,
+            Ingredients = "Ingredient",
+            CookingMethod = "Method",
+            CategoryId = 2
+        };
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(recipe);
+
+        // Act
+        var result = await _service.UpdateRecipeAsync(7, 2, updateDto);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Ви можете редагувати тільки свої рецепти", result.ErrorMessage);
+        _recipeRepositoryMock.Verify(r => r.Update(It.IsAny<Recipe>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateRecipeAsync_ValidOwner_UpdatesRecipeAndReturnsSuccess()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 8,
+            AuthorId = 4,
+            Title = "Before",
+            Description = "Before desc",
+            PrepTimeMin = 15,
+            Servings = 2,
+            Ingredients = "Old ingredient",
+            CookingMethod = "Old step",
+            CategoryId = 1
+        };
+
+        var updateDto = new UpdateRecipeDto
+        {
+            Title = "After",
+            Description = "After desc",
+            PrepTimeMin = 30,
+            Servings = 5,
+            Ingredients = "New ingredient 1\nNew ingredient 2",
+            CookingMethod = "Step 1\nStep 2",
+            CategoryId = 3
+        };
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(8)).ReturnsAsync(recipe);
+        _categoryRepositoryMock.Setup(r => r.ExistsAsync(3)).ReturnsAsync(true);
+
+        // Act
+        var result = await _service.UpdateRecipeAsync(8, 4, updateDto);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal("After", recipe.Title);
+        Assert.Equal("After desc", recipe.Description);
+        Assert.Equal(30, recipe.PrepTimeMin);
+        Assert.Equal(5, recipe.Servings);
+        Assert.Equal("New ingredient 1\nNew ingredient 2", recipe.Ingredients);
+        Assert.Equal("Step 1\nStep 2", recipe.CookingMethod);
+        Assert.Equal(3, recipe.CategoryId);
+        _recipeRepositoryMock.Verify(r => r.Update(recipe), Times.Once);
+        _recipeRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     // --- GetAllRecipesAsync tests ---

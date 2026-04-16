@@ -21,6 +21,17 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         builder.Property(r => r.PrepTimeMin)
             .IsRequired();
 
+        builder.Property(r => r.Servings)
+            .IsRequired();
+
+        builder.Property(r => r.Ingredients)
+            .IsRequired()
+            .HasMaxLength(4000);
+
+        builder.Property(r => r.CookingMethod)
+            .IsRequired()
+            .HasMaxLength(6000);
+
         builder.HasOne(r => r.Category)
             .WithMany(c => c.Recipes)
             .HasForeignKey(r => r.CategoryId)

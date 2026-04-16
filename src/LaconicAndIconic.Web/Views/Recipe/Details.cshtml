@@ -61,6 +61,12 @@
         border-color: var(--ck-orange);
     }
 
+    .recipe-owner-actions {
+        display: inline-flex;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+
     .recipe-meta {
         display: flex;
         align-items: center;
@@ -120,10 +126,10 @@
         gap: 2rem;
         padding: 1.1rem 1.5rem 1.5rem;
         border-bottom: 1px solid #ece8e2;
+    }
 
     .recipe-save svg {
         color: #e3953f;
-    }
     }
 
     .recipe-sections h2 {
@@ -229,12 +235,21 @@
         <div>
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
-                <a href="#" class="recipe-save" title="Save recipe">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    Зберегти
-                </a>
+                <div class="recipe-owner-actions">
+                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == Model.AuthorId)
+                    {
+                        <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="recipe-save" title="Edit recipe">
+                            Редагувати
+                        </a>
+                    }
+
+                    <a href="#" class="recipe-save" title="Save recipe">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Зберегти
+                    </a>
+                </div>
             </div>
 
             <div class="recipe-meta">
@@ -254,7 +269,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; display: inline; margin-right: 0.3rem;">
                         <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.64 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                     </svg>
-                    4 персони
+                    @Model.Servings порції
                 </span>
             </div>
 
@@ -268,7 +283,7 @@
                     <span class="recipe-author-avatar">@(Model.AuthorName.Length > 0 ? Model.AuthorName.Substring(0, 1).ToUpper() : "U")</span>
                 }
                 <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" style="color: #4d4d4d; text-decoration: none;">@($"@{Model.AuthorName}")</a>
-                
+
                 @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
                 {
                     if (Model.IsSubscribedToAuthor)
@@ -298,9 +313,10 @@
                 Інградієнти
             </h2>
             <ul class="ingredients-list">
-                <li><input type="checkbox" /> 200 гр спагетті</li>
-                <li><input type="checkbox" /> 50 гр пармезану</li>
-                <li><input type="checkbox" /> 2 зубчики часнику</li>
+                @foreach (var ingredient in string.IsNullOrWhiteSpace(Model.Ingredients) ? Array.Empty<string>() : Model.Ingredients.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <li><input type="checkbox" /> @ingredient</li>
+                }
             </ul>
         </div>
 
@@ -309,10 +325,10 @@
                 Спосіб приготування
             </h2>
             <ol class="steps-list">
-                <li>Закипʼятіть 1.5 літри води і посоліть. Варіть згідно часу на упаковці.</li>
-                <li>У сковорідці розігрійте оливкову олію, додайте нарізаний часник і обсмажте 30 секунд.</li>
-                <li>Додайте нарізану соломкою шинку і готуйте 3 хв.</li>
-                <li>Додайте зварену пасту і ретельно перемішайте.</li>
+                @foreach (var step in string.IsNullOrWhiteSpace(Model.CookingMethod) ? Array.Empty<string>() : Model.CookingMethod.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <li>@step</li>
+                }
             </ol>
         </div>
     </section>

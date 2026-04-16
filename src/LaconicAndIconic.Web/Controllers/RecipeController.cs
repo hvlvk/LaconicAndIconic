@@ -32,7 +32,7 @@ public class RecipeController : Controller
         }
 
         var currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
-        
+
         bool isSubscribed = false;
         if (currentUserId.HasValue && currentUserId != result.Value.AuthorId)
         {
@@ -50,6 +50,9 @@ public class RecipeController : Controller
             Description = result.Value.Description,
             ImagePath = result.Value.ImagePath,
             PrepTimeMin = result.Value.PrepTimeMin,
+            Servings = result.Value.Servings,
+            Ingredients = result.Value.Ingredients,
+            CookingMethod = result.Value.CookingMethod,
             CategoryName = result.Value.CategoryName,
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
@@ -63,8 +66,7 @@ public class RecipeController : Controller
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        var categoryResult = await _categoryService.GetAllCategoriesAsync();
-        ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
+        await LoadCategoriesAsync();
         return View(new CreateRecipeDto());
     }
 
@@ -74,8 +76,7 @@ public class RecipeController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var categoryResult = await _categoryService.GetAllCategoriesAsync();
-            ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
+            await LoadCategoriesAsync();
             return View(model);
         }
 
@@ -88,6 +89,89 @@ public class RecipeController : Controller
         }
 
         ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Помилка при створенні рецепту");
+        await LoadCategoriesAsync();
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var userId = User.GetUserId();
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+
+        if (!recipeResult.IsSuccess || recipeResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        if (recipeResult.Value.AuthorId != userId)
+        {
+            return Forbid();
+        }
+
+        await LoadCategoriesAsync();
+
+        var model = new EditRecipeViewModel
+        {
+            Id = recipeResult.Value.Id,
+            Title = recipeResult.Value.Title,
+            Description = recipeResult.Value.Description,
+            PrepTimeMin = recipeResult.Value.PrepTimeMin,
+            Servings = recipeResult.Value.Servings,
+            Ingredients = recipeResult.Value.Ingredients,
+            CookingMethod = recipeResult.Value.CookingMethod,
+            CategoryId = recipeResult.Value.CategoryId,
+            CurrentImagePath = recipeResult.Value.ImagePath
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, EditRecipeViewModel model)
+    {
+        var userId = User.GetUserId();
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+
+        if (!recipeResult.IsSuccess || recipeResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        if (recipeResult.Value.AuthorId != userId)
+        {
+            return Forbid();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.CurrentImagePath = recipeResult.Value.ImagePath;
+            await LoadCategoriesAsync();
+            return View(model);
+        }
+
+        var updateDto = new UpdateRecipeDto
+        {
+            Title = model.Title,
+            Description = model.Description,
+            PrepTimeMin = model.PrepTimeMin,
+            Servings = model.Servings,
+            Ingredients = model.Ingredients,
+            CookingMethod = model.CookingMethod,
+            CategoryId = model.CategoryId,
+            Image = model.Image
+        };
+
+        var updateResult = await _recipeService.UpdateRecipeAsync(id, userId, updateDto);
+        if (updateResult.IsSuccess)
+        {
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? "Помилка при оновленні рецепту");
+        model.CurrentImagePath = recipeResult.Value.ImagePath;
+        await LoadCategoriesAsync();
         return View(model);
     }
 
@@ -104,5 +188,11 @@ public class RecipeController : Controller
         }
 
         return RedirectToAction("Profile", "User", new { id = userId });
+    }
+
+    private async Task LoadCategoriesAsync()
+    {
+        var categoryResult = await _categoryService.GetAllCategoriesAsync();
+        ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
     }
 }
