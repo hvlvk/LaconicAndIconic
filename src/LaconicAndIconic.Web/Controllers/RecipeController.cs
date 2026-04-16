@@ -14,13 +14,15 @@ public class RecipeController : Controller
     private readonly ICategoryService _categoryService;
     private readonly IUserService _userService;
     private readonly ICommentService _commentService;
+    private readonly IReportService _reportService;
 
-    public RecipeController(IRecipeService recipeService, ICategoryService categoryService, IUserService userService, ICommentService commentService)
+    public RecipeController(IRecipeService recipeService, ICategoryService categoryService, IUserService userService, ICommentService commentService, IReportService reportService)
     {
         _recipeService = recipeService;
         _categoryService = categoryService;
         _userService = userService;
         _commentService = commentService;
+        _reportService = reportService;
     }
 
     [HttpGet("Recipe/{id:int}")]
@@ -90,6 +92,52 @@ public class RecipeController : Controller
         }
 
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Report(int id)
+    {
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+        if (!recipeResult.IsSuccess || recipeResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        var model = new ReportRecipeViewModel
+        {
+            RecipeId = id,
+            ReportedUserId = recipeResult.Value.AuthorId,
+            ReportedUserName = recipeResult.Value.AuthorName
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Report(ReportRecipeViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var userId = User.GetUserId();
+        var result = await _reportService.CreateAsync(new CreateReportDto
+        {
+            RecipeId = model.RecipeId,
+            ReportedUserId = model.ReportedUserId,
+            Reason = model.Reason
+        }, userId);
+
+        if (!result.IsSuccess)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Не вдалося надіслати скаргу");
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Скаргу надіслано";
+        return RedirectToAction(nameof(Details), new { id = model.RecipeId });
     }
 
     [HttpGet]
