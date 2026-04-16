@@ -255,6 +255,71 @@
         white-space: pre-wrap;
     }
 
+    .comment-delete {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.15s;
+    }
+
+    .comment-delete:hover {
+        color: #c0392b;
+    }
+
+    .comment-edit-btn {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.15s;
+    }
+
+    .comment-edit-btn:hover {
+        color: #e3953f;
+    }
+
+    .comment-edit-input {
+        width: 100%;
+        border: 1px solid #dbd6d0;
+        border-radius: 3px;
+        padding: 0.6rem;
+        margin-bottom: 0.5rem;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 60px;
+    }
+
+    .comment-edit-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .comment-save-btn {
+        border: 0;
+        border-radius: var(--ck-radius);
+        background: #e3953f;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+    }
+
+    .comment-cancel-btn {
+        border: 1px solid #dbd6d0;
+        border-radius: var(--ck-radius);
+        background: #fdfbf9;
+        color: #444;
+        font-weight: 700;
+        padding: 0.3rem 0.8rem;
+        cursor: pointer;
+    }
+
     @@media (max-width: 900px) {
         .recipe-main,
         .recipe-sections {
@@ -451,9 +516,35 @@
                     <div class="comment-item">
                         <div class="comment-header">
                             <span class="comment-author">@comment.AuthorName</span>
-                            <span class="comment-date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.6rem;">
+                                <span class="comment-date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == comment.AuthorId)
+                                {
+                                    <button type="button" class="comment-edit-btn" onclick="toggleEditComment(@comment.Id)" title="Редагувати коментар">✎</button>
+                                    <form asp-controller="Comment" asp-action="Delete" method="post" style="margin: 0;">
+                                        <input type="hidden" name="id" value="@comment.Id" />
+                                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                                        <button type="submit" class="comment-delete" title="Видалити коментар">✕</button>
+                                    </form>
+                                }
+                            </span>
                         </div>
-                        <p class="comment-content">@comment.Content</p>
+                        <div id="comment-content-@comment.Id">
+                            <p class="comment-content">@comment.Content</p>
+                        </div>
+
+                        @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == comment.AuthorId)
+                        {
+                            <form asp-controller="Comment" asp-action="Edit" method="post" style="display: none;" id="edit-form-@comment.Id">
+                                <input type="hidden" name="Id" value="@comment.Id" />
+                                <input type="hidden" name="RecipeId" value="@Model.Id" />
+                                <textarea name="Content" required class="comment-edit-input">@comment.Content</textarea>
+                                <div class="comment-edit-actions">
+                                    <button type="button" class="comment-cancel-btn" onclick="toggleEditComment(@comment.Id)">Скасувати</button>
+                                    <button type="submit" class="comment-save-btn">Зберегти</button>
+                                </div>
+                            </form>
+                        }
                     </div>
                 }
             }
@@ -464,3 +555,20 @@
         </div>
     </section>
 </div>
+
+<script>
+    function toggleEditComment(commentId) {
+        var contentDiv = document.getElementById('comment-content-' + commentId);
+        var formDiv = document.getElementById('edit-form-' + commentId);
+
+        if (contentDiv && formDiv) {
+            if (contentDiv.style.display === 'none') {
+                contentDiv.style.display = 'block';
+                formDiv.style.display = 'none';
+            } else {
+                contentDiv.style.display = 'none';
+                formDiv.style.display = 'block';
+            }
+        }
+    }
+</script>
