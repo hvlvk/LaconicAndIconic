@@ -416,7 +416,7 @@ body {
 }
 
 .recipe-details {
-    padding: 12px;
+    padding: 10px;
 }
 
 .recipe-title {
@@ -452,6 +452,60 @@ body {
 
 .recipe-author {
     color: var(--ck-text-muted);
+}
+
+.recipe-card-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+}
+
+.recipe-card-actions form {
+    margin: 0;
+}
+
+.recipe-card-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 8px;
+    font-size: 0.8rem;
+    line-height: 1;
+    border-radius: var(--ck-radius-pill);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.recipe-card-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.recipe-card-edit-btn {
+    background: #f8f6f3;
+    color: #2f2f2f;
+    border-color: #ded7cf;
+}
+
+.recipe-card-edit-btn:hover {
+    background: #fff;
+    border-color: var(--ck-orange);
+    color: var(--ck-orange);
+}
+
+.recipe-card-delete-btn {
+    background: #fff5f5;
+    color: var(--ck-error);
+    border-color: #f0c8c8;
+}
+
+.recipe-card-delete-btn:hover {
+    background: #ffecec;
+    border-color: var(--ck-error);
+    color: var(--ck-error);
 }
 
 /* Add Recipe Button */

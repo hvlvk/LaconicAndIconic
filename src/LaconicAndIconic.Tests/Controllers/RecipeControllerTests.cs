@@ -2,8 +2,10 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Controllers;
 using LaconicAndIconic.Web.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Security.Claims;
 
 namespace LaconicAndIconic.Tests.Controllers;
 
@@ -20,13 +22,26 @@ public sealed class RecipeControllerTests : IDisposable
         _controller = new RecipeController(_recipeServiceMock.Object, categoryServiceMock.Object, userServiceMock.Object);
         _controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext()
+            HttpContext = new DefaultHttpContext()
         };
     }
 
     public void Dispose()
     {
         _controller.Dispose();
+    }
+
+    private void SetUserContext(int userId)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, userId.ToString(System.Globalization.CultureInfo.InvariantCulture))
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        _controller.ControllerContext.HttpContext = new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(identity)
+        };
     }
 
     [Fact]
@@ -39,6 +54,9 @@ public sealed class RecipeControllerTests : IDisposable
             Title = "Pasta",
             Description = "Great pasta",
             PrepTimeMin = 25,
+            Servings = 4,
+            Ingredients = "Pasta\nCheese",
+            CookingMethod = "Boil\nServe",
             CategoryName = "Italian",
             AuthorId = 2,
             AuthorName = "chef"
@@ -57,6 +75,9 @@ public sealed class RecipeControllerTests : IDisposable
         Assert.Equal(dto.Id, model.Id);
         Assert.Equal(dto.Title, model.Title);
         Assert.Equal(dto.AuthorName, model.AuthorName);
+        Assert.Equal(dto.Servings, model.Servings);
+        Assert.Equal(dto.Ingredients, model.Ingredients);
+        Assert.Equal(dto.CookingMethod, model.CookingMethod);
     }
 
     [Fact]
@@ -72,6 +93,84 @@ public sealed class RecipeControllerTests : IDisposable
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Edit_Get_NotOwner_ReturnsForbid()
+    {
+        // Arrange
+        SetUserContext(5);
+
+        var dto = new RecipeDto
+        {
+            Id = 10,
+            AuthorId = 1,
+            Title = "Recipe",
+            Description = "Desc",
+            PrepTimeMin = 20,
+            Servings = 3,
+            Ingredients = "Ing",
+            CookingMethod = "Step",
+            CategoryId = 2
+        };
+
+        _recipeServiceMock
+            .Setup(s => s.GetRecipeByIdAsync(10))
+            .ReturnsAsync(Result<RecipeDto>.Success(dto));
+
+        // Act
+        var result = await _controller.Edit(10);
+
+        // Assert
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task Edit_Post_ValidOwner_RedirectsToDetails()
+    {
+        // Arrange
+        SetUserContext(3);
+
+        var dto = new RecipeDto
+        {
+            Id = 11,
+            AuthorId = 3,
+            Title = "Recipe",
+            Description = "Desc",
+            PrepTimeMin = 20,
+            Servings = 3,
+            Ingredients = "Ing",
+            CookingMethod = "Step",
+            CategoryId = 2
+        };
+
+        _recipeServiceMock
+            .Setup(s => s.GetRecipeByIdAsync(11))
+            .ReturnsAsync(Result<RecipeDto>.Success(dto));
+
+        _recipeServiceMock
+            .Setup(s => s.UpdateRecipeAsync(11, 3, It.IsAny<UpdateRecipeDto>()))
+            .ReturnsAsync(Result.Success());
+
+        var model = new EditRecipeViewModel
+        {
+            Id = 11,
+            Title = "Updated",
+            Description = "Updated desc",
+            PrepTimeMin = 15,
+            Servings = 4,
+            Ingredients = "New ing",
+            CookingMethod = "New step",
+            CategoryId = 2
+        };
+
+        // Act
+        var result = await _controller.Edit(11, model);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal(11, redirect.RouteValues!["id"]);
     }
 }
 

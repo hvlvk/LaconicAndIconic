@@ -7,6 +7,9 @@ public class RecipeDto
     public string Description { get; set; } = string.Empty;
     public string? ImagePath { get; set; }
     public int PrepTimeMin { get; set; }
+    public int Servings { get; set; }
+    public string Ingredients { get; set; } = string.Empty;
+    public string CookingMethod { get; set; } = string.Empty;
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public int AuthorId { get; set; }

@@ -25,6 +25,21 @@ public class RecipeService : IRecipeService
             return Result<RecipeDto>.Failure("Назва обов'язкова");
         }
 
+        if (dto.Servings <= 0)
+        {
+            return Result<RecipeDto>.Failure("Кількість порцій має бути більше 0");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Ingredients))
+        {
+            return Result<RecipeDto>.Failure("Інгредієнти обов'язкові");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.CookingMethod))
+        {
+            return Result<RecipeDto>.Failure("Спосіб приготування обов'язковий");
+        }
+
         var categoryExists = await _categoryRepository.ExistsAsync(dto.CategoryId);
         if (!categoryExists)
         {
@@ -42,6 +57,9 @@ public class RecipeService : IRecipeService
             Title = dto.Title,
             Description = dto.Description,
             PrepTimeMin = dto.PrepTimeMin,
+            Servings = dto.Servings,
+            Ingredients = dto.Ingredients,
+            CookingMethod = dto.CookingMethod,
             CategoryId = dto.CategoryId,
             AuthorId = authorId,
             ImagePath = imagePath
@@ -57,11 +75,72 @@ public class RecipeService : IRecipeService
             Description = recipe.Description,
             ImagePath = recipe.ImagePath,
             PrepTimeMin = recipe.PrepTimeMin,
+            Servings = recipe.Servings,
+            Ingredients = recipe.Ingredients,
+            CookingMethod = recipe.CookingMethod,
             CategoryId = recipe.CategoryId,
             AuthorId = recipe.AuthorId
         };
 
         return Result<RecipeDto>.Success(responseDto);
+    }
+
+    public async Task<Result> UpdateRecipeAsync(int recipeId, int authorId, UpdateRecipeDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Title))
+        {
+            return Result.Failure("Назва обов'язкова");
+        }
+
+        if (dto.Servings <= 0)
+        {
+            return Result.Failure("Кількість порцій має бути більше 0");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Ingredients))
+        {
+            return Result.Failure("Інгредієнти обов'язкові");
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.CookingMethod))
+        {
+            return Result.Failure("Спосіб приготування обов'язковий");
+        }
+
+        var recipe = await _recipeRepository.GetByIdAsync(recipeId);
+        if (recipe == null)
+        {
+            return Result.Failure("Рецепт не знайдено");
+        }
+
+        if (recipe.AuthorId != authorId)
+        {
+            return Result.Failure("Ви можете редагувати тільки свої рецепти");
+        }
+
+        var categoryExists = await _categoryRepository.ExistsAsync(dto.CategoryId);
+        if (!categoryExists)
+        {
+            return Result.Failure("Категорія не знайдена");
+        }
+
+        if (dto.Image != null && dto.Image.Length > 0)
+        {
+            recipe.ImagePath = await _fileService.SaveFileAsync(dto.Image, "recipes");
+        }
+
+        recipe.Title = dto.Title;
+        recipe.Description = dto.Description;
+        recipe.PrepTimeMin = dto.PrepTimeMin;
+        recipe.Servings = dto.Servings;
+        recipe.Ingredients = dto.Ingredients;
+        recipe.CookingMethod = dto.CookingMethod;
+        recipe.CategoryId = dto.CategoryId;
+
+        _recipeRepository.Update(recipe);
+        await _recipeRepository.SaveChangesAsync();
+
+        return Result.Success();
     }
 
     public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId)
@@ -158,11 +237,14 @@ public class RecipeService : IRecipeService
             Description = recipe.Description,
             ImagePath = recipe.ImagePath,
             PrepTimeMin = recipe.PrepTimeMin,
+            Servings = recipe.Servings,
+            Ingredients = recipe.Ingredients,
+            CookingMethod = recipe.CookingMethod,
             CategoryId = recipe.CategoryId,
             CategoryName = recipe.Category.Name,
             AuthorId = recipe.AuthorId,
             AuthorName = recipe.Author.UserName ?? string.Empty,
-            AuthorProfilePicturePath = recipe.Author?.ProfilePicturePath
+            AuthorProfilePicturePath = recipe.Author.ProfilePicturePath
         };
     }
 }

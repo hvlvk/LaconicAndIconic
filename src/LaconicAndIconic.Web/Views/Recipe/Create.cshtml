@@ -9,7 +9,7 @@
         justify-content: center;
         padding: 40px 20px;
     }
-    
+
     .recipe-create-card {
         background: var(--ck-white);
         border: 1px solid var(--ck-border);
@@ -147,10 +147,28 @@
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Ingredients" class="recipe-label">Інгредієнти</label>
+                    <textarea asp-for="Ingredients" class="recipe-input" placeholder="Кожен інгредієнт з нового рядка" required></textarea>
+                    <span asp-validation-for="Ingredients" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="CookingMethod" class="recipe-label">Спосіб приготування</label>
+                    <textarea asp-for="CookingMethod" class="recipe-input" placeholder="Опишіть покроково процес приготування" required></textarea>
+                    <span asp-validation-for="CookingMethod" class="text-danger"></span>
+                </div>
+
                 <div class="recipe-form-group">
                     <label asp-for="PrepTimeMin" class="recipe-label">Час приготування (хвилин)</label>
                     <input asp-for="PrepTimeMin" class="recipe-input" type="number" min="1" placeholder="45" required />
                     <span asp-validation-for="PrepTimeMin" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group">
+                    <label asp-for="Servings" class="recipe-label">Кількість порцій</label>
+                    <input asp-for="Servings" class="recipe-input" type="number" min="1" placeholder="4" required />
+                    <span asp-validation-for="Servings" class="text-danger"></span>
                 </div>
 
                 <div class="recipe-form-group">
@@ -186,16 +204,14 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        document.getElementById('recipeImageInput').addEventListener('change', function(e) {
-            var fileName = e.target.files[0] ? e.target.files[0].name : null;
-            var textContainer = document.getElementById('fileUploadText');
-            if (fileName) {
-                textContainer.innerHTML = '<span class="file-upload-icon">✅</span><span>' + fileName + '</span>';
-            } else {
-                textContainer.innerHTML = '<span class="file-upload-icon">📷</span><span>Додайте фотографію вашого кулінарного шедевру</span><span style="font-size: 0.85rem;">Натисніть або перетягніть файл сюди</span>';
-            }
-        });
-    </script>
-}
+<script>
+    document.getElementById('recipeImageInput').addEventListener('change', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : null;
+        var textContainer = document.getElementById('fileUploadText');
+        if (fileName) {
+            textContainer.innerHTML = '<span class="file-upload-icon">✅</span><span>' + fileName + '</span>';
+        } else {
+            textContainer.innerHTML = '<span class="file-upload-icon">📷</span><span>Додайте фотографію вашого кулінарного шедевру</span><span style="font-size: 0.85rem;">Натисніть або перетягніть файл сюди</span>';
+        }
+    });
+</script>
