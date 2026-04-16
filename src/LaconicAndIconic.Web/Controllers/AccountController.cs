@@ -91,6 +91,82 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _authService.GeneratePasswordResetTokenAsync(model.Email);
+
+        if (result.IsSuccess)
+        {
+            var resetLink = Url.Action("ResetPassword", "Account",
+                new { token = result.Value, email = model.Email }, Request.Scheme);
+            TempData["ResetLink"] = resetLink;
+        }
+
+        return RedirectToAction(nameof(ForgotPasswordConfirmation));
+    }
+
+    [HttpGet]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ResetPassword(string? token = null, string? email = null)
+    {
+        if (token is null)
+        {
+            return BadRequest("A token must be supplied for password reset.");
+        }
+
+        var model = new ResetPasswordViewModel
+        {
+            Token = token,
+            Email = email ?? string.Empty,
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _authService.ResetPasswordAsync(model.Email, model.Token, model.Password);
+
+        if (result.IsSuccess)
+        {
+            return RedirectToAction(nameof(ResetPasswordConfirmation));
+        }
+
+        ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Password reset failed.");
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult ResetPasswordConfirmation()
+    {
+        return View();
+    }
+
     private IActionResult RedirectToLocal(string? returnUrl)
     {
         if (Url.IsLocalUrl(returnUrl))
