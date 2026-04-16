@@ -13,12 +13,14 @@ public class RecipeController : Controller
     private readonly IRecipeService _recipeService;
     private readonly ICategoryService _categoryService;
     private readonly IUserService _userService;
+    private readonly ICommentService _commentService;
 
-    public RecipeController(IRecipeService recipeService, ICategoryService categoryService, IUserService userService)
+    public RecipeController(IRecipeService recipeService, ICategoryService categoryService, IUserService userService, ICommentService commentService)
     {
         _recipeService = recipeService;
         _categoryService = categoryService;
         _userService = userService;
+        _commentService = commentService;
     }
 
     [HttpGet("Recipe/{id:int}")]
@@ -32,7 +34,7 @@ public class RecipeController : Controller
         }
 
         var currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
-        
+
         bool isSubscribed = false;
         if (currentUserId.HasValue && currentUserId != result.Value.AuthorId)
         {
@@ -56,6 +58,12 @@ public class RecipeController : Controller
             AuthorProfilePicturePath = result.Value.AuthorProfilePicturePath,
             IsSubscribedToAuthor = isSubscribed
         };
+
+        var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id);
+        if (commentsResult.IsSuccess && commentsResult.Value != null)
+        {
+            model.Comments = commentsResult.Value.ToList().AsReadOnly();
+        }
 
         return View(model);
     }
