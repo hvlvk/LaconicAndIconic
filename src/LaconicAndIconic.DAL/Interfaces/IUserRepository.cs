@@ -14,4 +14,5 @@ public interface IUserRepository
     Task<ApplicationUser?> FindByUserNameAsync(string username);
     Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user);
     Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword);
+    Task<IEnumerable<ApplicationUser>> FindAsync(Expression<Func<ApplicationUser, bool>> predicate);
 }

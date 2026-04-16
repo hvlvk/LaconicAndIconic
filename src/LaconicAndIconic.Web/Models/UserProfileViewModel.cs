@@ -14,6 +14,8 @@ public class UserProfileViewModel
     public bool IsSubscribed { get; set; }
     public string ActiveTab { get; set; } = "recipes";
     public IEnumerable<RecipeDto> Recipes { get; set; } = [];
+    public IEnumerable<RecipeDto> AllRecipes { get; set; } = [];
     public IEnumerable<SharedListViewModel> SharedLists { get; set; } = [];
     public SharedListDetailViewModel? SelectedSharedList { get; set; }
+    public IEnumerable<UserProfileDto> Friends { get; set; } = [];
 }

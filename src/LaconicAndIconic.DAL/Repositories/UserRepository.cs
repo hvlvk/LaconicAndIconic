@@ -37,4 +37,9 @@ public class UserRepository : IUserRepository
 
     public Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword)
         => _userManager.ResetPasswordAsync(user, token, newPassword);
+
+    public async Task<IEnumerable<ApplicationUser>> FindAsync(System.Linq.Expressions.Expression<Func<ApplicationUser, bool>> predicate)
+    {
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_userManager.Users.Where(predicate));
+    }
 }

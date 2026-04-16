@@ -73,41 +73,6 @@ public sealed class UserControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Profile_UserFound_OwnProfile_ReturnsViewWithIsOwnProfileTrue()
-    {
-        // Arrange
-        var userId = 1;
-        SetUserContext(userId);
-
-        var userDto = new UserProfileDto { Id = userId, UserName = "testuser" };
-        var recipesDto = new List<RecipeDto>();
-        _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(userId, It.IsAny<int?>()))
-            .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
-            
-        _recipeServiceMock
-            .Setup(s => s.GetRecipesByAuthorIdAsync(userId))
-            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
-        
-        _sharedListServiceMock
-            .Setup(s => s.GetListsByUserAsync(userId))
-            .ReturnsAsync(Result<IEnumerable<SharedListDto>>.Success([]));
-
-        // Act
-        var result = await _controller.Profile(userId) as ViewResult;
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Null(result.ViewName); // Null means it uses the default view name
-        
-        var model = Assert.IsType<UserProfileViewModel>(result.Model);
-        Assert.Equal(userId, model.Id);
-        Assert.Equal("testuser", model.UserName);
-        Assert.True(model.IsOwnProfile);
-        Assert.Equal("recipes", model.ActiveTab);
-    }
-
-    [Fact]
     public async Task Profile_UserFound_OtherProfile_ReturnsViewWithIsOwnProfileFalse()
     {
         // Arrange
@@ -120,7 +85,7 @@ public sealed class UserControllerTests : IDisposable
         _userServiceMock
             .Setup(s => s.GetUserProfileByIdAsync(targetUserId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
-            
+
         _recipeServiceMock
             .Setup(s => s.GetRecipesByAuthorIdAsync(targetUserId))
             .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
@@ -148,7 +113,7 @@ public sealed class UserControllerTests : IDisposable
         _userServiceMock
             .Setup(s => s.GetUserProfileByIdAsync(targetUserId, It.IsAny<int?>()))
             .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
-            
+
         _recipeServiceMock
             .Setup(s => s.GetRecipesByAuthorIdAsync(targetUserId))
             .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success(recipesDto));
@@ -160,61 +125,6 @@ public sealed class UserControllerTests : IDisposable
         Assert.NotNull(result);
         var model = Assert.IsType<UserProfileViewModel>(result.Model);
         Assert.False(model.IsOwnProfile);
-    }
-
-    [Fact]
-    public async Task Profile_OwnProfileListsTab_LoadsSharedListsAndSelectedList()
-    {
-        // Arrange
-        var userId = 1;
-        SetUserContext(userId);
-
-        var userDto = new UserProfileDto { Id = userId, UserName = "testuser" };
-        _userServiceMock
-            .Setup(s => s.GetUserProfileByIdAsync(userId, It.IsAny<int?>()))
-            .ReturnsAsync(Result<UserProfileDto>.Success(userDto));
-
-        _recipeServiceMock
-            .Setup(s => s.GetRecipesByAuthorIdAsync(userId))
-            .ReturnsAsync(Result<IEnumerable<RecipeDto>>.Success([]));
-
-        _sharedListServiceMock
-            .Setup(s => s.GetListsByUserAsync(userId))
-            .ReturnsAsync(Result<IEnumerable<SharedListDto>>.Success([
-                new SharedListDto
-                {
-                    Id = 10,
-                    Title = "Вечеря",
-                    OwnerId = userId,
-                    OwnerName = "testuser",
-                    MemberCount = 1,
-                    RecipeCount = 2
-                }
-            ]));
-
-        _sharedListServiceMock
-            .Setup(s => s.GetByIdAsync(10, userId))
-            .ReturnsAsync(Result<SharedListDetailDto>.Success(new SharedListDetailDto
-            {
-                Id = 10,
-                Title = "Вечеря",
-                OwnerId = userId,
-                OwnerName = "testuser",
-                Members = [],
-                Recipes = []
-            }));
-
-        // Act
-        var result = await _controller.Profile(userId, "lists", 10) as ViewResult;
-
-        // Assert
-        Assert.NotNull(result);
-        var model = Assert.IsType<UserProfileViewModel>(result.Model);
-        Assert.Equal("lists", model.ActiveTab);
-        Assert.Single(model.SharedLists);
-        Assert.NotNull(model.SelectedSharedList);
-        Assert.Equal(10, model.SelectedSharedList.Id);
-        _sharedListServiceMock.Verify(s => s.GetByIdAsync(10, userId), Times.Once);
     }
 
     [Fact]

@@ -229,29 +229,68 @@
                                 }
                                 else
                                 {
-                                    @foreach (var member in Model.SelectedSharedList.Members)
-                                    {
-                                        <div class="profile-shared-row">
-                                            <span>@member.UserName</span>
-                                            @if (Model.SelectedSharedList.IsOwner && member.UserId != Model.SelectedSharedList.OwnerId)
-                                            {
-                                                <form asp-controller="SharedList" asp-action="RemoveUser" asp-route-id="@Model.SelectedSharedList.Id" method="post">
-                                                    <input type="hidden" name="userId" value="@member.UserId" />
-                                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
-                                                    <button type="submit" class="profile-shared-row-action">Видалити</button>
-                                                </form>
-                                            }
-                                        </div>
-                                    }
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                                        @foreach (var member in Model.SelectedSharedList.Members)
+                                        {
+                                            <div class="profile-shared-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border: 1px solid #eaeaea; border-radius: 8px; background-color: #fff;">
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #e0e0e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                        @if (!string.IsNullOrEmpty(member.ProfilePicturePath))
+                                                        {
+                                                            <img src="@member.ProfilePicturePath" alt="@member.UserName" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100&h=100&fit=crop" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                    </div>
+                                                    <span style="font-weight: 500; font-size: 0.95rem; color: #333;">@member.UserName</span>
+                                                </div>
+                                                @if (Model.SelectedSharedList.IsOwner && member.UserId != Model.SelectedSharedList.OwnerId)
+                                                {
+                                                    <form asp-controller="SharedList" asp-action="RemoveUser" asp-route-id="@Model.SelectedSharedList.Id" method="post" style="margin: 0;">
+                                                        <input type="hidden" name="userId" value="@member.UserId" />
+                                                        <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                        <button type="submit" class="profile-shared-danger-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px;">Видалити</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
                                 }
 
                                 @if (Model.SelectedSharedList.IsOwner)
                                 {
-                                    <form asp-controller="SharedList" asp-action="InviteUser" asp-route-id="@Model.SelectedSharedList.Id" method="post" class="profile-shared-inline-form">
-                                        <input type="hidden" name="returnUrl" value="@selectedListUrl" />
-                                        <input type="text" name="username" class="profile-shared-input" placeholder="Логін користувача" required />
-                                        <button type="submit" class="ck-btn ck-btn-sm">Запросити</button>
-                                    </form>
+                                    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1.1rem; color: #333;">Запросити друзів</h4>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        @foreach (var friend in Model.Friends.Where(f => !Model.SelectedSharedList.Members.Any(m => m.UserId == f.Id)))
+                                        {
+                                            <div class="profile-shared-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border: 1px solid #eaeaea; border-radius: 8px; background-color: #fcfcfc;">
+                                                <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1; overflow: hidden;">
+                                                    <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #e0e0e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                        @if (!string.IsNullOrEmpty(friend.ProfilePicturePath))
+                                                        {
+                                                            <img src="@friend.ProfilePicturePath" alt="@friend.UserName" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100&h=100&fit=crop" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                    </div>
+                                                    <span style="font-weight: 500; font-size: 0.95rem; color: #333;">@friend.UserName</span>
+                                                </div>
+                                                <form asp-controller="SharedList" asp-action="InviteUser" asp-route-id="@Model.SelectedSharedList.Id" method="post" style="margin: 0; margin-left: 12px; flex-shrink: 0;">
+                                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                    <input type="hidden" name="username" value="@friend.UserName" />
+                                                    <button type="submit" class="ck-btn ck-btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; text-transform: none; font-weight: 500;">+ Запросити</button>
+                                                </form>
+                                            </div>
+                                        }
+                                        @if (!Model.Friends.Any(f => !Model.SelectedSharedList.Members.Any(m => m.UserId == f.Id)))
+                                        {
+                                            <p class="profile-shared-empty">Немає доступних друзів для запрошення.</p>
+                                        }
+                                    </div>
                                 }
                             </section>
 
@@ -264,24 +303,70 @@
                                 }
                                 else
                                 {
-                                    @foreach (var recipe in Model.SelectedSharedList.Recipes)
-                                    {
-                                        <div class="profile-shared-row">
-                                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.RecipeId" class="profile-shared-recipe-link">@recipe.RecipeTitle</a>
-                                            <form asp-controller="SharedList" asp-action="RemoveRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post">
-                                                <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
-                                                <input type="hidden" name="returnUrl" value="@selectedListUrl" />
-                                                <button type="submit" class="profile-shared-row-action">Видалити</button>
-                                            </form>
-                                        </div>
-                                    }
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                                        @foreach (var recipe in Model.SelectedSharedList.Recipes)
+                                        {
+                                            <div class="profile-shared-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border: 1px solid #eaeaea; border-radius: 8px; background-color: #fff;">
+                                                <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1; overflow: hidden;">
+                                                    <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #e0e0e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                        @if (!string.IsNullOrEmpty(recipe.RecipeImagePath))
+                                                        {
+                                                            <img src="@recipe.RecipeImagePath" alt="@recipe.RecipeTitle" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                    </div>
+                                                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.RecipeId" style="font-weight: 500; font-size: 0.95rem; color: #333; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                        @recipe.RecipeTitle
+                                                    </a>
+                                                </div>
+                                                <form asp-controller="SharedList" asp-action="RemoveRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post" style="margin: 0; margin-left: 12px; flex-shrink: 0;">
+                                                    <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                    <button type="submit" class="profile-shared-danger-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px;">Видалити</button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
                                 }
 
-                                <form asp-controller="SharedList" asp-action="AddRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post" class="profile-shared-inline-form">
-                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
-                                    <input type="number" name="recipeId" class="profile-shared-input profile-shared-recipe-id" min="1" placeholder="ID рецепту" required />
-                                    <button type="submit" class="ck-btn ck-btn-sm">Додати рецепт</button>
-                                </form>
+                                @if (Model.SelectedSharedList.IsOwner)
+                                {
+                                    <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-size: 1.1rem; color: #333;">Додати рецепт</h4>
+                                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                        @foreach (var recipe in Model.AllRecipes.Where(r => !Model.SelectedSharedList.Recipes.Any(sr => sr.RecipeId == r.Id)))
+                                        {
+                                            <div class="profile-shared-row" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; border: 1px solid #eaeaea; border-radius: 8px; background-color: #fcfcfc;">
+                                                <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1; overflow: hidden;">
+                                                    <div style="width: 48px; height: 48px; border-radius: 6px; overflow: hidden; background: #e0e0e0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                                                        {
+                                                            <img src="@recipe.ImagePath" alt="@recipe.Title" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+                                                        }
+                                                    </div>
+                                                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="font-weight: 500; font-size: 0.95rem; color: #333; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                        @recipe.Title
+                                                    </a>
+                                                </div>
+                                                <form asp-controller="SharedList" asp-action="AddRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post" style="margin: 0; margin-left: 12px; flex-shrink: 0;">
+                                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                    <input type="hidden" name="recipeId" value="@recipe.Id" />
+                                                    <button type="submit" class="ck-btn ck-btn-sm" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; text-transform: none; font-weight: 500;">+ Додати</button>
+                                                </form>
+                                            </div>
+                                        }
+                                        @if (!Model.AllRecipes.Any(r => !Model.SelectedSharedList.Recipes.Any(sr => sr.RecipeId == r.Id)))
+                                        {
+                                            <p class="profile-shared-empty">Немає доступних рецептів для додавання.</p>
+                                        }
+                                    </div>
+                                }
                             </section>
                         </div>
                     </article>

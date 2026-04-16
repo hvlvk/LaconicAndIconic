@@ -59,6 +59,12 @@ public class UserController : Controller
 
         if (isOwnProfile)
         {
+            var friendsResult = await _userService.GetFriendsAsync(id);
+            viewModel.Friends = friendsResult.IsSuccess && friendsResult.Value != null ? friendsResult.Value : [];
+
+            var allRecipesResult = await _recipeService.GetAllRecipesAsync();
+            viewModel.AllRecipes = allRecipesResult.IsSuccess && allRecipesResult.Value != null ? allRecipesResult.Value : [];
+
             var sharedListsResult = await _sharedListService.GetListsByUserAsync(id);
             if (sharedListsResult.IsSuccess && sharedListsResult.Value != null)
             {
