@@ -17,6 +17,7 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
         var dbQuery = Context.Set<Recipe>()
             .Include(r => r.Category)
             .Include(r => r.Author)
+            .Include(r => r.Ratings)
             .AsNoTracking();
 
         if (filter.CategoryId.HasValue)

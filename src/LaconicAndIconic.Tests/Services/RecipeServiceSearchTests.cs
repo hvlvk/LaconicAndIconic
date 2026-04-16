@@ -4,23 +4,26 @@ using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
 using Moq;
-using Xunit;
-
 namespace LaconicAndIconic.Tests.Services;
 
 public class RecipeServiceSearchTests
 {
     private readonly Mock<IRecipeRepository> _recipeRepoMock;
-    private readonly Mock<IFileService> _fileServiceMock;
-    private readonly Mock<IRepository<Category>> _categoryRepoMock;
     private readonly RecipeService _service;
 
     public RecipeServiceSearchTests()
     {
         _recipeRepoMock = new Mock<IRecipeRepository>();
-        _fileServiceMock = new Mock<IFileService>();
-        _categoryRepoMock = new Mock<IRepository<Category>>();
-        _service = new RecipeService(_recipeRepoMock.Object, _fileServiceMock.Object, _categoryRepoMock.Object);
+        var fileServiceMock = new Mock<IFileService>();
+        var categoryRepoMock = new Mock<IRepository<Category>>();
+        var ratingRepoMock = new Mock<IRepository<Rating>>();
+        var userRepoMock = new Mock<IUserRepository>();
+        _service = new RecipeService(
+            _recipeRepoMock.Object,
+            fileServiceMock.Object,
+            categoryRepoMock.Object,
+            ratingRepoMock.Object,
+            userRepoMock.Object);
     }
 
     [Fact]

@@ -3,130 +3,6 @@
     ViewData["Title"] = "Додати новий рецепт";
 }
 
-<style>
-    .recipe-create-container {
-        display: flex;
-        justify-content: center;
-        padding: 40px 20px;
-    }
-    
-    .recipe-create-card {
-        background: var(--ck-white);
-        border: 1px solid var(--ck-border);
-        border-radius: var(--ck-radius-lg);
-        padding: 40px;
-        width: 100%;
-        max-width: 800px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    }
-
-    .recipe-create-title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 30px;
-        color: var(--ck-text);
-        text-align: center;
-    }
-
-    .recipe-form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-
-    .recipe-form-group.full-width {
-        grid-column: span 2;
-    }
-
-    .recipe-label {
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--ck-text);
-    }
-
-    .recipe-input {
-        width: 100%;
-        padding: 12px 16px;
-        background-color: var(--ck-input-bg);
-        border: 1px solid var(--ck-border);
-        border-radius: var(--ck-radius);
-        font-size: 1rem;
-        color: var(--ck-text);
-        transition: border-color 0.2s;
-    }
-
-    .recipe-input:focus {
-        outline: none;
-        border-color: var(--ck-orange);
-    }
-
-    textarea.recipe-input {
-        resize: vertical;
-        min-height: 120px;
-    }
-
-    .file-upload-wrapper {
-        border: 2px dashed var(--ck-border);
-        border-radius: var(--ck-radius);
-        padding: 30px;
-        text-align: center;
-        background-color: var(--ck-input-bg);
-        cursor: pointer;
-        transition: border-color 0.2s, background-color 0.2s;
-        position: relative;
-    }
-
-    .file-upload-wrapper:hover {
-        border-color: var(--ck-orange);
-        background-color: #fffaf5;
-    }
-
-    .file-upload-wrapper input[type="file"] {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        opacity: 0;
-        cursor: pointer;
-    }
-
-    .file-upload-text {
-        font-size: 1rem;
-        color: var(--ck-text-muted);
-        pointer-events: none;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .file-upload-icon {
-        font-size: 2rem;
-        color: var(--ck-orange);
-    }
-
-    .recipe-submit-btn {
-        grid-column: span 2;
-        width: 100%;
-        padding: 14px;
-        font-size: 1.1rem;
-        margin-top: 10px;
-        border-radius: var(--ck-radius-pill);
-    }
-
-    @@media (max-width: 768px) {
-        .recipe-form-grid {
-            grid-template-columns: 1fr;
-        }
-        .recipe-form-group.full-width, .recipe-submit-btn {
-            grid-column: span 1;
-        }
-    }
-</style>
-
 <div class="recipe-create-container">
     <div class="recipe-create-card">
         <h2 class="recipe-create-title">@ViewData["Title"]</h2>
@@ -147,10 +23,28 @@
                     <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
 
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Ingredients" class="recipe-label">Інгредієнти</label>
+                    <textarea asp-for="Ingredients" class="recipe-input" placeholder="Кожен інгредієнт з нового рядка" required></textarea>
+                    <span asp-validation-for="Ingredients" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="CookingMethod" class="recipe-label">Спосіб приготування</label>
+                    <textarea asp-for="CookingMethod" class="recipe-input" placeholder="Опишіть покроково процес приготування" required></textarea>
+                    <span asp-validation-for="CookingMethod" class="text-danger"></span>
+                </div>
+
                 <div class="recipe-form-group">
                     <label asp-for="PrepTimeMin" class="recipe-label">Час приготування (хвилин)</label>
                     <input asp-for="PrepTimeMin" class="recipe-input" type="number" min="1" placeholder="45" required />
                     <span asp-validation-for="PrepTimeMin" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group">
+                    <label asp-for="Servings" class="recipe-label">Кількість порцій</label>
+                    <input asp-for="Servings" class="recipe-input" type="number" min="1" placeholder="4" required />
+                    <span asp-validation-for="Servings" class="text-danger"></span>
                 </div>
 
                 <div class="recipe-form-group">
@@ -175,7 +69,7 @@
                         <div class="file-upload-text" id="fileUploadText">
                             <span class="file-upload-icon">📷</span>
                             <span>Додайте фотографію вашого кулінарного шедевру</span>
-                            <span style="font-size: 0.85rem;">Натисніть або перетягніть файл сюди</span>
+                            <span class="file-upload-hint">Натисніть або перетягніть файл сюди</span>
                         </div>
                     </div>
                 </div>
@@ -186,16 +80,14 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        document.getElementById('recipeImageInput').addEventListener('change', function(e) {
-            var fileName = e.target.files[0] ? e.target.files[0].name : null;
-            var textContainer = document.getElementById('fileUploadText');
-            if (fileName) {
-                textContainer.innerHTML = '<span class="file-upload-icon">✅</span><span>' + fileName + '</span>';
-            } else {
-                textContainer.innerHTML = '<span class="file-upload-icon">📷</span><span>Додайте фотографію вашого кулінарного шедевру</span><span style="font-size: 0.85rem;">Натисніть або перетягніть файл сюди</span>';
-            }
-        });
-    </script>
-}
+<script>
+    document.getElementById('recipeImageInput').addEventListener('change', function(e) {
+        var fileName = e.target.files[0] ? e.target.files[0].name : null;
+        var textContainer = document.getElementById('fileUploadText');
+        if (fileName) {
+            textContainer.innerHTML = '<span class="file-upload-icon">✅</span><span>' + fileName + '</span>';
+        } else {
+            textContainer.innerHTML = '<span class="file-upload-icon">📷</span><span>Додайте фотографію вашого кулінарного шедевру</span><span class="file-upload-hint">Натисніть або перетягніть файл сюди</span>';
+        }
+    });
+</script>

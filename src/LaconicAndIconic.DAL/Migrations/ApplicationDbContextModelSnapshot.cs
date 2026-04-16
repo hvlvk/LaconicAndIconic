@@ -128,55 +128,55 @@ namespace LaconicAndIconic.DAL.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4894),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7450),
                             Name = "Сніданки"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4896),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7450),
                             Name = "Перші страви"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4898),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7450),
                             Name = "Основні страви"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4900),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Салати"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4902),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Десерти"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4903),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Закуски"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4905),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Випічка"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4907),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Вегетаріанські страви"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 4, 2, 18, 16, 20, 893, DateTimeKind.Utc).AddTicks(4908),
+                            CreatedAt = new DateTime(2026, 4, 16, 10, 35, 50, 137, DateTimeKind.Utc).AddTicks(7460),
                             Name = "Напої"
                         });
                 });
@@ -262,6 +262,11 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("CookingMethod")
+                        .IsRequired()
+                        .HasMaxLength(6000)
+                        .HasColumnType("character varying(6000)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -273,7 +278,15 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Property<string>("ImagePath")
                         .HasColumnType("text");
 
+                    b.Property<string>("Ingredients")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<int>("PrepTimeMin")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Servings")
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")

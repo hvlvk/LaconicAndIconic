@@ -268,45 +268,48 @@
         <div>
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
-                <a href="#" class="recipe-save" title="Save recipe">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                    Зберегти
-                </a>
+                <div class="recipe-owner-actions">
+                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == Model.AuthorId)
+                    {
+                        <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="recipe-save" title="Edit recipe">
+                            Редагувати
+                        </a>
+                    }
+
+                    <a href="#" class="recipe-save" title="Save recipe">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Зберегти
+                    </a>
+                </div>
             </div>
 
             <div class="recipe-meta">
                 <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; display: inline; margin-right: 0.3rem; color: #f4a500;">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
-                    4.7
-                </span>
-                <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; display: inline; margin-right: 0.3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="recipe-meta-icon">
                         <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                     </svg>
                     @Model.PrepTimeMin хв
                 </span>
                 <span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width: 18px; height: 18px; display: inline; margin-right: 0.3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="recipe-meta-icon">
                         <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.64 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                     </svg>
-                    4 персони
+                    @Model.Servings порції
                 </span>
             </div>
 
             <div class="recipe-author-row">
                 @if (!string.IsNullOrEmpty(Model.AuthorProfilePicturePath))
                 {
-                    <img src="@Model.AuthorProfilePicturePath" alt="@Model.AuthorName" class="recipe-author-avatar" style="object-fit: cover;" />
+                    <img src="@Model.AuthorProfilePicturePath" alt="@Model.AuthorName" class="recipe-author-avatar recipe-author-avatar--image" />
                 }
                 else
                 {
                     <span class="recipe-author-avatar">@(Model.AuthorName.Length > 0 ? Model.AuthorName.Substring(0, 1).ToUpper() : "U")</span>
                 }
-                <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" style="color: #4d4d4d; text-decoration: none;">@($"@{Model.AuthorName}")</a>
+                <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" class="recipe-author-link">@($"@{Model.AuthorName}")</a>
 
                 @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
                 {
@@ -314,7 +317,7 @@
                     {
                         <form asp-controller="User" asp-action="Unsubscribe" asp-route-id="@Model.AuthorId" method="post" class="d-inline">
                             <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
-                            <button type="submit" class="recipe-follow" style="background:#e3953f; border: 1px solid #e3953f;">Відписатись</button>
+                            <button type="submit" class="recipe-follow recipe-follow--unsubscribe">Відписатись</button>
                         </form>
                     }
                     else
@@ -324,6 +327,44 @@
                             <button type="submit" class="recipe-follow">Підписатись</button>
                         </form>
                     }
+                }
+            </div>
+
+            <div class="recipe-rating-panel">
+                <div class="recipe-rating-summary">
+                    <span class="recipe-rating-score">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        @Model.AverageRating.ToString("0.0")
+                    </span>
+                    <span class="recipe-rating-count">(@Model.RatingCount оцінок)</span>
+                    @if (Model.CurrentUserRating.HasValue)
+                    {
+                        <span class="recipe-rating-current">Ваша оцінка: @Model.CurrentUserRating</span>
+                    }
+                </div>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Recipe" asp-action="Rate" asp-route-id="@Model.Id" method="post" class="recipe-rate-form">
+                        <span class="recipe-rate-label">Оцініть рецепт:</span>
+                        <div class="recipe-rate-stars">
+                            @for (var score = 1; score <= 5; score++)
+                            {
+                                var isActive = Model.CurrentUserRating.HasValue && Model.CurrentUserRating.Value >= score;
+                                <button type="submit" name="score" value="@score" class="recipe-rate-star @(isActive ? "recipe-rate-star--active" : string.Empty)" aria-label="Поставити @score зірок" title="@score зірок">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="@(isActive ? "recipe-rate-star-icon--active" : string.Empty)">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                </button>
+                            }
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <div class="recipe-rate-note">Увійдіть, щоб поставити оцінку.</div>
                 }
             </div>
 
@@ -337,9 +378,10 @@
                 Інградієнти
             </h2>
             <ul class="ingredients-list">
-                <li><input type="checkbox" /> 200 гр спагетті</li>
-                <li><input type="checkbox" /> 50 гр пармезану</li>
-                <li><input type="checkbox" /> 2 зубчики часнику</li>
+                @foreach (var ingredient in string.IsNullOrWhiteSpace(Model.Ingredients) ? Array.Empty<string>() : Model.Ingredients.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <li><input type="checkbox" /> @ingredient</li>
+                }
             </ul>
         </div>
 
@@ -348,16 +390,16 @@
                 Спосіб приготування
             </h2>
             <ol class="steps-list">
-                <li>Закипʼятіть 1.5 літри води і посоліть. Варіть згідно часу на упаковці.</li>
-                <li>У сковорідці розігрійте оливкову олію, додайте нарізаний часник і обсмажте 30 секунд.</li>
-                <li>Додайте нарізану соломкою шинку і готуйте 3 хв.</li>
-                <li>Додайте зварену пасту і ретельно перемішайте.</li>
+                @foreach (var step in string.IsNullOrWhiteSpace(Model.CookingMethod) ? Array.Empty<string>() : Model.CookingMethod.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <li>@step</li>
+                }
             </ol>
         </div>
     </section>
 
     <section class="recipe-comments">
-        <h2 style="margin: 0 0 0.8rem; font-size: 1.7rem;">
+        <h2 class="recipe-comments-title">
             Коментарі
         </h2>
 
