@@ -31,4 +31,10 @@ public class UserRepository : IUserRepository
 
     public Task<ApplicationUser?> FindByUserNameAsync(string username)
         => _userManager.FindByNameAsync(username);
+
+    public Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+        => _userManager.GeneratePasswordResetTokenAsync(user);
+
+    public Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string newPassword)
+        => _userManager.ResetPasswordAsync(user, token, newPassword);
 }

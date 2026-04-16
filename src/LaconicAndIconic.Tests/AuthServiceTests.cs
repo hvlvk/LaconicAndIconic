@@ -244,4 +244,121 @@ public class AuthServiceTests
         Assert.True(result.IsSuccess);
         signInManagerMock.Verify(s => s.SignOutAsync(), Times.Once);
     }
+
+    // --- GeneratePasswordResetTokenAsync tests ---
+
+    [Fact]
+    public async Task GeneratePasswordResetTokenAsync_ValidEmail_ReturnsToken()
+    {
+        // Arrange
+        var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
+
+        var userManagerMock = CreateUserManagerMock();
+        var signInManagerMock = CreateSignInManagerMock(userManagerMock);
+
+        var userRepoMock = new Mock<IUserRepository>();
+        userRepoMock.Setup(r => r.FindByEmailAsync(user.Email)).ReturnsAsync(user);
+        userRepoMock.Setup(r => r.GeneratePasswordResetTokenAsync(user)).ReturnsAsync("reset-token-123");
+
+        var sut = CreateSut(signInManagerMock, userRepoMock);
+
+        // Act
+        var result = await sut.GeneratePasswordResetTokenAsync(user.Email!);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal("reset-token-123", result.Value);
+        userRepoMock.Verify(r => r.GeneratePasswordResetTokenAsync(user), Times.Once);
+    }
+
+    [Fact]
+    public async Task GeneratePasswordResetTokenAsync_InvalidEmail_ReturnsFailure()
+    {
+        // Arrange
+        var userManagerMock = CreateUserManagerMock();
+        var signInManagerMock = CreateSignInManagerMock(userManagerMock);
+
+        var userRepoMock = new Mock<IUserRepository>();
+        userRepoMock.Setup(r => r.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateSut(signInManagerMock, userRepoMock);
+
+        // Act
+        var result = await sut.GeneratePasswordResetTokenAsync("ghost@example.com");
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        userRepoMock.Verify(r => r.GeneratePasswordResetTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
+    }
+
+    // --- ResetPasswordAsync tests ---
+
+    [Fact]
+    public async Task ResetPasswordAsync_ValidToken_ReturnsSuccess()
+    {
+        // Arrange
+        var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
+
+        var userManagerMock = CreateUserManagerMock();
+        var signInManagerMock = CreateSignInManagerMock(userManagerMock);
+
+        var userRepoMock = new Mock<IUserRepository>();
+        userRepoMock.Setup(r => r.FindByEmailAsync(user.Email)).ReturnsAsync(user);
+        userRepoMock.Setup(r => r.ResetPasswordAsync(user, "valid-token", "NewP@ss1!"))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateSut(signInManagerMock, userRepoMock);
+
+        // Act
+        var result = await sut.ResetPasswordAsync(user.Email!, "valid-token", "NewP@ss1!");
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        userRepoMock.Verify(r => r.ResetPasswordAsync(user, "valid-token", "NewP@ss1!"), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_InvalidEmail_ReturnsFailure()
+    {
+        // Arrange
+        var userManagerMock = CreateUserManagerMock();
+        var signInManagerMock = CreateSignInManagerMock(userManagerMock);
+
+        var userRepoMock = new Mock<IUserRepository>();
+        userRepoMock.Setup(r => r.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateSut(signInManagerMock, userRepoMock);
+
+        // Act
+        var result = await sut.ResetPasswordAsync("ghost@example.com", "token", "NewP@ss1!");
+
+        // Assert
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_InvalidToken_ReturnsFailure()
+    {
+        // Arrange
+        var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
+        var tokenError = IdentityResult.Failed(
+            new IdentityError { Code = "InvalidToken", Description = "Invalid token." });
+
+        var userManagerMock = CreateUserManagerMock();
+        var signInManagerMock = CreateSignInManagerMock(userManagerMock);
+
+        var userRepoMock = new Mock<IUserRepository>();
+        userRepoMock.Setup(r => r.FindByEmailAsync(user.Email)).ReturnsAsync(user);
+        userRepoMock.Setup(r => r.ResetPasswordAsync(user, "bad-token", "NewP@ss1!"))
+            .ReturnsAsync(tokenError);
+
+        var sut = CreateSut(signInManagerMock, userRepoMock);
+
+        // Act
+        var result = await sut.ResetPasswordAsync(user.Email!, "bad-token", "NewP@ss1!");
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Invalid token", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
 }

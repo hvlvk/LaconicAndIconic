@@ -27,6 +27,8 @@ dotnet_diagnostic.CA1515.severity = none
 dotnet_diagnostic.CA1062.severity = none
 # CA2007: Do not require ConfigureAwait — this is an ASP.NET Core app, not a reusable library.
 dotnet_diagnostic.CA2007.severity = none
+# CA1873: Logging source generators handle argument evaluation — false positive with [LoggerMessage] pattern.
+dotnet_diagnostic.CA1873.severity = none
 
 [**/Migrations/**.cs]
 # CA1861: EF Core auto-generated migration files — constant arrays are acceptable in generated code.
