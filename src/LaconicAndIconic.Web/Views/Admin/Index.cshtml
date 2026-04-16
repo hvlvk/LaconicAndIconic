@@ -1,0 +1,59 @@
+@model LaconicAndIconic.Web.Models.AdminCategoriesViewModel
+
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<h1>Manage Categories</h1>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<form asp-action="Create" method="post" class="mb-4">
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <label for="name">Нова категорія</label>
+        <input id="name" name="name" class="form-control" value="@Model.NewCategoryName" />
+    </div>
+    <button type="submit" class="ck-btn mt-2">Додати категорію</button>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Назва</th>
+            <th>Дії</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model.Categories)
+        {
+            <tr>
+                <td>@category.Id</td>
+                <td>
+                    <form asp-action="Rename" method="post" class="d-flex align-items-center">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@category.Id" />
+                        <input name="name" value="@category.Name" class="form-control me-2" />
+                        
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="Delete" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@category.Id" />
+                        <button type="submit" class="ck-btn btn-danger">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

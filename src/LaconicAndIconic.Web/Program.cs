@@ -26,7 +26,14 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+}
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
