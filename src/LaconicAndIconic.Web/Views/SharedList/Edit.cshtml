@@ -1,0 +1,74 @@
+@model LaconicAndIconic.Web.Models.EditSharedListViewModel
+@{
+    ViewData["Title"] = "Редагувати список";
+}
+
+<style>
+    .shared-list-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .shared-list-form-card {
+        background: #fff;
+        border: 1px solid #e6e0d9;
+        border-radius: 6px;
+        padding: 2rem;
+    }
+
+    .shared-list-form-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .shared-list-form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .shared-list-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+    }
+
+    .shared-list-input {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #d8d2ca;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+    }
+
+    .shared-list-input:focus {
+        outline: none;
+        border-color: #b8a99a;
+    }
+</style>
+
+<div class="shared-list-form-container">
+    <div class="shared-list-form-card">
+        <h2 class="shared-list-form-title">@ViewData["Title"]</h2>
+
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="shared-list-form-group">
+                <label asp-for="Title" class="shared-list-label"></label>
+                <input asp-for="Title" class="shared-list-input" required />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="shared-list-form-group">
+                <label asp-for="Description" class="shared-list-label"></label>
+                <textarea asp-for="Description" class="shared-list-input" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="ck-btn">Зберегти</button>
+        </form>
+    </div>
+</div>
