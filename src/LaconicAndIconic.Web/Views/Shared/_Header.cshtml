@@ -60,6 +60,10 @@
                     <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
                 </svg>
             </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Admin" asp-action="Index" class="ck-btn ck-btn-sm ck-btn-secondary" title="Адмін панель">Admin</a>
+            }
             <form asp-controller="Account" asp-action="Logout" method="post" class="ck-logout-form">
                 <button type="submit" title="Вийти">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
