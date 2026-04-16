@@ -61,6 +61,17 @@
         border-color: var(--ck-orange);
     }
 
+    .recipe-report-btn {
+        border-color: #82403e;
+        background: #82403e;
+        color: #fff;
+    }
+
+    .recipe-report-btn:hover {
+        background: #82403e;
+        border-color: #82403e;
+    }
+
     .recipe-meta {
         display: flex;
         align-items: center;
@@ -282,6 +293,10 @@
                         </svg>
                         Зберегти
                     </a>
+                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
+                    {
+                        <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитися</a>
+                    }
                 </div>
             </div>
 

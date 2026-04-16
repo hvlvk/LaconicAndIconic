@@ -14,12 +14,14 @@ public sealed class RecipeControllerTests : IDisposable
 {
     private readonly Mock<IRecipeService> _recipeServiceMock;
     private readonly Mock<ICommentService> _commentServiceMock;
+    private readonly Mock<IReportService> _reportServiceMock;
     private readonly RecipeController _controller;
 
     public RecipeControllerTests()
     {
         _recipeServiceMock = new Mock<IRecipeService>();
         _commentServiceMock = new Mock<ICommentService>();
+        _reportServiceMock = new Mock<IReportService>();
         var categoryServiceMock = new Mock<ICategoryService>();
         var userServiceMock = new Mock<IUserService>();
 
@@ -31,7 +33,8 @@ public sealed class RecipeControllerTests : IDisposable
             _recipeServiceMock.Object,
             categoryServiceMock.Object,
             userServiceMock.Object,
-            _commentServiceMock.Object)
+            _commentServiceMock.Object,
+            _reportServiceMock.Object)
         {
             ControllerContext = new ControllerContext
             {

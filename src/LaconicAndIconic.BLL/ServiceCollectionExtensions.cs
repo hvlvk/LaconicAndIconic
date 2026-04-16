@@ -13,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IReportService, ReportService>();
 
         return services;
     }
