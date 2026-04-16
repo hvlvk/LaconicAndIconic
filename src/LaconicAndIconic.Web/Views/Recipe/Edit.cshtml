@@ -1,0 +1,83 @@
+@model LaconicAndIconic.Web.Models.EditRecipeViewModel
+@{
+    ViewData["Title"] = "Редагувати рецепт";
+}
+
+
+<div class="recipe-edit-container">
+    <div class="recipe-edit-card">
+        <h2 class="recipe-edit-title">@ViewData["Title"]</h2>
+
+        <form asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="recipe-form-grid">
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Title" class="recipe-label"></label>
+                    <input asp-for="Title" class="recipe-input" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Description" class="recipe-label"></label>
+                    <textarea asp-for="Description" class="recipe-input"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Ingredients" class="recipe-label"></label>
+                    <textarea asp-for="Ingredients" class="recipe-input"></textarea>
+                    <span asp-validation-for="Ingredients" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="CookingMethod" class="recipe-label"></label>
+                    <textarea asp-for="CookingMethod" class="recipe-input"></textarea>
+                    <span asp-validation-for="CookingMethod" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group">
+                    <label asp-for="PrepTimeMin" class="recipe-label"></label>
+                    <input asp-for="PrepTimeMin" class="recipe-input" type="number" min="1" />
+                    <span asp-validation-for="PrepTimeMin" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group">
+                    <label asp-for="Servings" class="recipe-label"></label>
+                    <input asp-for="Servings" class="recipe-input" type="number" min="1" />
+                    <span asp-validation-for="Servings" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group">
+                    <label asp-for="CategoryId" class="recipe-label"></label>
+                    <select asp-for="CategoryId" class="recipe-input">
+                        <option value="">-- Оберіть категорію --</option>
+                        @if (ViewBag.Categories != null)
+                        {
+                            foreach (var category in ViewBag.Categories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                </div>
+
+                <div class="recipe-form-group full-width">
+                    <label asp-for="Image" class="recipe-label">Оновити фото страви (опціонально)</label>
+                    @if (!string.IsNullOrWhiteSpace(Model.CurrentImagePath))
+                    {
+                        <img src="@Model.CurrentImagePath" alt="@Model.Title" class="current-image" />
+                    }
+                    <input asp-for="Image" type="file" accept="image/*" class="recipe-input" />
+                </div>
+
+                <div class="recipe-actions">
+                    <button type="submit" class="ck-btn recipe-submit-btn">Зберегти зміни</button>
+                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@Model.Id" class="ck-btn recipe-cancel-btn">Скасувати</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
