@@ -1,4 +1,4 @@
-using LaconicAndIconic.BLL.Interfaces;
+﻿using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
@@ -76,5 +76,55 @@ public class CommentService : ICommentService
         await _commentRepository.SaveChangesAsync();
 
         return Result.Success();
+    }
+
+    public async Task<Result> EditAsync(EditCommentDto dto, int userId)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Content))
+        {
+            return Result.Failure("Коментар не може бути порожнім");
+        }
+
+        var comment = await _commentRepository.GetQueryable()
+            .FirstOrDefaultAsync(c => c.Id == dto.Id);
+
+        if (comment == null)
+        {
+            return Result.Failure("Коментар не знайдено");
+        }
+
+        if (comment.AuthorId != userId)
+        {
+            return Result.Failure("Ви не можете редагувати чужий коментар");
+        }
+
+        comment.Content = dto.Content;
+        await _commentRepository.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    public async Task<Result<CommentDto>> GetCommentByIdAsync(int commentId)
+    {
+        var comment = await _commentRepository.GetQueryable()
+            .Include(c => c.Author)
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+
+        if (comment == null)
+        {
+            return Result<CommentDto>.Failure("Коментар не знайдено");
+        }
+
+        var dto = new CommentDto
+        {
+            Id = comment.Id,
+            RecipeId = comment.RecipeId,
+            AuthorId = comment.AuthorId,
+            AuthorName = comment.Author.UserName ?? string.Empty,
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt
+        };
+
+        return Result<CommentDto>.Success(dto);
     }
 }

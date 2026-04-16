@@ -219,4 +219,87 @@ public sealed class CommentControllerTests : IDisposable
         Assert.Equal("Recipe", redirect.ControllerName);
         Assert.Equal(5, redirect.RouteValues!["id"]);
     }
+
+    [Fact]
+    public async Task Edit_ValidDto_RedirectsToRecipeDetails()
+    {
+        // Arrange
+        var dto = new EditCommentDto { Id = 1, RecipeId = 5, Content = "Updated content" };
+        _commentServiceMock
+            .Setup(s => s.EditAsync(dto, 42))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        var result = await _controller.Edit(dto);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal("Recipe", redirect.ControllerName);
+        Assert.Equal(5, redirect.RouteValues!["id"]);
+    }
+
+    [Fact]
+    public async Task Edit_ValidDto_CallsServiceWithCurrentUserId()
+    {
+        // Arrange
+        var dto = new EditCommentDto { Id = 1, RecipeId = 5, Content = "Updated content" };
+        _commentServiceMock
+            .Setup(s => s.EditAsync(It.IsAny<EditCommentDto>(), It.IsAny<int>()))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        await _controller.Edit(dto);
+
+        // Assert
+        _commentServiceMock.Verify(s => s.EditAsync(dto, 42), Times.Once);
+    }
+
+    [Fact]
+    public async Task Edit_InvalidModelState_RedirectsWithoutCallingService()
+    {
+        // Arrange
+        var dto = new EditCommentDto { Id = 1, RecipeId = 5, Content = string.Empty };
+        _controller.ModelState.AddModelError("Content", "Required");
+
+        // Act
+        var result = await _controller.Edit(dto);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal("Recipe", redirect.ControllerName);
+        Assert.Equal(dto.RecipeId, redirect.RouteValues!["id"]);
+        _commentServiceMock.Verify(s => s.EditAsync(It.IsAny<EditCommentDto>(), It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Edit_InvalidModelState_SetsTempDataErrorMessage()
+    {
+        // Arrange
+        var dto = new EditCommentDto { Id = 1, RecipeId = 5, Content = string.Empty };
+        _controller.ModelState.AddModelError("Content", "Required");
+
+        // Act
+        await _controller.Edit(dto);
+
+        // Assert
+        Assert.Equal("Перевірте правильність введених даних", _controller.TempData["ErrorMessage"]);
+    }
+
+    [Fact]
+    public async Task Edit_ServiceReturnsFailure_SetsTempDataErrorMessage()
+    {
+        // Arrange
+        var dto = new EditCommentDto { Id = 1, RecipeId = 5, Content = "Updated content" };
+        _commentServiceMock
+            .Setup(s => s.EditAsync(dto, 42))
+            .ReturnsAsync(Result.Failure("Коментар не знайдено"));
+
+        // Act
+        await _controller.Edit(dto);
+
+        // Assert
+        Assert.Equal("Коментар не знайдено", _controller.TempData["ErrorMessage"]);
+    }
 }

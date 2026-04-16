@@ -1,4 +1,4 @@
-using LaconicAndIconic.BLL.Interfaces;
+﻿using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -50,5 +50,26 @@ public class CommentController : Controller
         }
 
         return RedirectToAction("Details", "Recipe", new { id = recipeId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(EditCommentDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Перевірте правильність введених даних";
+            return RedirectToAction("Details", "Recipe", new { id = dto.RecipeId });
+        }
+
+        var userId = User.GetUserId();
+        var result = await _commentService.EditAsync(dto, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage ?? "Помилка при редагуванні коментаря";
+        }
+
+        return RedirectToAction("Details", "Recipe", new { id = dto.RecipeId });
     }
 }
