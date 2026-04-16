@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,16 +13,21 @@ public class UserController : Controller
 {
     private readonly IUserService _userService;
     private readonly IRecipeService _recipeService;
+    private readonly ISharedListService _sharedListService;
 
-    public UserController(IUserService userService, IRecipeService recipeService)
+    public UserController(
+        IUserService userService,
+        IRecipeService recipeService,
+        ISharedListService sharedListService)
     {
         _userService = userService;
         _recipeService = recipeService;
+        _sharedListService = sharedListService;
     }
 
     [HttpGet("User/{id:int}")]
     [Authorize]
-    public async Task<IActionResult> Profile(int id)
+    public async Task<IActionResult> Profile(int id, string tab = "recipes", int? sharedListId = null)
     {
         var currentUserId = User.GetUserId();
         var result = await _userService.GetUserProfileByIdAsync(id, currentUserId);
@@ -32,20 +38,93 @@ public class UserController : Controller
         }
 
         var recipesResult = await _recipeService.GetRecipesByAuthorIdAsync(id);
+        var isOwnProfile = currentUserId == id;
+        var activeTab = isOwnProfile &&
+                        string.Equals(tab, "lists", StringComparison.OrdinalIgnoreCase)
+            ? "lists"
+            : "recipes";
 
         var viewModel = new UserProfileViewModel
         {
             Id = result.Value.Id,
             UserName = result.Value.UserName,
             ProfilePicturePath = result.Value.ProfilePicturePath,
-            IsOwnProfile = currentUserId == id,
+            IsOwnProfile = isOwnProfile,
             FollowerCount = result.Value.FollowerCount,
             FollowingCount = result.Value.FollowingCount,
             IsSubscribed = result.Value.IsSubscribed,
+            ActiveTab = activeTab,
             Recipes = recipesResult.IsSuccess && recipesResult.Value != null ? recipesResult.Value : []
         };
 
+        if (isOwnProfile)
+        {
+            var sharedListsResult = await _sharedListService.GetListsByUserAsync(id);
+            if (sharedListsResult.IsSuccess && sharedListsResult.Value != null)
+            {
+                var sharedLists = sharedListsResult.Value
+                    .Select(ToSharedListViewModel)
+                    .ToList();
+
+                viewModel.SharedLists = sharedLists;
+
+                if (activeTab == "lists")
+                {
+                    int? selectedListId = sharedListId;
+                    if (!selectedListId.HasValue && sharedLists.Count > 0)
+                    {
+                        selectedListId = sharedLists[0].Id;
+                    }
+
+                    if (selectedListId.HasValue)
+                    {
+                        var selectedListResult = await _sharedListService.GetByIdAsync(selectedListId.Value, id);
+                        if (selectedListResult.IsSuccess && selectedListResult.Value != null)
+                        {
+                            viewModel.SelectedSharedList = ToSharedListDetailViewModel(selectedListResult.Value, id);
+                        }
+                        else if (!string.IsNullOrWhiteSpace(selectedListResult.ErrorMessage))
+                        {
+                            TempData["ErrorMessage"] = selectedListResult.ErrorMessage;
+                        }
+                    }
+                }
+            }
+            else if (activeTab == "lists" && !string.IsNullOrWhiteSpace(sharedListsResult.ErrorMessage))
+            {
+                TempData["ErrorMessage"] = sharedListsResult.ErrorMessage;
+            }
+        }
+
         return View(viewModel);
+    }
+
+    private static SharedListViewModel ToSharedListViewModel(SharedListDto dto)
+    {
+        return new SharedListViewModel
+        {
+            Id = dto.Id,
+            Title = dto.Title,
+            Description = dto.Description,
+            OwnerName = dto.OwnerName,
+            MemberCount = dto.MemberCount,
+            RecipeCount = dto.RecipeCount
+        };
+    }
+
+    private static SharedListDetailViewModel ToSharedListDetailViewModel(SharedListDetailDto dto, int currentUserId)
+    {
+        return new SharedListDetailViewModel
+        {
+            Id = dto.Id,
+            Title = dto.Title,
+            Description = dto.Description,
+            OwnerId = dto.OwnerId,
+            OwnerName = dto.OwnerName,
+            IsOwner = dto.OwnerId == currentUserId,
+            Members = dto.Members,
+            Recipes = dto.Recipes
+        };
     }
 
     [HttpPost("User/UpdateProfilePicture")]

@@ -75,7 +75,7 @@ public class SharedListController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateSharedListViewModel model)
+    public async Task<IActionResult> Create(CreateSharedListViewModel model, string? returnUrl = null)
     {
         if (!ModelState.IsValid)
         {
@@ -97,6 +97,13 @@ public class SharedListController : Controller
         }
 
         TempData["SuccessMessage"] = "Список створено";
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            var separator = returnUrl.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+            return Redirect($"{returnUrl}{separator}sharedListId={result.Value!.Id}");
+        }
+
         return RedirectToAction(nameof(Details), new { id = result.Value!.Id });
     }
 
@@ -128,7 +135,7 @@ public class SharedListController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(EditSharedListViewModel model)
+    public async Task<IActionResult> Edit(EditSharedListViewModel model, string? returnUrl = null)
     {
         if (!ModelState.IsValid)
         {
@@ -150,12 +157,18 @@ public class SharedListController : Controller
         }
 
         TempData["SuccessMessage"] = "Список оновлено";
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Details), new { id = model.Id });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, string? returnUrl = null)
     {
         var userId = User.GetUserId();
         var result = await _sharedListService.DeleteAsync(id, userId);
@@ -169,12 +182,17 @@ public class SharedListController : Controller
             TempData["SuccessMessage"] = "Список видалено";
         }
 
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> InviteUser(int id, string username)
+    public async Task<IActionResult> InviteUser(int id, string username, string? returnUrl = null)
     {
         var userId = User.GetUserId();
         var result = await _sharedListService.InviteUserAsync(id, userId, username);
@@ -188,12 +206,17 @@ public class SharedListController : Controller
             TempData["SuccessMessage"] = "Користувача запрошено";
         }
 
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RemoveUser(int id, int userId)
+    public async Task<IActionResult> RemoveUser(int id, int userId, string? returnUrl = null)
     {
         var currentUserId = User.GetUserId();
         var result = await _sharedListService.RemoveUserAsync(id, currentUserId, userId);
@@ -207,12 +230,17 @@ public class SharedListController : Controller
             TempData["SuccessMessage"] = "Учасника видалено";
         }
 
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddRecipe(int id, int recipeId)
+    public async Task<IActionResult> AddRecipe(int id, int recipeId, string? returnUrl = null)
     {
         var userId = User.GetUserId();
         var result = await _sharedListService.AddRecipeAsync(id, userId, recipeId);
@@ -226,12 +254,17 @@ public class SharedListController : Controller
             TempData["SuccessMessage"] = "Рецепт додано до списку";
         }
 
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+
         return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RemoveRecipe(int id, int recipeId)
+    public async Task<IActionResult> RemoveRecipe(int id, int recipeId, string? returnUrl = null)
     {
         var userId = User.GetUserId();
         var result = await _sharedListService.RemoveRecipeAsync(id, userId, recipeId);
@@ -243,6 +276,11 @@ public class SharedListController : Controller
         else
         {
             TempData["SuccessMessage"] = "Рецепт видалено зі списку";
+        }
+
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
         }
 
         return RedirectToAction(nameof(Details), new { id });

@@ -1,6 +1,17 @@
 ﻿@model LaconicAndIconic.Web.Models.UserProfileViewModel
 @{
     ViewData["Title"] = "Профіль користувача";
+
+    var listsTabUrl = Url.Action("Profile", "User", new { id = Model.Id, tab = "lists" }) ?? string.Empty;
+    var selectedListUrl = Url.Action(
+        "Profile",
+        "User",
+        new
+        {
+            id = Model.Id,
+            tab = "lists",
+            sharedListId = Model.SelectedSharedList?.Id
+        }) ?? listsTabUrl;
 }
 
 <div class="user-profile">
@@ -17,7 +28,6 @@
         </div>
     }
 
-    <!-- User Header Section -->
     <div class="user-header">
         <div class="user-avatar-wrapper">
             <div class="user-avatar user-avatar-profile">
@@ -73,83 +83,280 @@
         }
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="profile-tabs">
-        <button class="tab-btn active">Рецепти</button>
+        <a asp-controller="User"
+           asp-action="Profile"
+           asp-route-id="@Model.Id"
+           asp-route-tab="recipes"
+           class="tab-btn @(Model.ActiveTab == "recipes" ? "active" : string.Empty)">Рецепти</a>
         @if (Model.IsOwnProfile)
         {
-            <button class="tab-btn">Збережені</button>
-            <button class="tab-btn">Списки</button>
+            <a asp-controller="User"
+               asp-action="Profile"
+               asp-route-id="@Model.Id"
+               asp-route-tab="lists"
+               class="tab-btn @(Model.ActiveTab == "lists" ? "active" : string.Empty)">Списки</a>
         }
     </div>
 
-    <!-- Recipe Cards Grid -->
-    <div class="recipe-grid">
-        @if (!Model.Recipes.Any())
-        {
-            <p class="profile-empty-recipes">Немає рецептів.</p>
-        }
-        else
-        {
-            @foreach (var recipe in Model.Recipes)
-            {
-                <div class="recipe-card">
-                    <div class="recipe-image">
-                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+    @if (Model.ActiveTab == "lists" && Model.IsOwnProfile)
+    {
+        <div class="profile-shared-layout">
+            <aside class="profile-shared-sidebar">
+                <section class="profile-shared-create-card">
+                    <h2 class="profile-shared-block-title">Новий спільний список</h2>
+
+                    <form asp-controller="SharedList" asp-action="Create" method="post" class="profile-shared-form">
+                        <input type="hidden" name="returnUrl" value="@listsTabUrl" />
+
+                        <label class="profile-shared-label" for="sharedListTitle">Назва</label>
+                        <input id="sharedListTitle"
+                               name="Title"
+                               class="profile-shared-input"
+                               maxlength="100"
+                               required
+                               placeholder="Наприклад: Вечеря з друзями" />
+
+                        <label class="profile-shared-label" for="sharedListDescription">Опис</label>
+                        <textarea id="sharedListDescription"
+                                  name="Description"
+                                  class="profile-shared-input"
+                                  rows="3"
+                                  placeholder="Коротко про те, що збираєте тут"></textarea>
+
+                        <button type="submit" class="ck-btn ck-btn-sm">Створити список</button>
+                    </form>
+                </section>
+
+                <section class="profile-shared-list-panel">
+                    <h2 class="profile-shared-block-title">Мої списки</h2>
+
+                    @if (!Model.SharedLists.Any())
+                    {
+                        <p class="profile-shared-empty">Списків поки немає. Створіть перший у формі вище.</p>
+                    }
+                    else
+                    {
+                        @foreach (var list in Model.SharedLists)
                         {
-                            <img src="@recipe.ImagePath" alt="@recipe.Title">
+                            <a asp-controller="User"
+                               asp-action="Profile"
+                               asp-route-id="@Model.Id"
+                               asp-route-tab="lists"
+                               asp-route-sharedListId="@list.Id"
+                               class="profile-shared-list-card @(Model.SelectedSharedList?.Id == list.Id ? "active" : string.Empty)">
+                                <span class="profile-shared-list-title">@list.Title</span>
+                                @if (!string.IsNullOrWhiteSpace(list.Description))
+                                {
+                                    <span class="profile-shared-list-desc">@list.Description</span>
+                                }
+                                <span class="profile-shared-list-meta">@list.MemberCount учасників • @list.RecipeCount рецептів</span>
+                            </a>
                         }
-                        else
-                        {
-                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
-                        }
-                        <button class="favorite-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                            </svg>
-                        </button>
+                    }
+                </section>
+            </aside>
+
+            <section class="profile-shared-main">
+                @if (Model.SelectedSharedList == null)
+                {
+                    <div class="profile-shared-placeholder">
+                        <p>Оберіть список зліва, щоб переглянути деталі та керувати вмістом.</p>
                     </div>
-                    <div class="recipe-details">
-                        <h3 class="recipe-title">
-                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="profile-recipe-link">@recipe.Title</a>
-                        </h3>
-                        <div class="recipe-meta">
-                            <span class="recipe-rating">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                                @recipe.AverageRating.ToString("0.0")
-                            </span>
-                            <span class="recipe-author">@($"@{Model.UserName}")</span>
-                        </div>
-                        @if (Model.IsOwnProfile)
-                        {
-                            <div class="recipe-card-actions">
-                                <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@recipe.Id" class="recipe-card-action-btn recipe-card-edit-btn">
-                                    Редагувати
-                                </a>
-                                <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
-                                    <button type="submit" class="recipe-card-action-btn recipe-card-delete-btn">Видалити</button>
-                                </form>
+                }
+                else
+                {
+                    <article class="profile-shared-detail-card">
+                        <header class="profile-shared-detail-header">
+                            <div>
+                                <h2 class="profile-shared-detail-title">@Model.SelectedSharedList.Title</h2>
+                                <p class="profile-shared-detail-owner">Власник: @Model.SelectedSharedList.OwnerName</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.SelectedSharedList.Description))
+                                {
+                                    <p class="profile-shared-detail-desc">@Model.SelectedSharedList.Description</p>
+                                }
                             </div>
-                        }
-                    </div>
-                </div>
-            }
-        }
-    </div>
 
-    <!-- Add New Recipe Button -->
-    <div class="add-recipe-container">
-        @if (Model.IsOwnProfile)
-        {
-            <a asp-controller="Recipe" asp-action="Create" class="ck-btn add-recipe-btn profile-add-recipe-link">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="profile-add-recipe-icon">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Додати новий рецепт
-            </a>
-        }
-    </div>
+                            @if (Model.SelectedSharedList.IsOwner)
+                            {
+                                <form asp-controller="SharedList"
+                                      asp-action="Delete"
+                                      asp-route-id="@Model.SelectedSharedList.Id"
+                                      method="post"
+                                      onsubmit="return confirm('Ви дійсно хочете видалити цей список?');">
+                                    <input type="hidden" name="returnUrl" value="@listsTabUrl" />
+                                    <button type="submit" class="profile-shared-danger-btn">Видалити список</button>
+                                </form>
+                            }
+                        </header>
+
+                        @if (Model.SelectedSharedList.IsOwner)
+                        {
+                            <form asp-controller="SharedList" asp-action="Edit" method="post" class="profile-shared-form profile-shared-edit-form">
+                                <input type="hidden" name="Id" value="@Model.SelectedSharedList.Id" />
+                                <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+
+                                <div class="profile-shared-edit-grid">
+                                    <div>
+                                        <label class="profile-shared-label" for="editTitle">Назва</label>
+                                        <input id="editTitle"
+                                               name="Title"
+                                               class="profile-shared-input"
+                                               maxlength="100"
+                                               value="@Model.SelectedSharedList.Title"
+                                               required />
+                                    </div>
+                                    <div>
+                                        <label class="profile-shared-label" for="editDescription">Опис</label>
+                                        <textarea id="editDescription"
+                                                  name="Description"
+                                                  class="profile-shared-input"
+                                                  rows="2">@Model.SelectedSharedList.Description</textarea>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="ck-btn ck-btn-sm">Зберегти зміни</button>
+                            </form>
+                        }
+
+                        <div class="profile-shared-sections">
+                            <section class="profile-shared-section">
+                                <h3 class="profile-shared-section-title">Учасники</h3>
+
+                                @if (Model.SelectedSharedList.Members.Count == 0)
+                                {
+                                    <p class="profile-shared-empty">Поки що немає запрошених учасників.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var member in Model.SelectedSharedList.Members)
+                                    {
+                                        <div class="profile-shared-row">
+                                            <span>@member.UserName</span>
+                                            @if (Model.SelectedSharedList.IsOwner && member.UserId != Model.SelectedSharedList.OwnerId)
+                                            {
+                                                <form asp-controller="SharedList" asp-action="RemoveUser" asp-route-id="@Model.SelectedSharedList.Id" method="post">
+                                                    <input type="hidden" name="userId" value="@member.UserId" />
+                                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                    <button type="submit" class="profile-shared-row-action">Видалити</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    }
+                                }
+
+                                @if (Model.SelectedSharedList.IsOwner)
+                                {
+                                    <form asp-controller="SharedList" asp-action="InviteUser" asp-route-id="@Model.SelectedSharedList.Id" method="post" class="profile-shared-inline-form">
+                                        <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                        <input type="text" name="username" class="profile-shared-input" placeholder="Логін користувача" required />
+                                        <button type="submit" class="ck-btn ck-btn-sm">Запросити</button>
+                                    </form>
+                                }
+                            </section>
+
+                            <section class="profile-shared-section">
+                                <h3 class="profile-shared-section-title">Рецепти</h3>
+
+                                @if (Model.SelectedSharedList.Recipes.Count == 0)
+                                {
+                                    <p class="profile-shared-empty">У списку ще немає рецептів.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var recipe in Model.SelectedSharedList.Recipes)
+                                    {
+                                        <div class="profile-shared-row">
+                                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.RecipeId" class="profile-shared-recipe-link">@recipe.RecipeTitle</a>
+                                            <form asp-controller="SharedList" asp-action="RemoveRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post">
+                                                <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                                                <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                                <button type="submit" class="profile-shared-row-action">Видалити</button>
+                                            </form>
+                                        </div>
+                                    }
+                                }
+
+                                <form asp-controller="SharedList" asp-action="AddRecipe" asp-route-id="@Model.SelectedSharedList.Id" method="post" class="profile-shared-inline-form">
+                                    <input type="hidden" name="returnUrl" value="@selectedListUrl" />
+                                    <input type="number" name="recipeId" class="profile-shared-input profile-shared-recipe-id" min="1" placeholder="ID рецепту" required />
+                                    <button type="submit" class="ck-btn ck-btn-sm">Додати рецепт</button>
+                                </form>
+                            </section>
+                        </div>
+                    </article>
+                }
+            </section>
+        </div>
+    }
+    else
+    {
+        <div class="recipe-grid">
+            @if (!Model.Recipes.Any())
+            {
+                <p class="profile-empty-recipes">Немає рецептів.</p>
+            }
+            else
+            {
+                @foreach (var recipe in Model.Recipes)
+                {
+                    <div class="recipe-card">
+                        <div class="recipe-image">
+                            @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                            {
+                                <img src="@recipe.ImagePath" alt="@recipe.Title">
+                            }
+                            else
+                            {
+                                <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                            }
+                            <button class="favorite-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="recipe-details">
+                            <h3 class="recipe-title">
+                                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="profile-recipe-link">@recipe.Title</a>
+                            </h3>
+                            <div class="recipe-meta">
+                                <span class="recipe-rating">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                    @recipe.AverageRating.ToString("0.0")
+                                </span>
+                                <span class="recipe-author">@($"@{Model.UserName}")</span>
+                            </div>
+                            @if (Model.IsOwnProfile)
+                            {
+                                <div class="recipe-card-actions">
+                                    <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@recipe.Id" class="recipe-card-action-btn recipe-card-edit-btn">
+                                        Редагувати
+                                    </a>
+                                    <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@recipe.Id" method="post" onsubmit="return confirm('Ви дійсно хочете видалити цей рецепт?');">
+                                        <button type="submit" class="recipe-card-action-btn recipe-card-delete-btn">Видалити</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="add-recipe-container">
+            @if (Model.IsOwnProfile)
+            {
+                <a asp-controller="Recipe" asp-action="Create" class="ck-btn add-recipe-btn profile-add-recipe-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="profile-add-recipe-icon">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Додати новий рецепт
+                </a>
+            }
+        </div>
+    }
 </div>
