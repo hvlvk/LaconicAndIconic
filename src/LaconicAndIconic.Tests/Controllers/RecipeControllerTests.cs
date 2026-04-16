@@ -86,7 +86,7 @@ public sealed class RecipeControllerTests : IDisposable
         // Arrange
         var dto = MakeRecipeDto();
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(dto.Id))
+            .Setup(s => s.GetRecipeByIdAsync(dto.Id, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Success(dto));
 
         // Act
@@ -229,7 +229,7 @@ public sealed class RecipeControllerTests : IDisposable
         };
 
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(dto.Id))
+            .Setup(s => s.GetRecipeByIdAsync(dto.Id, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Success(dto));
         _commentServiceMock
             .Setup(s => s.GetCommentsByRecipeIdAsync(dto.Id))
