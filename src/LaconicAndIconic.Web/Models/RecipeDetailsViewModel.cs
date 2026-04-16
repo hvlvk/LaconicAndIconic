@@ -10,6 +10,9 @@ public class RecipeDetailsViewModel
     public int Servings { get; set; }
     public string Ingredients { get; set; } = string.Empty;
     public string CookingMethod { get; set; } = string.Empty;
+    public double AverageRating { get; set; }
+    public int RatingCount { get; set; }
+    public int? CurrentUserRating { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public int AuthorId { get; set; }
     public string AuthorName { get; set; } = string.Empty;
