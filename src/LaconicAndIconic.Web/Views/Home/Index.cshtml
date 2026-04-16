@@ -1,6 +1,4 @@
-﻿@using LaconicAndIconic.BLL.Models
-@using LaconicAndIconic.Web.Models
-@model RecipeListViewModel
+﻿@model RecipeListViewModel
 @{
     ViewData["Title"] = "Recipes";
 }
@@ -9,13 +7,13 @@
 <div class="recipe-grid">
     @if (Model.Recipes.Count == 0)
     {
-        <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
+        <p class="home-empty-results">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
     }
     else
     {
         @foreach (var recipe in Model.Recipes)
         {
-                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card" style="text-decoration: none; color: inherit; display: block;">
+                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card home-recipe-link">
                 <div class="recipe-image">
                     @if (!string.IsNullOrEmpty(recipe.ImagePath))
                     {
@@ -38,7 +36,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                             </svg>
-                            0.0
+                            @recipe.AverageRating.ToString("0.0")
                         </span>
                         <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
                     </div>
@@ -50,7 +48,7 @@
 
 @if (Model.TotalPages > 1)
 {
-    <div style="margin-top: 2rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+    <div class="home-pagination">
         @if (Model.HasPreviousPage)
         {
             <a asp-controller="Home" asp-action="Index"
@@ -58,18 +56,18 @@
                asp-route-categoryId="@Model.CategoryId"
                asp-route-sortBy="@Model.SortBy"
                asp-route-pageNumber="@(Model.PageNumber - 1)"
-               style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; cursor: pointer;">
+               class="home-pagination-link">
                 Previous
             </a>
         }
         else
         {
-            <button style="padding: 0.5rem 1rem; background-color: #ccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed;" disabled>
+            <button class="home-pagination-disabled" disabled>
                 Previous
             </button>
         }
 
-        <span style="font-weight: 500; color: #333;">
+        <span class="home-pagination-current">
             Page @Model.PageNumber of @Model.TotalPages
         </span>
 
@@ -80,13 +78,13 @@
                asp-route-categoryId="@Model.CategoryId"
                asp-route-sortBy="@Model.SortBy"
                asp-route-pageNumber="@(Model.PageNumber + 1)"
-               style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; cursor: pointer;">
+               class="home-pagination-link">
                 Next
             </a>
         }
         else
         {
-            <button style="padding: 0.5rem 1rem; background-color: #ccc; color: #666; border: none; border-radius: 4px; cursor: not-allowed;" disabled>
+            <button class="home-pagination-disabled" disabled>
                 Next
             </button>
         }

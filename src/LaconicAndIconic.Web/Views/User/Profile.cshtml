@@ -6,28 +6,28 @@
 <div class="user-profile">
     @if (TempData["SuccessMessage"] != null)
     {
-        <div style="background-color: var(--ck-input-bg); border-left: 4px solid var(--ck-orange); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-text);">
+        <div class="profile-alert profile-alert-success">
             @TempData["SuccessMessage"]
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div style="background-color: var(--ck-error-bg); border-left: 4px solid var(--ck-error); padding: 12px 20px; margin-bottom: 20px; border-radius: 4px; color: var(--ck-error);">
+        <div class="profile-alert profile-alert-error">
             @TempData["ErrorMessage"]
         </div>
     }
 
     <!-- User Header Section -->
     <div class="user-header">
-        <div class="user-avatar-wrapper" style="position: relative; display: inline-block; width: 120px; height: 120px;">
-            <div class="user-avatar" style="width: 120px; height: 120px; margin: 0;">
+        <div class="user-avatar-wrapper">
+            <div class="user-avatar user-avatar-profile">
                 @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
                 {
-                    <img src="@Model.ProfilePicturePath" alt="@Model.UserName profile picture" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" />
+                    <img src="@Model.ProfilePicturePath" alt="@Model.UserName profile picture" class="profile-picture-image" />
                 }
                 else
                 {
-                    <div style="width: 100%; height: 100%; border-radius: 50%; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #888;">
+                    <div class="profile-picture-placeholder">
                         <span>Photo</span>
                     </div>
                 }
@@ -36,13 +36,13 @@
             @if (Model.IsOwnProfile)
             {
                 <form asp-controller="User" asp-action="UpdateProfilePicture" method="post" enctype="multipart/form-data" id="profilePictureForm">
-                    <label for="profilePictureInput" class="edit-avatar-btn" style="position: absolute; bottom: 0; right: 0; background: #fff; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 1px solid #ccc;" title="Edit Profile Picture">
+                    <label for="profilePictureInput" class="edit-avatar-btn" title="Edit Profile Picture">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 20h9"></path>
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                         </svg>
                     </label>
-                    <input type="file" id="profilePictureInput" name="profilePicture" accept="image/*" style="display: none;" onchange="document.getElementById('profilePictureForm').submit();" />
+                    <input type="file" id="profilePictureInput" name="profilePicture" accept="image/*" class="profile-picture-input" onchange="document.getElementById('profilePictureForm').submit();" />
                 </form>
             }
         </div>
@@ -87,7 +87,7 @@
     <div class="recipe-grid">
         @if (!Model.Recipes.Any())
         {
-            <p style="text-align: center; grid-column: 1 / -1; margin-top: 2rem; color: #888;">Немає рецептів.</p>
+            <p class="profile-empty-recipes">Немає рецептів.</p>
         }
         else
         {
@@ -111,14 +111,14 @@
                     </div>
                     <div class="recipe-details">
                         <h3 class="recipe-title">
-                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" style="text-decoration: none; color: inherit;">@recipe.Title</a>
+                            <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="profile-recipe-link">@recipe.Title</a>
                         </h3>
                         <div class="recipe-meta">
                             <span class="recipe-rating">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                                 </svg>
-                                0.0
+                                @recipe.AverageRating.ToString("0.0")
                             </span>
                             <span class="recipe-author">@($"@{Model.UserName}")</span>
                         </div>
@@ -143,8 +143,8 @@
     <div class="add-recipe-container">
         @if (Model.IsOwnProfile)
         {
-            <a asp-controller="Recipe" asp-action="Create" class="ck-btn add-recipe-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+            <a asp-controller="Recipe" asp-action="Create" class="ck-btn add-recipe-btn profile-add-recipe-link">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="profile-add-recipe-icon">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>

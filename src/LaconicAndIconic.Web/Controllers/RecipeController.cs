@@ -25,13 +25,12 @@ public class RecipeController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Details(int id)
     {
-        var result = await _recipeService.GetRecipeByIdAsync(id);
+        var currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
+        var result = await _recipeService.GetRecipeByIdAsync(id, currentUserId);
         if (!result.IsSuccess || result.Value == null)
         {
             return NotFound();
         }
-
-        var currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
 
         bool isSubscribed = false;
         if (currentUserId.HasValue && currentUserId != result.Value.AuthorId)
@@ -53,6 +52,9 @@ public class RecipeController : Controller
             Servings = result.Value.Servings,
             Ingredients = result.Value.Ingredients,
             CookingMethod = result.Value.CookingMethod,
+            AverageRating = result.Value.AverageRating,
+            RatingCount = result.Value.RatingCount,
+            CurrentUserRating = result.Value.CurrentUserRating,
             CategoryName = result.Value.CategoryName,
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
@@ -61,6 +63,25 @@ public class RecipeController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Rate(int id, int score)
+    {
+        var userId = User.GetUserId();
+        var result = await _recipeService.RateRecipeAsync(id, userId, score);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Оцінку збережено";
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     [HttpGet]

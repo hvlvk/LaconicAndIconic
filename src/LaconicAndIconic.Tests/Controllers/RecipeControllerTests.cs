@@ -4,6 +4,7 @@ using LaconicAndIconic.Web.Controllers;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 using System.Security.Claims;
 
@@ -24,6 +25,7 @@ public sealed class RecipeControllerTests : IDisposable
         {
             HttpContext = new DefaultHttpContext()
         };
+        _controller.TempData = new TempDataDictionary(_controller.ControllerContext.HttpContext, Mock.Of<ITempDataProvider>());
     }
 
     public void Dispose()
@@ -54,6 +56,8 @@ public sealed class RecipeControllerTests : IDisposable
             Title = "Pasta",
             Description = "Great pasta",
             PrepTimeMin = 25,
+            AverageRating = 4.5,
+            RatingCount = 8,
             Servings = 4,
             Ingredients = "Pasta\nCheese",
             CookingMethod = "Boil\nServe",
@@ -63,7 +67,7 @@ public sealed class RecipeControllerTests : IDisposable
         };
 
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(1))
+            .Setup(s => s.GetRecipeByIdAsync(1, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Success(dto));
 
         // Act
@@ -75,6 +79,8 @@ public sealed class RecipeControllerTests : IDisposable
         Assert.Equal(dto.Id, model.Id);
         Assert.Equal(dto.Title, model.Title);
         Assert.Equal(dto.AuthorName, model.AuthorName);
+        Assert.Equal(dto.AverageRating, model.AverageRating);
+        Assert.Equal(dto.RatingCount, model.RatingCount);
         Assert.Equal(dto.Servings, model.Servings);
         Assert.Equal(dto.Ingredients, model.Ingredients);
         Assert.Equal(dto.CookingMethod, model.CookingMethod);
@@ -85,7 +91,7 @@ public sealed class RecipeControllerTests : IDisposable
     {
         // Arrange
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(404))
+            .Setup(s => s.GetRecipeByIdAsync(404, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Failure("Recipe not found"));
 
         // Act
@@ -115,7 +121,7 @@ public sealed class RecipeControllerTests : IDisposable
         };
 
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(10))
+            .Setup(s => s.GetRecipeByIdAsync(10, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Success(dto));
 
         // Act
@@ -145,7 +151,7 @@ public sealed class RecipeControllerTests : IDisposable
         };
 
         _recipeServiceMock
-            .Setup(s => s.GetRecipeByIdAsync(11))
+            .Setup(s => s.GetRecipeByIdAsync(11, It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeDto>.Success(dto));
 
         _recipeServiceMock
@@ -166,6 +172,25 @@ public sealed class RecipeControllerTests : IDisposable
 
         // Act
         var result = await _controller.Edit(11, model);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal(11, redirect.RouteValues!["id"]);
+    }
+
+    [Fact]
+    public async Task Rate_Post_ValidScore_RedirectsToDetails()
+    {
+        // Arrange
+        SetUserContext(3);
+
+        _recipeServiceMock
+            .Setup(s => s.RateRecipeAsync(11, 3, 5))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        var result = await _controller.Rate(11, 5);
 
         // Assert
         var redirect = Assert.IsType<RedirectToActionResult>(result);

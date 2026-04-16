@@ -5,23 +5,30 @@ using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
 using Moq;
 using System.Linq.Expressions;
-using Xunit;
 
 namespace LaconicAndIconic.Tests.Services;
 
 public class RecipeServiceTests
 {
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
-    private readonly Mock<IFileService> _fileServiceMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
+    private readonly Mock<IRepository<Rating>> _ratingRepositoryMock;
+    private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
     {
         _recipeRepositoryMock = new Mock<IRecipeRepository>();
-        _fileServiceMock = new Mock<IFileService>();
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
-        _service = new RecipeService(_recipeRepositoryMock.Object, _fileServiceMock.Object, _categoryRepositoryMock.Object);
+        _ratingRepositoryMock = new Mock<IRepository<Rating>>();
+        _userRepositoryMock = new Mock<IUserRepository>();
+        var fileServiceMock = new Mock<IFileService>();
+        _service = new RecipeService(
+            _recipeRepositoryMock.Object,
+            fileServiceMock.Object,
+            _categoryRepositoryMock.Object,
+            _ratingRepositoryMock.Object,
+            _userRepositoryMock.Object);
     }
 
     [Fact]
@@ -174,6 +181,61 @@ public class RecipeServiceTests
     }
 
     [Fact]
+    public async Task GetRecipeByIdAsync_RecipeExists_ReturnsRatingSummary()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 6,
+            Title = "Soup",
+            Description = "Warm",
+            PrepTimeMin = 30,
+            Servings = 4,
+            Ingredients = "Water\nVeggies",
+            CookingMethod = "Boil",
+            CategoryId = 2,
+            AuthorId = 3,
+            Category = new Category { Name = "Dinner" },
+            Author = new ApplicationUser { UserName = "chef" }
+        };
+
+        var currentUserRating = new Rating
+        {
+            RecipeId = 6,
+            UserId = 10,
+            Score = 5,
+            Recipe = recipe,
+            User = new ApplicationUser { Id = 10, UserName = "rater" }
+        };
+
+        recipe.Ratings.Add(currentUserRating);
+        recipe.Ratings.Add(new Rating
+        {
+            RecipeId = 6,
+            UserId = 11,
+            Score = 3,
+            Recipe = recipe,
+            User = new ApplicationUser { Id = 11, UserName = "rater2" }
+        });
+
+        _recipeRepositoryMock
+            .Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Recipe, bool>>>(),
+                It.IsAny<Expression<Func<Recipe, object>>[]>() ))
+            .ReturnsAsync([recipe]);
+
+        // Act
+        var result = await _service.GetRecipeByIdAsync(6, 10);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(4.0, result.Value!.AverageRating);
+        Assert.Equal(2, result.Value.RatingCount);
+        Assert.Equal(5, result.Value.CurrentUserRating);
+    }
+
+    [Fact]
     public async Task GetRecipeByIdAsync_RecipeDoesNotExist_ReturnsFailure()
     {
         // Arrange
@@ -244,6 +306,80 @@ public class RecipeServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Ви можете видаляти тільки свої рецепти", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RateRecipeAsync_NewRating_AddsRating()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 20,
+            Title = "Pizza",
+            CategoryId = 1,
+            AuthorId = 1,
+            Category = new Category { Name = "Main" },
+            Author = new ApplicationUser { Id = 1, UserName = "chef" }
+        };
+
+        var user = new ApplicationUser { Id = 7, UserName = "tester" };
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(20)).ReturnsAsync(recipe);
+        _userRepositoryMock.Setup(r => r.FindByIdAsync(7)).ReturnsAsync(user);
+        _ratingRepositoryMock.Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Rating, bool>>>(),
+                It.IsAny<Expression<Func<Rating, object>>[]>() ))
+            .ReturnsAsync([]);
+        _ratingRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Rating>())).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _service.RateRecipeAsync(20, 7, 5);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _ratingRepositoryMock.Verify(r => r.AddAsync(It.Is<Rating>(x => x.Score == 5 && x.RecipeId == 20 && x.UserId == 7)), Times.Once);
+        _ratingRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task RateRecipeAsync_ExistingRating_UpdatesRating()
+    {
+        // Arrange
+        var recipe = new Recipe
+        {
+            Id = 21,
+            Title = "Cake",
+            CategoryId = 1,
+            AuthorId = 1,
+            Category = new Category { Name = "Dessert" },
+            Author = new ApplicationUser { Id = 1, UserName = "chef" }
+        };
+
+        var user = new ApplicationUser { Id = 8, UserName = "tester" };
+        var existingRating = new Rating
+        {
+            RecipeId = 21,
+            UserId = 8,
+            Score = 2,
+            Recipe = recipe,
+            User = user
+        };
+
+        _recipeRepositoryMock.Setup(r => r.GetByIdAsync(21)).ReturnsAsync(recipe);
+        _userRepositoryMock.Setup(r => r.FindByIdAsync(8)).ReturnsAsync(user);
+        _ratingRepositoryMock.Setup(r => r.FindAsync(
+                It.IsAny<Expression<Func<Rating, bool>>>(),
+                It.IsAny<Expression<Func<Rating, object>>[]>() ))
+            .ReturnsAsync([existingRating]);
+
+        // Act
+        var result = await _service.RateRecipeAsync(21, 8, 5);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(5, existingRating.Score);
+        _ratingRepositoryMock.Verify(r => r.Update(existingRating), Times.Once);
+        _ratingRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
