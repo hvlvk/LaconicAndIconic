@@ -244,6 +244,20 @@
         white-space: pre-wrap;
     }
 
+    .comment-delete {
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 0;
+        transition: color 0.15s;
+    }
+
+    .comment-delete:hover {
+        color: #c0392b;
+    }
+
     @@media (max-width: 900px) {
         .recipe-main,
         .recipe-sections {
@@ -436,7 +450,17 @@
                     <div class="comment-item">
                         <div class="comment-header">
                             <span class="comment-author">@comment.AuthorName</span>
-                            <span class="comment-date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            <span style="display: inline-flex; align-items: center; gap: 0.6rem;">
+                                <span class="comment-date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == comment.AuthorId)
+                                {
+                                    <form asp-controller="Comment" asp-action="Delete" method="post" style="margin: 0;">
+                                        <input type="hidden" name="id" value="@comment.Id" />
+                                        <input type="hidden" name="recipeId" value="@Model.Id" />
+                                        <button type="submit" class="comment-delete" title="Видалити коментар">✕</button>
+                                    </form>
+                                }
+                            </span>
                         </div>
                         <p class="comment-content">@comment.Content</p>
                     </div>

@@ -1,4 +1,4 @@
-﻿using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -35,5 +35,20 @@ public class CommentController : Controller
         }
 
         return RedirectToAction("Details", "Recipe", new { id = dto.RecipeId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id, int recipeId)
+    {
+        var userId = User.GetUserId();
+        var result = await _commentService.DeleteAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage ?? "Помилка при видаленні коментаря";
+        }
+
+        return RedirectToAction("Details", "Recipe", new { id = recipeId });
     }
 }

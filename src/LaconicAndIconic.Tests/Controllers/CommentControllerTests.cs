@@ -153,4 +153,70 @@ public sealed class CommentControllerTests : IDisposable
         Assert.Equal("Recipe", redirect.ControllerName);
         Assert.Equal(dto.RecipeId, redirect.RouteValues!["id"]);
     }
+
+    [Fact]
+    public async Task Delete_Success_RedirectsToRecipeDetails()
+    {
+        // Arrange
+        _commentServiceMock
+            .Setup(s => s.DeleteAsync(10, 42))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        var result = await _controller.Delete(10, recipeId: 5);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal("Recipe", redirect.ControllerName);
+        Assert.Equal(5, redirect.RouteValues!["id"]);
+    }
+
+    [Fact]
+    public async Task Delete_Success_CallsServiceWithCurrentUserId()
+    {
+        // Arrange
+        _commentServiceMock
+            .Setup(s => s.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync(Result.Success());
+
+        // Act
+        await _controller.Delete(10, recipeId: 5);
+
+        // Assert
+        _commentServiceMock.Verify(s => s.DeleteAsync(10, 42), Times.Once);
+    }
+
+    [Fact]
+    public async Task Delete_ServiceReturnsFailure_SetsTempDataErrorMessage()
+    {
+        // Arrange
+        _commentServiceMock
+            .Setup(s => s.DeleteAsync(10, 42))
+            .ReturnsAsync(Result.Failure("Ви не можете видалити чужий коментар"));
+
+        // Act
+        await _controller.Delete(10, recipeId: 5);
+
+        // Assert
+        Assert.Equal("Ви не можете видалити чужий коментар", _controller.TempData["ErrorMessage"]);
+    }
+
+    [Fact]
+    public async Task Delete_ServiceReturnsFailure_StillRedirectsToRecipeDetails()
+    {
+        // Arrange
+        _commentServiceMock
+            .Setup(s => s.DeleteAsync(10, 42))
+            .ReturnsAsync(Result.Failure("Коментар не знайдено"));
+
+        // Act
+        var result = await _controller.Delete(10, recipeId: 5);
+
+        // Assert
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+        Assert.Equal("Recipe", redirect.ControllerName);
+        Assert.Equal(5, redirect.RouteValues!["id"]);
+    }
 }

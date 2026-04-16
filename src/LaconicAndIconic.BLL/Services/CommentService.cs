@@ -1,4 +1,4 @@
-﻿using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
@@ -55,5 +55,26 @@ public class CommentService : ICommentService
             .ToListAsync();
 
         return Result<IEnumerable<CommentDto>>.Success(comments);
+    }
+
+    public async Task<Result> DeleteAsync(int commentId, int userId)
+    {
+        var comment = await _commentRepository.GetQueryable()
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+
+        if (comment == null)
+        {
+            return Result.Failure("Коментар не знайдено");
+        }
+
+        if (comment.AuthorId != userId)
+        {
+            return Result.Failure("Ви не можете видалити чужий коментар");
+        }
+
+        _commentRepository.Remove(comment);
+        await _commentRepository.SaveChangesAsync();
+
+        return Result.Success();
     }
 }
