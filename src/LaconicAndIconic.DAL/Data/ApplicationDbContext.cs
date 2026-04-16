@@ -19,6 +19,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<Comment> Comments => Set<Comment>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
+    public DbSet<SharedList> SharedLists => Set<SharedList>();
+    public DbSet<SharedListUser> SharedListUsers => Set<SharedListUser>();
+    public DbSet<SharedListRecipe> SharedListRecipes => Set<SharedListRecipe>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

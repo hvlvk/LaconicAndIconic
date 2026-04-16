@@ -14,4 +14,7 @@ public class ApplicationUser : IdentityUser<int>
     
     public ICollection<UserSubscription> Followers { get; } = [];
     public ICollection<UserSubscription> Following { get; } = [];
+
+    public ICollection<SharedList> OwnedSharedLists { get; } = [];
+    public ICollection<SharedListUser> SharedListMemberships { get; } = [];
 }

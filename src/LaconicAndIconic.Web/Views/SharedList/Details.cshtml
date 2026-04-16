@@ -1,0 +1,224 @@
+@model LaconicAndIconic.Web.Models.SharedListDetailViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    .shared-list-detail {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .shared-list-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .shared-list-detail-header h1 {
+        font-size: 1.8rem;
+        margin: 0 0 0.25rem;
+    }
+
+    .shared-list-detail-desc {
+        color: #5a564f;
+        margin: 0.5rem 0 1rem;
+    }
+
+    .shared-list-detail-owner {
+        color: #8a8278;
+        font-size: 0.9rem;
+    }
+
+    .shared-list-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .shared-list-section {
+        margin-top: 2rem;
+    }
+
+    .shared-list-section h2 {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e6e0d9;
+        padding-bottom: 0.5rem;
+    }
+
+    .shared-list-member, .shared-list-recipe-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0ece6;
+    }
+
+    .shared-list-member:last-child, .shared-list-recipe-item:last-child {
+        border-bottom: none;
+    }
+
+    .shared-list-invite-form {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .shared-list-invite-form input {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d8d2ca;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+
+    .shared-list-add-recipe-form {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .shared-list-add-recipe-form input {
+        width: 120px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d8d2ca;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+
+    .btn-danger-sm {
+        background: #dc3545;
+        color: #fff;
+        border: none;
+        padding: 0.3rem 0.7rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .btn-danger-sm:hover {
+        background: #c82333;
+    }
+
+    .shared-list-empty-section {
+        color: #8a8278;
+        padding: 1rem 0;
+    }
+
+    .alert-success, .alert-danger {
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<div class="shared-list-detail">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="shared-list-detail-header">
+        <div>
+            <h1>@Model.Title</h1>
+            <p class="shared-list-detail-owner">Власник: @Model.OwnerName</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="shared-list-detail-desc">@Model.Description</p>
+            }
+        </div>
+        @if (Model.IsOwner)
+        {
+            <div class="shared-list-actions">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="ck-btn ck-btn-sm">Редагувати</a>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цей список?');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-danger-sm">Видалити</button>
+                </form>
+            </div>
+        }
+    </div>
+
+    <div class="shared-list-section">
+        <h2>👥 Учасники</h2>
+        @if (Model.Members.Count == 0)
+        {
+            <p class="shared-list-empty-section">Поки що немає запрошених учасників.</p>
+        }
+        else
+        {
+            @foreach (var member in Model.Members)
+            {
+                <div class="shared-list-member">
+                    <span>@member.UserName</span>
+                    @if (Model.IsOwner)
+                    {
+                        <form asp-action="RemoveUser" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@member.UserId" />
+                            <button type="submit" class="btn-danger-sm">Видалити</button>
+                        </form>
+                    }
+                </div>
+            }
+        }
+        @if (Model.IsOwner)
+        {
+            <form asp-action="InviteUser" asp-route-id="@Model.Id" method="post" class="shared-list-invite-form">
+                @Html.AntiForgeryToken()
+                <input type="text" name="username" placeholder="Ім'я користувача" required />
+                <button type="submit" class="ck-btn ck-btn-sm">Запросити</button>
+            </form>
+        }
+    </div>
+
+    <div class="shared-list-section">
+        <h2>🍽️ Рецепти</h2>
+        @if (Model.Recipes.Count == 0)
+        {
+            <p class="shared-list-empty-section">У цьому списку ще немає рецептів.</p>
+        }
+        else
+        {
+            @foreach (var recipe in Model.Recipes)
+            {
+                <div class="shared-list-recipe-item">
+                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.RecipeId">@recipe.RecipeTitle</a>
+                    <form asp-action="RemoveRecipe" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="recipeId" value="@recipe.RecipeId" />
+                        <button type="submit" class="btn-danger-sm">Видалити</button>
+                    </form>
+                </div>
+            }
+        }
+
+        <form asp-action="AddRecipe" asp-route-id="@Model.Id" method="post" class="shared-list-add-recipe-form">
+            @Html.AntiForgeryToken()
+            <input type="number" name="recipeId" placeholder="ID рецепту" min="1" required />
+            <button type="submit" class="ck-btn ck-btn-sm">Додати рецепт</button>
+        </form>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <a asp-action="Index" class="ck-btn ck-btn-sm">← Назад до списків</a>
+    </div>
+</div>

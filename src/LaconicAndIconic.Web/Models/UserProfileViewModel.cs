@@ -12,5 +12,8 @@ public class UserProfileViewModel
     public int FollowerCount { get; set; }
     public int FollowingCount { get; set; }
     public bool IsSubscribed { get; set; }
+    public string ActiveTab { get; set; } = "recipes";
     public IEnumerable<RecipeDto> Recipes { get; set; } = [];
+    public IEnumerable<SharedListViewModel> SharedLists { get; set; } = [];
+    public SharedListDetailViewModel? SelectedSharedList { get; set; }
 }

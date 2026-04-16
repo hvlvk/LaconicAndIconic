@@ -1,0 +1,104 @@
+@model IEnumerable<LaconicAndIconic.Web.Models.SharedListViewModel>
+@{
+    ViewData["Title"] = "Мої спільні списки";
+}
+
+<style>
+    .shared-lists-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .shared-lists-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .shared-lists-header h1 {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+
+    .shared-list-card {
+        background: #fff;
+        border: 1px solid #e6e0d9;
+        border-radius: 6px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: box-shadow 0.15s;
+    }
+
+    .shared-list-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .shared-list-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .shared-list-card h3 a {
+        color: #2d2a26;
+        text-decoration: none;
+    }
+
+    .shared-list-card h3 a:hover {
+        text-decoration: underline;
+    }
+
+    .shared-list-meta {
+        color: #8a8278;
+        font-size: 0.9rem;
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .shared-list-desc {
+        color: #5a564f;
+        font-size: 0.95rem;
+        margin: 0.25rem 0 0;
+    }
+
+    .shared-lists-empty {
+        text-align: center;
+        padding: 3rem;
+        color: #8a8278;
+    }
+</style>
+
+<div class="shared-lists-page">
+    <div class="shared-lists-header">
+        <h1>@ViewData["Title"]</h1>
+        <a asp-action="Create" class="ck-btn">Створити список</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="shared-lists-empty">
+            <p>У вас ще немає спільних списків.</p>
+            <a asp-action="Create" class="ck-btn">Створити перший список</a>
+        </div>
+    }
+    else
+    {
+        @foreach (var list in Model)
+        {
+            <div class="shared-list-card">
+                <h3><a asp-action="Details" asp-route-id="@list.Id">@list.Title</a></h3>
+                @if (!string.IsNullOrWhiteSpace(list.Description))
+                {
+                    <p class="shared-list-desc">@list.Description</p>
+                }
+                <div class="shared-list-meta">
+                    <span>👤 Власник: @list.OwnerName</span>
+                    <span>👥 Учасників: @list.MemberCount</span>
+                    <span>🍽️ Рецептів: @list.RecipeCount</span>
+                </div>
+            </div>
+        }
+    }
+</div>

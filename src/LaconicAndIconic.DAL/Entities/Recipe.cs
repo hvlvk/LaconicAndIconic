@@ -16,4 +16,5 @@ public class Recipe : BaseEntity
     public ApplicationUser Author { get; set; } = null!;
     public ICollection<Rating> Ratings { get; } = [];
     public ICollection<Comment> Comments { get; } = [];
+    public ICollection<SharedListRecipe> SharedListRecipes { get; } = [];
 }
