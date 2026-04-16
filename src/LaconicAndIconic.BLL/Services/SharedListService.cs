@@ -137,7 +137,8 @@ public class SharedListService : ISharedListService
             Members = sharedList.SharedListUsers.Select(slu => new SharedListMemberDto
             {
                 UserId = slu.UserId,
-                UserName = slu.User.UserName ?? string.Empty
+                UserName = slu.User.UserName ?? string.Empty,
+                ProfilePicturePath = slu.User.ProfilePicturePath
             }).ToList().AsReadOnly(),
             Recipes = sharedList.SharedListRecipes.Select(slr => new SharedListRecipeItemDto
             {

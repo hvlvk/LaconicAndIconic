@@ -143,4 +143,26 @@ public class UserService : IUserService
         _logger.LogInformation("UnsubscribeAsync: User ID {FollowerId} successfully unsubscribed from User ID {UserId}", followerId, userId);
         return Result.Success();
     }
+
+    public async Task<Result<IEnumerable<UserProfileDto>>> GetFriendsAsync(int userId)
+    {
+        var subscriptions = await _subscriptionRepository.FindAsync(s => s.FollowerId == userId);
+        var friendIds = subscriptions.Select(s => s.UserId).ToList();
+
+        if (friendIds.Count == 0)
+        {
+            return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
+        }
+
+        var users = await _userRepository.FindAsync(u => friendIds.Contains(u.Id));
+
+        var dtos = users.Select(user => new UserProfileDto
+        {
+            Id = user.Id,
+            UserName = user.UserName ?? string.Empty,
+            ProfilePicturePath = user.ProfilePicturePath
+        }).ToList();
+
+        return Result<IEnumerable<UserProfileDto>>.Success(dtos);
+    }
 }

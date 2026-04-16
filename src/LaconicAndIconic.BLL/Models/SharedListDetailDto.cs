@@ -15,6 +15,7 @@ public class SharedListMemberDto
 {
     public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
+    public string? ProfilePicturePath { get; set; }
 }
 
 public class SharedListRecipeItemDto
