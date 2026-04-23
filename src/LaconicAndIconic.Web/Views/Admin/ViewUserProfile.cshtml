@@ -1,0 +1,118 @@
+@model LaconicAndIconic.BLL.Models.UserProfileDto
+
+@{
+    ViewData["Title"] = "Профіль користувача";
+}
+
+<div class="container mt-5">
+    <div class="mb-4">
+        <a asp-action="ManageUsers" class="btn btn-secondary">← Назад до списку користувачів</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                    {
+                        <img src="@Model.ProfilePicturePath" alt="@Model.UserName" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                            <i class="fas fa-user text-white" style="font-size: 50px;"></i>
+                        </div>
+                    }
+                    
+                    <h3>@Model.UserName</h3>
+                    <p class="text-muted">@Model.Email</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a asp-action="ManageUsers" class="btn btn-primary">Повернутися</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0">Інформація користувача</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="info-box text-center">
+                                <h5 class="text-muted">Фоловери</h5>
+                                <h2 class="text-primary">@Model.FollowerCount</h2>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box text-center">
+                                <h5 class="text-muted">Підписки</h5>
+                                <h2 class="text-primary">@Model.FollowingCount</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>ID користувача</h5>
+                            <p class="text-monospace bg-light p-2 rounded">@Model.Id</p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Email адреса</h5>
+                            <p class="bg-light p-2 rounded">@Model.Email</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.ProfilePicturePath))
+                    {
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Шлях профільної фотографії</h5>
+                                <p class="text-break bg-light p-2 rounded text-muted small">@Model.ProfilePicturePath</p>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Ви впевнені, що хочете видалити цього користувача? Це не можна відмінити.');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Видалити користувача
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-box {
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+    }
+
+    .text-monospace {
+        font-family: 'Courier New', monospace;
+    }
+
+    .card {
+        border: none;
+    }
+
+    .card-header {
+        border: none;
+        border-bottom: 2px solid #e0e0e0;
+    }
+</style>

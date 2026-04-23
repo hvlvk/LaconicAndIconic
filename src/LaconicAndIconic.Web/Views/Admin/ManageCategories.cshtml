@@ -1,0 +1,110 @@
+@model LaconicAndIconic.Web.Models.AdminCategoriesViewModel
+
+@{
+    ViewData["Title"] = "Управління категоріями";
+}
+
+<div style="background: var(--ck-bg); min-height: 100vh; padding: 24px;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <div style="margin-bottom: 24px;">
+            <a asp-action="Index" style="display: inline-block; color: var(--ck-orange); text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                ← Назад до меню
+            </a>
+        </div>
+
+        <h1 style="color: var(--ck-text); margin-bottom: 24px; font-size: 1.8rem;">Управління категоріями</h1>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div style="background: #E8F5E9; border-left: 4px solid #4CAF50; padding: 16px; border-radius: var(--ck-radius); margin-bottom: 20px; color: #2E7D32;">
+                <strong>✓</strong> @successMessage
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div style="background: var(--ck-error-bg); border-left: 4px solid var(--ck-error); padding: 16px; border-radius: var(--ck-radius); margin-bottom: 20px; color: var(--ck-error);">
+                <strong>✕</strong> @errorMessage
+            </div>
+        }
+
+        <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); padding: 28px; margin-bottom: 28px; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06);">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div>
+                    <label style="display: block; color: var(--ck-text); font-weight: 600; margin-bottom: 10px; font-size: 0.95rem;">Нова категорія</label>
+                    <div style="display: flex; gap: 12px;">
+                        <input name="name" style="flex: 1; padding: 12px 16px; border: 1px solid var(--ck-border); border-radius: var(--ck-radius); background: var(--ck-input-bg); color: var(--ck-text); font-size: 0.95rem;" placeholder="Введіть назву категорії" value="@Model.NewCategoryName" />
+                        <button type="submit" style="padding: 12px 28px; background: var(--ck-orange); color: white; border: none; border-radius: var(--ck-radius); font-weight: 600; cursor: pointer; transition: background 0.3s; white-space: nowrap;">Додати</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        @if (Model.Categories.Count > 0)
+        {
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); overflow: hidden; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--ck-input-bg); border-bottom: 1px solid var(--ck-border);">
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">ID</th>
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Назва</th>
+                            <th style="padding: 16px; text-align: right; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr style="border-bottom: 1px solid var(--ck-border); transition: background 0.2s;">
+                                <td style="padding: 16px; color: var(--ck-text-muted);">@category.Id</td>
+                                <td style="padding: 16px;">
+                                    <form asp-action="Rename" method="post" style="display: flex; gap: 12px; align-items: center;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@category.Id" />
+                                        <input name="name" value="@category.Name" style="flex: 1; padding: 10px 12px; border: 1px solid var(--ck-border); border-radius: var(--ck-radius); background: var(--ck-input-bg); color: var(--ck-text);" />
+                                        <button type="submit" style="padding: 8px 20px; background: var(--ck-orange); color: white; border: none; border-radius: var(--ck-radius); font-weight: 600; cursor: pointer; transition: background 0.3s; white-space: nowrap;">Оновити</button>
+                                    </form>
+                                </td>
+                                <td style="padding: 16px; text-align: right;">
+                                    <form asp-action="Delete" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@category.Id" />
+                                        <button type="submit" style="padding: 8px 16px; background: var(--ck-error); color: white; border: none; border-radius: var(--ck-radius); font-weight: 600; cursor: pointer; transition: background 0.3s;" onclick="return confirm('Ви впевнені?')">Видалити</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); padding: 32px; text-align: center; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06);">
+                <i class="fas fa-info-circle" style="font-size: 2.5rem; color: var(--ck-text-muted); margin-bottom: 16px; display: block;"></i>
+                <p style="color: var(--ck-text-muted); font-size: 0.95rem;">Немає категорій. Додайте першу!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    
+    input[type="text"]:focus {
+        outline: none;
+        border-color: var(--ck-orange) !important;
+        box-shadow: 0 0 0 3px rgba(232, 145, 58, 0.1);
+    }
+    
+    a:hover {
+        color: var(--ck-orange-hover) !important;
+    }
+    
+    tr:hover {
+        background: var(--ck-input-bg) !important;
+    }
+</style>
