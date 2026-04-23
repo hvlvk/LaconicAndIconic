@@ -10,4 +10,6 @@ public interface IUserService
     Task<Result> SubscribeAsync(int followerId, int userId);
     Task<Result> UnsubscribeAsync(int followerId, int userId);
     Task<Result<IEnumerable<UserProfileDto>>> GetFriendsAsync(int userId);
+    Task<Result<IEnumerable<UserProfileDto>>> GetSubscriptionsAsync(int userId, int? currentUserId = null);
+    Task<Result<IEnumerable<UserProfileDto>>> GetFollowersAsync(int userId, int? currentUserId = null);
 }
