@@ -61,9 +61,9 @@
             <div class="user-stats">
                 <span class="stat">@Model.Recipes.Count() рецепти</span>
                 <span class="stat-divider">|</span>
-                <span class="stat">@Model.FollowerCount підписники</span>
+                <a href="@Url.Action("Followers", "User", new { id = Model.Id })" class="stat stat-link">@Model.FollowerCount підписники</a>
                 <span class="stat-divider">|</span>
-                <span class="stat">@Model.FollowingCount підписки</span>
+                <a href="@Url.Action("Subscriptions", "User", new { id = Model.Id })" class="stat stat-link">@Model.FollowingCount підписки</a>
             </div>
         </div>
         @if (!Model.IsOwnProfile && User.Identity?.IsAuthenticated == true)

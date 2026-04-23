@@ -141,7 +141,7 @@ public class UserController : Controller
         var userId = User.GetUserId();
 
         var result = await _userService.UpdateProfilePictureAsync(userId, profilePicture);
-        
+
         if (!result.IsSuccess)
         {
             TempData["ErrorMessage"] = result.ErrorMessage;
@@ -200,5 +200,57 @@ public class UserController : Controller
         }
 
         return RedirectToAction(nameof(Profile), new { id });
+    }
+
+    [HttpGet("User/{id:int}/Subscriptions")]
+    [Authorize]
+    public async Task<IActionResult> Subscriptions(int id)
+    {
+        var currentUserId = User.GetUserId();
+        var userResult = await _userService.GetUserProfileByIdAsync(id, currentUserId);
+
+        if (!userResult.IsSuccess || userResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        var subscriptionsResult = await _userService.GetSubscriptionsAsync(id, currentUserId);
+
+        var viewModel = new UserListViewModel
+        {
+            UserId = id,
+            UserName = userResult.Value.UserName,
+            ListType = "subscriptions",
+            IsOwnList = currentUserId == id,
+            Users = subscriptionsResult.IsSuccess && subscriptionsResult.Value != null ? subscriptionsResult.Value : []
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpGet("User/{id:int}/Followers")]
+    [Authorize]
+    public async Task<IActionResult> Followers(int id)
+    {
+        var currentUserId = User.GetUserId();
+        var userResult = await _userService.GetUserProfileByIdAsync(id, currentUserId);
+
+        if (!userResult.IsSuccess || userResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        var followersResult = await _userService.GetFollowersAsync(id, currentUserId);
+
+        var viewModel = new UserListViewModel
+        {
+            UserId = id,
+            UserName = userResult.Value.UserName,
+            ListType = "followers",
+            IsOwnList = currentUserId == id,
+            Users = followersResult.IsSuccess && followersResult.Value != null ? followersResult.Value : []
+        };
+
+        return View(viewModel);
     }
 }

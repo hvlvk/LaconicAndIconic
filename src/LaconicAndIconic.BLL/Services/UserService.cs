@@ -16,7 +16,7 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
 
     public UserService(
-        IUserRepository userRepository, 
+        IUserRepository userRepository,
         IFileService fileService,
         IRepository<UserSubscription> subscriptionRepository,
         ILogger<UserService> logger)
@@ -38,7 +38,7 @@ public class UserService : IUserService
 
         var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == id);
         var followingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == id);
-        
+
         bool isSubscribed = false;
         if (currentUserId.HasValue)
         {
@@ -163,6 +163,78 @@ public class UserService : IUserService
             ProfilePicturePath = user.ProfilePicturePath
         }).ToList();
 
+        return Result<IEnumerable<UserProfileDto>>.Success(dtos);
+    }
+
+    public async Task<Result<IEnumerable<UserProfileDto>>> GetSubscriptionsAsync(int userId, int? currentUserId = null)
+    {
+        var subscriptions = await _subscriptionRepository.FindAsync(s => s.FollowerId == userId);
+        var followingUserIds = subscriptions.Select(s => s.UserId).ToList();
+
+        if (followingUserIds.Count == 0)
+        {
+            return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
+        }
+
+        var users = await _userRepository.FindAsync(u => followingUserIds.Contains(u.Id));
+
+        var dtos = new List<UserProfileDto>();
+        foreach (var user in users)
+        {
+            bool isSubscribed = false;
+            if (currentUserId.HasValue && currentUserId.Value != userId)
+            {
+                isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == user.Id && s.FollowerId == currentUserId.Value);
+            }
+
+            dtos.Add(new UserProfileDto
+            {
+                Id = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                ProfilePicturePath = user.ProfilePicturePath,
+                FollowerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id),
+                FollowingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id),
+                IsSubscribed = isSubscribed
+            });
+        }
+
+        _logger.LogInformation("GetSubscriptionsAsync: Retrieved {Count} subscriptions for user ID {UserId}", dtos.Count, userId);
+        return Result<IEnumerable<UserProfileDto>>.Success(dtos);
+    }
+
+    public async Task<Result<IEnumerable<UserProfileDto>>> GetFollowersAsync(int userId, int? currentUserId = null)
+    {
+        var subscriptions = await _subscriptionRepository.FindAsync(s => s.UserId == userId);
+        var followerUserIds = subscriptions.Select(s => s.FollowerId).ToList();
+
+        if (followerUserIds.Count == 0)
+        {
+            return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
+        }
+
+        var users = await _userRepository.FindAsync(u => followerUserIds.Contains(u.Id));
+
+        var dtos = new List<UserProfileDto>();
+        foreach (var user in users)
+        {
+            bool isSubscribed = false;
+            if (currentUserId.HasValue && currentUserId.Value != userId)
+            {
+                isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == user.Id && s.FollowerId == currentUserId.Value);
+            }
+
+            dtos.Add(new UserProfileDto
+            {
+                Id = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                ProfilePicturePath = user.ProfilePicturePath,
+                FollowerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id),
+                FollowingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id),
+                IsSubscribed = isSubscribed
+            });
+        }
+
+        _logger.LogInformation("GetFollowersAsync: Retrieved {Count} followers for user ID {UserId}", dtos.Count, userId);
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);
     }
 }

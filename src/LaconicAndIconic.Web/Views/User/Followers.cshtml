@@ -1,0 +1,52 @@
+@model LaconicAndIconic.Web.Models.UserListViewModel
+@{
+    ViewData["Title"] = $"Підписники {Model.UserName}";
+    var profileUrl = Url.Action("Profile", "User", new { id = Model.UserId }) ?? string.Empty;
+}
+
+<link rel="stylesheet" href="~/css/user-list.css" />
+
+<div class="user-list-container">
+    <div class="user-list-header">
+        <a href="@profileUrl">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        <h1>Підписники @Model.UserName</h1>
+    </div>
+    <p class="user-list-subtitle">@Model.Users.Count() користувачів</p>
+
+    @if (!Model.Users.Any())
+    {
+        <div class="user-list-empty">
+            <p>@(Model.IsOwnList ? "У вас" : $"У {Model.UserName}") поки немає підписників.</p>
+        </div>
+    }
+    else
+    {
+        <div class="user-list-simple-grid">
+            @foreach (var user in Model.Users)
+            {
+                <div class="user-list-simple-card">
+                    <a href="@Url.Action("Profile", "User", new { id = user.Id })" class="user-list-simple-link">
+                        <div class="user-list-simple-avatar">
+                            @if (!string.IsNullOrEmpty(user.ProfilePicturePath))
+                            {
+                                <img src="@user.ProfilePicturePath" alt="@user.UserName" />
+                            }
+                            else
+                            {
+                                <div class="user-list-simple-avatar-placeholder">@user.UserName.FirstOrDefault()</div>
+                            }
+                        </div>
+                        <span class="user-list-simple-name">@user.UserName</span>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+

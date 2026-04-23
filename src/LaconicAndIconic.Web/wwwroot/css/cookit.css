@@ -306,6 +306,17 @@ body {
     color: var(--ck-border);
 }
 
+.stat-link {
+    color: var(--ck-text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.stat-link:hover {
+    color: var(--ck-orange);
+}
+
 .subscribe-btn {
     padding: 10px 28px;
     font-size: 0.9rem;
