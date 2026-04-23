@@ -24,10 +24,45 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<SharedListRecipe> SharedListRecipes => Set<SharedListRecipe>();
 
     protected override void OnModelCreating(ModelBuilder builder)
-    {
-        base.OnModelCreating(builder);
-        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-    }
+{
+    base.OnModelCreating(builder);
+    builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+
+    builder.Entity<Recipe>()
+        .HasOne(r => r.Author)
+        .WithMany()
+        .HasForeignKey(r => r.AuthorId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+
+    builder.Entity<Comment>()
+        .HasOne(c => c.Author)
+        .WithMany()
+        .HasForeignKey(c => c.AuthorId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+
+    builder.Entity<Rating>()
+        .HasOne(r => r.User)
+        .WithMany()
+        .HasForeignKey(r => r.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+
+    builder.Entity<UserSubscription>()
+        .HasOne(s => s.User)
+        .WithMany()
+        .HasForeignKey(s => s.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
+        
+
+    builder.Entity<SharedListUser>()
+        .HasOne(slu => slu.User)
+        .WithMany()
+        .HasForeignKey(slu => slu.UserId)
+        .OnDelete(DeleteBehavior.Cascade);
+}
 
     public override int SaveChanges()
     {

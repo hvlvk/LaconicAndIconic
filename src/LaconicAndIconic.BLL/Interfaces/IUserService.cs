@@ -12,4 +12,6 @@ public interface IUserService
     Task<Result<IEnumerable<UserProfileDto>>> GetFriendsAsync(int userId);
     Task<Result<IEnumerable<UserProfileDto>>> GetSubscriptionsAsync(int userId, int? currentUserId = null);
     Task<Result<IEnumerable<UserProfileDto>>> GetFollowersAsync(int userId, int? currentUserId = null);
+    Task<Result<IEnumerable<UserProfileDto>>> GetAllUsersAsync();
+    Task<Result> DeleteUserAsync(int id);
 }

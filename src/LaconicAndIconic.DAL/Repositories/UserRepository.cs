@@ -42,4 +42,12 @@ public class UserRepository : IUserRepository
     {
         return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_userManager.Users.Where(predicate));
     }
+
+    public async Task<IEnumerable<ApplicationUser>> FindAsync()
+    {
+        return await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(_userManager.Users);
+    }
+
+    public Task<IdentityResult> DeleteAsync(ApplicationUser user)
+        => _userManager.DeleteAsync(user);
 }
