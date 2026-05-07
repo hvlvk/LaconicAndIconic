@@ -4,6 +4,7 @@ using LaconicAndIconic.Web.Middleware;
 using LaconicAndIconic.Web.Seeding;
 using LaconicAndIconic.Web.Services;
 using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.Web.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.Configure<TheMealDbOptions>(builder.Configuration.GetSection(TheMealDbOptions.SectionName));
+builder.Services.AddHttpClient<IExternalRecipeClient, TheMealDbClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<TheMealDbOptions>>().Value;
+    client.BaseAddress = options.BaseUrl;
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

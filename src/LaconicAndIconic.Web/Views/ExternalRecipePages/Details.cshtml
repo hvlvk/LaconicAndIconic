@@ -1,0 +1,151 @@
+@model LaconicAndIconic.Web.Models.ExternalRecipeDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<style>
+    .external-recipe-page {
+        max-width: 1080px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #e6e0d9;
+    }
+
+    .external-recipe-main {
+        display: grid;
+        grid-template-columns: 48% 52%;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border-bottom: 1px solid #ece8e2;
+    }
+
+    .external-recipe-photo {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
+        border-radius: 2px;
+    }
+
+    .external-recipe-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .external-recipe-title-row h1 {
+        margin: 0;
+        font-size: 1.9rem;
+        line-height: 1.1;
+    }
+
+    .external-recipe-badge {
+        border: 1px solid #d8d2ca;
+        border-radius: 999px;
+        padding: 0.35rem 0.7rem;
+        color: #5f574f;
+        background: #f8f6f3;
+        white-space: nowrap;
+        font-size: 0.85rem;
+    }
+
+    .external-recipe-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: #6d645c;
+        font-weight: 600;
+    }
+
+    .external-recipe-desc {
+        color: #494949;
+        line-height: 1.55;
+        margin: 0 0 1.2rem;
+    }
+
+    .external-recipe-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding: 1.1rem 1.5rem 1.5rem;
+    }
+
+    .external-recipe-sections h2 {
+        margin-top: 0;
+        font-size: 1.5rem;
+    }
+
+    .external-ingredients-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .external-ingredients-list li {
+        margin: 0.65rem 0;
+        line-height: 1.4;
+    }
+
+    .external-steps {
+        white-space: pre-line;
+        line-height: 1.5;
+    }
+
+    @@media (max-width: 900px) {
+        .external-recipe-main,
+        .external-recipe-sections {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="external-recipe-page">
+    <section class="external-recipe-main">
+        <div>
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" alt="@Model.Title" class="external-recipe-photo" />
+            }
+            else
+            {
+                <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&h=500&fit=crop" alt="Recipe image" class="external-recipe-photo" />
+            }
+        </div>
+
+        <div>
+            <div class="external-recipe-title-row">
+                <h1>@Model.Title</h1>
+                <span class="external-recipe-badge">TheMealDB</span>
+            </div>
+
+            <div class="external-recipe-meta">
+                <span>@Model.CategoryName</span>
+                <span>@Model.AuthorName</span>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="external-recipe-desc">@Model.Description</p>
+            }
+
+        </div>
+    </section>
+
+    <section class="external-recipe-sections">
+        <div>
+            <h2>Інгредієнти</h2>
+            <ul class="external-ingredients-list">
+                @foreach (var ingredient in string.IsNullOrWhiteSpace(Model.Ingredients) ? Array.Empty<string>() : Model.Ingredients.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    <li>@ingredient</li>
+                }
+            </ul>
+        </div>
+
+        <div>
+            <h2>Спосіб приготування</h2>
+            <div class="external-steps">@Model.CookingMethod</div>
+        </div>
+    </section>
+</div>

@@ -15,6 +15,8 @@ public sealed class RateLimitingAttribute : ActionFilterAttribute
         _maxRequestsPerMinute = maxRequestsPerMinute;
     }
 
+    public int MaxRequestsPerMinute => _maxRequestsPerMinute;
+
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         var cache = context.HttpContext.RequestServices.GetService<IMemoryCache>();
@@ -57,6 +59,7 @@ public sealed class RateLimitingAttribute : ActionFilterAttribute
 
     public int MaxRequestsPerMinute { get; }
 }
+
 
 public record RateLimitInfo
 {

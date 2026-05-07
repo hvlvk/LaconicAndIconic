@@ -37,7 +37,6 @@ public class FileService : IFileService
             throw new ArgumentException("Subfolder cannot be empty", nameof(subFolder));
         }
 
-        // Приклад використання _appSettings.PageSize (можна використати для обмеження кількості файлів у папці, якщо потрібно)
         var uploadsFolder = Path.Combine(_env.WebRootPath, "images", subFolder);
         if (!Directory.Exists(uploadsFolder))
         {

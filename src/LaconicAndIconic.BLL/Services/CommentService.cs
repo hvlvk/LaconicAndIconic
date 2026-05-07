@@ -1,4 +1,4 @@
-﻿using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
@@ -54,7 +54,7 @@ public class CommentService : ICommentService
             })
             .ToListAsync();
 
-        return Result<IEnumerable<CommentDto>>.Success(comments);
+        return comments;
     }
 
     public async Task<Result> DeleteAsync(int commentId, int userId)
@@ -112,7 +112,7 @@ public class CommentService : ICommentService
 
         if (comment == null)
         {
-            return Result<CommentDto>.Failure("Коментар не знайдено");
+            return "Коментар не знайдено";
         }
 
         var dto = new CommentDto
@@ -125,6 +125,6 @@ public class CommentService : ICommentService
             CreatedAt = comment.CreatedAt
         };
 
-        return Result<CommentDto>.Success(dto);
+        return dto;
     }
 }
