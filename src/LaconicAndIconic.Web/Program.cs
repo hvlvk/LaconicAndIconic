@@ -18,6 +18,10 @@ builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddScoped<IFileService, FileService>();
 
+// Реєстрація AppSettings через IOptions
+builder.Services.Configure<LaconicAndIconic.Web.Models.AppSettings>(
+    builder.Configuration.GetSection("AppSettings"));
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
