@@ -1,59 +1,47 @@
-@model LaconicAndIconic.Web.Models.AdminCategoriesViewModel
+@model LaconicAndIconic.Web.Models.AdminMenuViewModel
 
 @{
-    ViewData["Title"] = "Manage Categories";
+    ViewData["Title"] = "Адміністративна панель";
 }
 
-<h1>Manage Categories</h1>
+<div style="background: var(--ck-bg); min-height: 100vh; padding: 40px 20px;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <h1 style="color: var(--ck-text); text-align: center; margin-bottom: 12px; font-size: 2rem;">@Model.Title</h1>
+        <p style="color: var(--ck-text-muted); text-align: center; margin-bottom: 48px; font-size: 1.05rem;">@Model.Description</p>
 
-@if (TempData["SuccessMessage"] is string successMessage)
-{
-    <div class="alert alert-success">@successMessage</div>
-}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); overflow: hidden; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06); transition: all 0.3s ease;">
+                <div style="background: linear-gradient(135deg, var(--ck-orange) 0%, var(--ck-orange-hover) 100%); padding: 32px 20px; text-align: center;">
+                    <i class="fas fa-list" style="font-size: 3rem; color: white; margin-bottom: 16px; display: block;"></i>
+                </div>
+                <div style="padding: 24px; text-align: center;">
+                    <h5 style="color: var(--ck-text); margin-bottom: 12px; font-size: 1.2rem; font-weight: 600;">Управління категоріями</h5>
+                    <p style="color: var(--ck-text-muted); margin-bottom: 20px; font-size: 0.95rem;">Додавати, змінювати та видаляти категорії рецептів</p>
+                    <a asp-action="ManageCategories" style="display: inline-block; background: var(--ck-orange); color: white; padding: 12px 28px; border-radius: var(--ck-radius-pill); text-decoration: none; font-weight: 600; transition: background 0.3s ease;">Перейти</a>
+                </div>
+            </div>
 
-@if (TempData["ErrorMessage"] is string errorMessage)
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
-
-<form asp-action="Create" method="post" class="mb-4">
-    @Html.AntiForgeryToken()
-    <div class="form-group">
-        <label for="name">Нова категорія</label>
-        <input id="name" name="name" class="form-control" value="@Model.NewCategoryName" />
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); overflow: hidden; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06); transition: all 0.3s ease;">
+                <div style="background: linear-gradient(135deg, var(--ck-orange) 0%, var(--ck-orange-hover) 100%); padding: 32px 20px; text-align: center;">
+                    <i class="fas fa-users" style="font-size: 3rem; color: white; margin-bottom: 16px; display: block;"></i>
+                </div>
+                <div style="padding: 24px; text-align: center;">
+                    <h5 style="color: var(--ck-text); margin-bottom: 12px; font-size: 1.2rem; font-weight: 600;">Управління користувачами</h5>
+                    <p style="color: var(--ck-text-muted); margin-bottom: 20px; font-size: 0.95rem;">Переглядати дані користувачів, видаляти облікові записи</p>
+                    <a asp-action="ManageUsers" style="display: inline-block; background: var(--ck-orange); color: white; padding: 12px 28px; border-radius: var(--ck-radius-pill); text-decoration: none; font-weight: 600; transition: background 0.3s ease;">Перейти</a>
+                </div>
+            </div>
+        </div>
     </div>
-    <button type="submit" class="ck-btn mt-2">Додати категорію</button>
-</form>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Назва</th>
-            <th>Дії</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var category in Model.Categories)
-        {
-            <tr>
-                <td>@category.Id</td>
-                <td>
-                    <form asp-action="Rename" method="post" class="d-flex align-items-center">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@category.Id" />
-                        <input name="name" value="@category.Name" class="form-control me-2" />
-                        
-                    </form>
-                </td>
-                <td>
-                    <form asp-action="Delete" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@category.Id" />
-                        <button type="submit" class="ck-btn btn-danger">Видалити</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<style>
+    a[asp-action]:hover {
+        background: var(--ck-orange-hover) !important;
+    }
+    
+    div[style*="box-shadow"]:hover {
+        box-shadow: 0 4px 16px rgba(60, 40, 20, 0.12) !important;
+        transform: translateY(-4px);
+    }
+</style>

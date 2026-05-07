@@ -23,6 +23,9 @@ builder.Services.AddMemoryCache();
 
 // Configure CachingOptions from appsettings.json
 builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection("Caching"));
+// Реєстрація AppSettings через IOptions
+builder.Services.Configure<LaconicAndIconic.Web.Models.AppSettings>(
+    builder.Configuration.GetSection("AppSettings"));
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

@@ -237,4 +237,66 @@ public class UserService : IUserService
         _logger.LogInformation("GetFollowersAsync: Retrieved {Count} followers for user ID {UserId}", dtos.Count, userId);
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);
     }
+
+    public async Task<Result<IEnumerable<UserProfileDto>>> GetAllUsersAsync()
+    {
+        var users = await _userRepository.FindAsync();
+        
+        var dtos = new List<UserProfileDto>();
+        foreach (var user in users)
+        {
+            var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id);
+            var followingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id);
+
+            dtos.Add(new UserProfileDto
+            {
+                Id = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                ProfilePicturePath = user.ProfilePicturePath,
+                FollowerCount = followerCount,
+                FollowingCount = followingCount
+            });
+        }
+
+        _logger.LogInformation("GetAllUsersAsync: Retrieved {Count} users", dtos.Count);
+        return Result<IEnumerable<UserProfileDto>>.Success(dtos);
+    }
+
+    public async Task<Result> DeleteUserAsync(int id)
+    {
+        var user = await _userRepository.FindByIdAsync(id);
+        if (user is null)
+        {
+            _logger.LogWarning("DeleteUserAsync: User with ID {Id} was not found", id);
+            return Result.Failure("Користувача не знайдено");
+        }
+
+        // Видалення профільної фотографії
+        if (!string.IsNullOrEmpty(user.ProfilePicturePath))
+        {
+            _fileService.DeleteFile(user.ProfilePicturePath);
+        }
+
+        // Видалення підписок користувача
+        var userSubscriptions = await _subscriptionRepository.FindAsync(
+            s => s.FollowerId == id || s.UserId == id);
+        foreach (var subscription in userSubscriptions)
+        {
+            _subscriptionRepository.Remove(subscription);
+        }
+
+        await _subscriptionRepository.SaveChangesAsync();
+
+        // Видалення користувача
+        var result = await _userRepository.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            _logger.LogError("DeleteUserAsync: Failed to delete user ID {Id}", id);
+            return Result.Failure("Не вдалося видалити користувача");
+        }
+
+        _logger.LogInformation("DeleteUserAsync: Successfully deleted user ID {Id}", id);
+        return Result.Success();
+    }
 }

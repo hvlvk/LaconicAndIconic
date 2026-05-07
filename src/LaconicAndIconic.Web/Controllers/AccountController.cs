@@ -2,6 +2,7 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using LaconicAndIconic.Web.Filters;
 
 namespace LaconicAndIconic.Web.Controllers;
 
@@ -15,6 +16,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [RateLimiting(5)]
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -50,6 +52,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [RateLimiting(5)]
     public IActionResult Register()
     {
         return View();

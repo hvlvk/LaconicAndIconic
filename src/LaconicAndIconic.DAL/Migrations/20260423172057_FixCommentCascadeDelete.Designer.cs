@@ -3,6 +3,7 @@ using System;
 using LaconicAndIconic.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LaconicAndIconic.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423172057_FixCommentCascadeDelete")]
+    partial class FixCommentCascadeDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,55 +131,55 @@ namespace LaconicAndIconic.DAL.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5620),
                             Name = "Сніданки"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5620),
                             Name = "Перші страви"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5620),
                             Name = "Основні страви"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5620),
                             Name = "Салати"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5630),
                             Name = "Десерти"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5630),
                             Name = "Закуски"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5630),
                             Name = "Випічка"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5630),
                             Name = "Вегетаріанські страви"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 4, 23, 17, 20, 57, 333, DateTimeKind.Utc).AddTicks(5630),
                             Name = "Напої"
                         });
                 });
@@ -228,9 +231,6 @@ namespace LaconicAndIconic.DAL.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ApplicationUserId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -248,8 +248,6 @@ namespace LaconicAndIconic.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("UserId");
 
                     b.HasIndex("RecipeId", "UserId")
@@ -265,9 +263,6 @@ namespace LaconicAndIconic.DAL.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ApplicationUserId")
-                        .HasColumnType("integer");
 
                     b.Property<int>("AuthorId")
                         .HasColumnType("integer");
@@ -311,8 +306,6 @@ namespace LaconicAndIconic.DAL.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("AuthorId");
 
@@ -415,12 +408,7 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ApplicationUserId")
-                        .HasColumnType("integer");
-
                     b.HasKey("SharedListId", "UserId");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("UserId");
 
@@ -435,12 +423,7 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ApplicationUserId")
-                        .HasColumnType("integer");
-
                     b.HasKey("FollowerId", "UserId");
-
-                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("UserId");
 
@@ -604,10 +587,6 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Rating", b =>
                 {
-                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
-                        .WithMany("Ratings")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("LaconicAndIconic.DAL.Entities.Recipe", "Recipe")
                         .WithMany("Ratings")
                         .HasForeignKey("RecipeId")
@@ -615,9 +594,9 @@ namespace LaconicAndIconic.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
+                        .WithMany("Ratings")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Recipe");
@@ -627,14 +606,10 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Recipe", b =>
                 {
-                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
-                        .WithMany("Recipes")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "Author")
-                        .WithMany()
+                        .WithMany("Recipes")
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.Category", "Category")
@@ -707,10 +682,6 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.SharedListUser", b =>
                 {
-                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
-                        .WithMany("SharedListMemberships")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("LaconicAndIconic.DAL.Entities.SharedList", "SharedList")
                         .WithMany("SharedListUsers")
                         .HasForeignKey("SharedListId")
@@ -718,9 +689,9 @@ namespace LaconicAndIconic.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
+                        .WithMany("SharedListMemberships")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("SharedList");
@@ -730,10 +701,6 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.UserSubscription", b =>
                 {
-                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
-                        .WithMany("Followers")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "Follower")
                         .WithMany("Following")
                         .HasForeignKey("FollowerId")
@@ -741,9 +708,9 @@ namespace LaconicAndIconic.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "User")
-                        .WithMany()
+                        .WithMany("Followers")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Follower");

@@ -15,14 +15,25 @@ public class RecipeController : Controller
     private readonly IUserService _userService;
     private readonly ICommentService _commentService;
     private readonly IReportService _reportService;
+    private readonly AppSettings _appSettings;
+    private readonly ILogger<RecipeController> _logger;
 
-    public RecipeController(IRecipeService recipeService, ICategoryService categoryService, IUserService userService, ICommentService commentService, IReportService reportService)
+    public RecipeController(
+        IRecipeService recipeService,
+        ICategoryService categoryService,
+        IUserService userService,
+        ICommentService commentService,
+        IReportService reportService,
+        Microsoft.Extensions.Options.IOptions<AppSettings> appSettings,
+        ILogger<RecipeController> logger)
     {
         _recipeService = recipeService;
         _categoryService = categoryService;
         _userService = userService;
         _commentService = commentService;
         _reportService = reportService;
+        _appSettings = appSettings.Value;
+        _logger = logger;
     }
 
     [HttpGet("Recipe/{id:int}")]
@@ -31,6 +42,7 @@ public class RecipeController : Controller
     {
         var currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
         var result = await _recipeService.GetRecipeByIdAsync(id, currentUserId);
+        _logger.LogInformation("Details called for recipe {RecipeId}", id);
         if (!result.IsSuccess || result.Value == null)
         {
             return NotFound();
@@ -80,6 +92,12 @@ public class RecipeController : Controller
     public async Task<IActionResult> Rate(int id, int score)
     {
         var userId = User.GetUserId();
+        if (score < 1 || score > 5)
+        {
+            _logger.LogWarning("Invalid score value: {Score}", score);
+            TempData["ErrorMessage"] = "Некоректне значення оцінки.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
         var result = await _recipeService.RateRecipeAsync(id, userId, score);
 
         if (!result.IsSuccess)
@@ -151,11 +169,20 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateRecipeDto model)
     {
+
         if (!ModelState.IsValid)
         {
             await LoadCategoriesAsync();
             return View(model);
         }
+        // Валідація мінімальної довжини назви рецепту через AppSettings
+        if (model.Title == null || model.Title.Length < _appSettings.MinSearchLength)
+        {
+            ModelState.AddModelError("Title", $"Назва рецепту має містити щонайменше {_appSettings.MinSearchLength} символи.");
+            await LoadCategoriesAsync();
+            return View(model);
+        }
+        _logger.LogInformation("Creating recipe with title: {Title}", model.Title);
 
         var userId = User.GetUserId();
 
