@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 namespace LaconicAndIconic.Web.Filters;
 
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
-public class RateLimitingAttribute : ActionFilterAttribute
+public sealed class RateLimitingAttribute : ActionFilterAttribute
 {
     private readonly int _maxRequestsPerMinute;
 
@@ -54,6 +54,8 @@ public class RateLimitingAttribute : ActionFilterAttribute
 
         base.OnActionExecuting(context);
     }
+
+    public int MaxRequestsPerMinute { get; }
 }
 
 public record RateLimitInfo
