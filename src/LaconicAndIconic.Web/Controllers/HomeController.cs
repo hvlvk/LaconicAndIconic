@@ -4,6 +4,7 @@ using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using LaconicAndIconic.Web.Filters;
 
 namespace LaconicAndIconic.Web.Controllers;
 
@@ -22,6 +23,7 @@ public class HomeController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [RateLimiting(5)]
     public async Task<IActionResult> Index(string? searchTerm, int? categoryId, string? sortBy, int pageNumber = 1)
     {
         if (pageNumber < 1)
@@ -77,5 +79,11 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    [HttpGet]
+    public IActionResult RateLimitError()
+    {
+        return View();
     }
 }
