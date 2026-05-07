@@ -18,6 +18,12 @@ builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddScoped<IFileService, FileService>();
 
+// Add MemoryCache
+builder.Services.AddMemoryCache();
+
+// Configure CachingOptions from appsettings.json
+builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection("Caching"));
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";

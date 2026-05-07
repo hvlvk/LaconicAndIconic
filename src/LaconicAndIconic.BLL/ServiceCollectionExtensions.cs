@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<ISharedListService, SharedListService>();
+        services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
 
         return services;
     }
