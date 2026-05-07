@@ -990,6 +990,43 @@ body {
     color: #333;
 }
 
+.home-search-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.home-search-form {
+    display: grid;
+    gap: 8px;
+}
+
+.home-search-form label {
+    font-weight: 700;
+    color: var(--ck-text);
+}
+
+.home-search-form div {
+    display: flex;
+    gap: 8px;
+}
+
+.home-search-form input {
+    min-width: 0;
+    flex: 1;
+    padding: 9px 10px;
+    border: 1px solid var(--ck-border);
+    border-radius: var(--ck-radius-sm);
+    font: inherit;
+}
+
+.home-external-title {
+    margin: 28px 0 16px;
+    font-size: 1.25rem;
+    color: var(--ck-text);
+}
+
 /* ── Recipe Create Page ── */
 
 .recipe-create-container {

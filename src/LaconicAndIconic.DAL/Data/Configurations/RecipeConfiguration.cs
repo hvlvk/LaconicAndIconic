@@ -32,6 +32,16 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
             .IsRequired()
             .HasMaxLength(6000);
 
+        builder.Property(r => r.ExternalSource)
+            .HasMaxLength(50);
+
+        builder.Property(r => r.ExternalId)
+            .HasMaxLength(100);
+
+        builder.HasIndex(r => new { r.ExternalSource, r.ExternalId })
+            .IsUnique()
+            .HasFilter("\"ExternalSource\" IS NOT NULL AND \"ExternalId\" IS NOT NULL");
+
         builder.HasOne(r => r.Category)
             .WithMany(c => c.Recipes)
             .HasForeignKey(r => r.CategoryId)
