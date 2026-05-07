@@ -18,15 +18,6 @@ builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddScoped<IFileService, FileService>();
 
-// Add MemoryCache
-builder.Services.AddMemoryCache();
-
-// Configure CachingOptions from appsettings.json
-builder.Services.Configure<CachingOptions>(builder.Configuration.GetSection("Caching"));
-// Реєстрація AppSettings через IOptions
-builder.Services.Configure<LaconicAndIconic.Web.Models.AppSettings>(
-    builder.Configuration.GetSection("AppSettings"));
-
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -44,6 +35,8 @@ else
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 }
 
+app.UseMiddleware<ExecutionTimeMiddleware>();
+
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -51,6 +44,9 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
