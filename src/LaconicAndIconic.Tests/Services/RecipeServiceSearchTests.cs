@@ -1,15 +1,20 @@
+using LaconicAndIconic.BLL;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Moq;
+
 namespace LaconicAndIconic.Tests.Services;
 
-public class RecipeServiceSearchTests
+public class RecipeServiceSearchTests : IDisposable
 {
     private readonly Mock<IRecipeRepository> _recipeRepoMock;
     private readonly RecipeService _service;
+    private readonly MemoryCache _memoryCache;
 
     public RecipeServiceSearchTests()
     {
@@ -18,12 +23,35 @@ public class RecipeServiceSearchTests
         var categoryRepoMock = new Mock<IRepository<Category>>();
         var ratingRepoMock = new Mock<IRepository<Rating>>();
         var userRepoMock = new Mock<IUserRepository>();
+        var cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
+        var cachingOptions = Options.Create(new CachingOptions());
+
+        // Use real MemoryCache for tests
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
         _service = new RecipeService(
             _recipeRepoMock.Object,
             fileServiceMock.Object,
             categoryRepoMock.Object,
             ratingRepoMock.Object,
-            userRepoMock.Object);
+            userRepoMock.Object,
+            _memoryCache,
+            cacheInvalidationServiceMock.Object,
+            cachingOptions);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _memoryCache?.Dispose();
+        }
     }
 
     [Fact]
