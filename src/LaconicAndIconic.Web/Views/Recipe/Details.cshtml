@@ -399,12 +399,12 @@
                             Редагувати
                         </a>
                         
-                        <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей рецепт?');">
+                        @*<form asp-controller="Recipe" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей рецепт?');">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="recipe-save recipe-report-btn" title="Delete recipe">
                                 Видалити рецепт
                             </button>
-                        </form>
+                        </form>*@
                     }
                 
                     <a href="#" class="recipe-save" title="Save recipe">
