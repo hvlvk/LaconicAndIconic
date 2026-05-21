@@ -175,7 +175,7 @@ public class RecipeController : Controller
             await LoadCategoriesAsync();
             return View(model);
         }
-        // Валідація мінімальної довжини назви рецепту через AppSettings
+  
         if (model.Title == null || model.Title.Length < _appSettings.MinSearchLength)
         {
             ModelState.AddModelError("Title", $"Назва рецепту має містити щонайменше {_appSettings.MinSearchLength} символи.");
@@ -197,10 +197,11 @@ public class RecipeController : Controller
         return View(model);
     }
 
-    [HttpGet]
+ [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var userId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin") || User.Identity?.Name == "Admin" || User.Identity?.Name == "admin@gmail.com";
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
 
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
@@ -208,7 +209,8 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        if (recipeResult.Value.AuthorId != userId)
+
+        if (!isAdmin && recipeResult.Value.AuthorId != userId)
         {
             return Forbid();
         }
@@ -236,6 +238,7 @@ public class RecipeController : Controller
     public async Task<IActionResult> Edit(int id, EditRecipeViewModel model)
     {
         var userId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin") || User.Identity?.Name == "Admin" || User.Identity?.Name == "admin@gmail.com";
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
 
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
@@ -243,7 +246,7 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        if (recipeResult.Value.AuthorId != userId)
+        if (!isAdmin && recipeResult.Value.AuthorId != userId)
         {
             return Forbid();
         }
@@ -267,7 +270,10 @@ public class RecipeController : Controller
             Image = model.Image
         };
 
-        var updateResult = await _recipeService.UpdateRecipeAsync(id, userId, updateDto);
+       
+        var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
+        var updateResult = await _recipeService.UpdateRecipeAsync(id, executionUserId, updateDto);
+        
         if (updateResult.IsSuccess)
         {
             return RedirectToAction(nameof(Details), new { id });
@@ -284,19 +290,61 @@ public class RecipeController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var userId = User.GetUserId();
-        var result = await _recipeService.DeleteRecipeAsync(id, userId);
+        var isAdmin = User.IsInRole("Admin") || User.Identity?.Name == "Admin" || User.Identity?.Name == "admin@gmail.com";
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+
+        if (!recipeResult.IsSuccess || recipeResult.Value == null)
+        {
+            return NotFound();
+        }
+
+
+        if (!isAdmin)
+        {
+            
+            try
+            {
+                dynamic dynamicRecipe = recipeResult.Value;
+                if (dynamicRecipe.IsExternal == true)
+                {
+                    return Forbid();
+                }
+            }
+            catch(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+            {
+               
+            }
+
+
+            if (recipeResult.Value.AuthorId != userId)
+            {
+                return Forbid();
+            }
+        }
+
+
+        var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
+        var result = await _recipeService.DeleteRecipeAsync(id, executionUserId);
 
         if (!result.IsSuccess)
         {
             TempData["ErrorMessage"] = result.ErrorMessage;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+
+        if (isAdmin)
+        {
+            return RedirectToAction("Index", "Home");
         }
 
         return RedirectToAction("Profile", "User", new { id = userId });
     }
+
 
     private async Task LoadCategoriesAsync()
     {
         var categoryResult = await _categoryService.GetAllCategoriesAsync();
         ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
     }
-}
+} 
