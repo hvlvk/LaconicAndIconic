@@ -42,8 +42,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: >
           dotnet publish ${{ env.PROJECT_PATH }}
-          --no-build
           --configuration Release
+          --runtime linux-x64
+          --self-contained true
           --output ${{ env.PUBLISH_DIR }}
 
       - name: Upload artifact for deployment
