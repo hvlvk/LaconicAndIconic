@@ -387,9 +387,9 @@
                         </a>
                     }
 
-                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId && !Model.IsExternal)
+                    @if (!User.IsInRole("Admin") && User.GetUserId() != Model.AuthorId && !Model.IsExternal)
                     {
-                        <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитися</a>
+                        <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитись на рецепт</a>
                     }
                 </div>
             </div>
@@ -516,6 +516,13 @@
         {
             <div class="alert alert-danger" style="color: red; margin-bottom: 1rem;">
                 @TempData["ErrorMessage"]
+            </div>
+        }
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" style="color: #2E7D32; margin-bottom: 1rem;">
+                @TempData["SuccessMessage"]
             </div>
         }
 

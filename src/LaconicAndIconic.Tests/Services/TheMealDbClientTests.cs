@@ -15,7 +15,6 @@ public sealed class TheMealDbClientTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_MapsMealDbResponse()
     {
-        // Arrange
         const string responseJson = """
         {
           "meals": [
@@ -40,10 +39,8 @@ public sealed class TheMealDbClientTests : IDisposable
         using var handler = new StubHttpMessageHandler(responseJson);
         var client = CreateClient(handler);
 
-        // Act
         var recipes = await client.SearchRecipesAsync(" chicken ");
 
-        // Assert
         var recipe = Assert.Single(recipes);
         Assert.Equal("52772", recipe.ExternalId);
         Assert.Equal("Teriyaki Chicken Casserole", recipe.Title);
@@ -59,7 +56,6 @@ public sealed class TheMealDbClientTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_UsesCacheForSameSearchTermIgnoringCase()
     {
-        // Arrange
         const string responseJson = """
         {
           "meals": [
@@ -78,11 +74,9 @@ public sealed class TheMealDbClientTests : IDisposable
         using var handler = new StubHttpMessageHandler(responseJson);
         var client = CreateClient(handler);
 
-        // Act
         var firstResult = await client.SearchRecipesAsync("pasta");
         var secondResult = await client.SearchRecipesAsync(" PASTA ");
 
-        // Assert
         Assert.Same(firstResult, secondResult);
         Assert.Single(handler.RequestUris);
     }
@@ -90,14 +84,11 @@ public sealed class TheMealDbClientTests : IDisposable
     [Fact]
     public async Task GetRecipeByExternalIdAsync_ReturnsNullWithoutCallingApi_WhenIdIsBlank()
     {
-        // Arrange
         using var handler = new StubHttpMessageHandler("""{ "meals": [] }""");
         var client = CreateClient(handler);
 
-        // Act
         var recipe = await client.GetRecipeByExternalIdAsync(" ");
 
-        // Assert
         Assert.Null(recipe);
         Assert.Empty(handler.RequestUris);
     }
@@ -105,7 +96,6 @@ public sealed class TheMealDbClientTests : IDisposable
     [Fact]
     public async Task GetRecipeByExternalIdAsync_CachesRecipeLookup()
     {
-        // Arrange
         const string responseJson = """
         {
           "meals": [
@@ -124,11 +114,9 @@ public sealed class TheMealDbClientTests : IDisposable
         using var handler = new StubHttpMessageHandler(responseJson);
         var client = CreateClient(handler);
 
-        // Act
         var firstResult = await client.GetRecipeByExternalIdAsync("42");
         var secondResult = await client.GetRecipeByExternalIdAsync("42");
 
-        // Assert
         Assert.Same(firstResult, secondResult);
         Assert.Single(handler.RequestUris);
         Assert.Equal("/api/json/v1/1/lookup.php?i=42", handler.RequestUris.Single().PathAndQuery);

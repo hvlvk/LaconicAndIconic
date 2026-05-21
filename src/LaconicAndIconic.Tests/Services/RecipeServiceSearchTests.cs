@@ -26,7 +26,6 @@ public class RecipeServiceSearchTests : IDisposable
         var cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var cachingOptions = Options.Create(new CachingOptions());
 
-        // Use real MemoryCache for tests
         _memoryCache = new MemoryCache(new MemoryCacheOptions());
 
         _service = new RecipeService(
@@ -57,7 +56,6 @@ public class RecipeServiceSearchTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_HandlesCyrillicCaseInsensitivity()
     {
-        // Arrange
         var recipes = new List<Recipe>
         {
             new Recipe { Id = 1, Title = "Борщ зі сметаною", Category = new Category { Name = "Супи" }, Author = new ApplicationUser { UserName = "chef" } },
@@ -76,10 +74,8 @@ public class RecipeServiceSearchTests : IDisposable
 
         var filter = new RecipeSearchFilterDto { SearchTerm = "борщ", PageNumber = 1, PageSize = 10 };
 
-        // Act
         var result = await _service.SearchRecipesAsync(filter);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value!.Recipes);
         Assert.Equal("Борщ зі сметаною", result.Value.Recipes[0].Title);
@@ -88,7 +84,6 @@ public class RecipeServiceSearchTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_SearchesInCategoryName()
     {
-        // Arrange
         var recipes = new List<Recipe>
         {
             new Recipe { Id = 1, Title = "Омлет", Category = new Category { Name = "Сніданок" }, Author = new ApplicationUser { UserName = "chef" } },
@@ -107,10 +102,8 @@ public class RecipeServiceSearchTests : IDisposable
 
         var filter = new RecipeSearchFilterDto { SearchTerm = "сніданок", PageNumber = 1, PageSize = 10 };
 
-        // Act
         var result = await _service.SearchRecipesAsync(filter);
 
-        // Assert
         Assert.True(result.IsSuccess);
         var found = Assert.Single(result.Value!.Recipes);
         Assert.Equal("Омлет", found.Title);
@@ -119,7 +112,6 @@ public class RecipeServiceSearchTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_RespectsCategoryFilter()
     {
-        // Arrange
         var categoryId = 1;
         var recipes = new List<Recipe>
         {
@@ -139,10 +131,8 @@ public class RecipeServiceSearchTests : IDisposable
 
         var filter = new RecipeSearchFilterDto { SearchTerm = "сирники", CategoryId = categoryId, PageNumber = 1, PageSize = 10 };
 
-        // Act
         var result = await _service.SearchRecipesAsync(filter);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value!.Recipes);
         Assert.Equal(categoryId, result.Value.Recipes[0].CategoryId);
@@ -151,7 +141,6 @@ public class RecipeServiceSearchTests : IDisposable
     [Fact]
     public async Task SearchRecipesAsync_HandlesPagination()
     {
-        // Arrange
         var recipes = new List<Recipe>();
         for (int i = 1; i <= 15; i++)
         {
@@ -171,10 +160,8 @@ public class RecipeServiceSearchTests : IDisposable
 
         var filter = new RecipeSearchFilterDto { PageNumber = 2, PageSize = 10 };
 
-        // Act
         var result = await _service.SearchRecipesAsync(filter);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(5, result.Value!.Recipes.Count);
         Assert.Equal(15, result.Value.TotalCount);

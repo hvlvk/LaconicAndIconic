@@ -36,7 +36,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task CreateAsync_ValidData_ReturnsSuccess()
     {
-        // Arrange
         var dto = new CreateSharedListDto { Title = "Weekend Meals", Description = "Family favorites" };
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
 
@@ -44,10 +43,8 @@ public class SharedListServiceTests
         _sharedListRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
         _userRepoMock.Setup(r => r.FindByIdAsync(1)).ReturnsAsync(owner);
 
-        // Act
         var result = await _service.CreateAsync(dto, 1);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Weekend Meals", result.Value.Title);
@@ -63,13 +60,10 @@ public class SharedListServiceTests
     [Fact]
     public async Task CreateAsync_EmptyTitle_ReturnsFailure()
     {
-        // Arrange
         var dto = new CreateSharedListDto { Title = "  " };
 
-        // Act
         var result = await _service.CreateAsync(dto, 1);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Назва обов'язкова", result.ErrorMessage);
     }
@@ -77,17 +71,14 @@ public class SharedListServiceTests
     [Fact]
     public async Task UpdateAsync_OwnerUpdates_ReturnsSuccess()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "Old Title", OwnerId = 5 };
         var dto = new UpdateSharedListDto { Title = "New Title", Description = "Updated description" };
 
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
         _sharedListRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.UpdateAsync(1, 5, dto);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal("New Title", sharedList.Title);
         Assert.Equal("Updated description", sharedList.Description);
@@ -98,16 +89,13 @@ public class SharedListServiceTests
     [Fact]
     public async Task UpdateAsync_NonOwner_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "My List", OwnerId = 5 };
         var dto = new UpdateSharedListDto { Title = "Hacked Title" };
 
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
 
-        // Act
         var result = await _service.UpdateAsync(1, 99, dto);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Тільки власник може редагувати список", result.ErrorMessage);
         _sharedListRepoMock.Verify(r => r.Update(It.IsAny<SharedList>()), Times.Never);
@@ -116,14 +104,11 @@ public class SharedListServiceTests
     [Fact]
     public async Task UpdateAsync_NotFound_ReturnsFailure()
     {
-        // Arrange
         var dto = new UpdateSharedListDto { Title = "Some Title" };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((SharedList?)null);
 
-        // Act
         var result = await _service.UpdateAsync(999, 1, dto);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Список не знайдено", result.ErrorMessage);
     }
@@ -131,15 +116,12 @@ public class SharedListServiceTests
     [Fact]
     public async Task DeleteAsync_OwnerDeletes_ReturnsSuccess()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "To Delete", OwnerId = 3 };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
         _sharedListRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.DeleteAsync(1, 3);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _sharedListRepoMock.Verify(r => r.Remove(sharedList), Times.Once);
         _sharedListRepoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
@@ -148,14 +130,11 @@ public class SharedListServiceTests
     [Fact]
     public async Task DeleteAsync_NonOwner_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "Protected List", OwnerId = 3 };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
 
-        // Act
         var result = await _service.DeleteAsync(1, 99);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Тільки власник може видалити список", result.ErrorMessage);
         _sharedListRepoMock.Verify(r => r.Remove(It.IsAny<SharedList>()), Times.Never);
@@ -164,7 +143,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task GetByIdAsync_OwnerAccess_ReturnsDetail()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var recipe = new Recipe { Id = 10, Title = "Pasta Carbonara", ImagePath = "/images/pasta.jpg", CategoryId = 1, AuthorId = 1 };
         var sharedList = new SharedList
@@ -181,10 +159,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.GetByIdAsync(1, 1);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Italian Recipes", result.Value.Title);
@@ -198,7 +174,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task GetByIdAsync_MemberAccess_ReturnsDetail()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var member = new ApplicationUser { Id = 2, UserName = "bob_cook" };
         var sharedList = new SharedList
@@ -214,10 +189,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.GetByIdAsync(1, 2);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Shared Favorites", result.Value.Title);
@@ -228,7 +201,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task GetByIdAsync_NonMember_ReturnsFailure()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList
         {
@@ -242,10 +214,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.GetByIdAsync(1, 99);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("У вас немає доступу до цього списку", result.ErrorMessage);
     }
@@ -253,7 +223,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task GetListsByUserAsync_ReturnsOwnedAndMemberLists()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var otherOwner = new ApplicationUser { Id = 2, UserName = "bob_cook" };
 
@@ -267,10 +236,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.GetListsByUserAsync(1);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         var dtos = result.Value.ToList();
@@ -282,7 +249,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task InviteUserAsync_OwnerInvites_ReturnsSuccess()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "Cooking Club", OwnerId = 1 };
         var targetUser = new ApplicationUser { Id = 5, UserName = "new_member" };
 
@@ -292,10 +258,8 @@ public class SharedListServiceTests
         _sharedListUserRepoMock.Setup(r => r.AddAsync(It.IsAny<SharedListUser>())).Returns(Task.CompletedTask);
         _sharedListUserRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.InviteUserAsync(1, 1, "new_member");
 
-        // Assert
         Assert.True(result.IsSuccess);
         _sharedListUserRepoMock.Verify(r => r.AddAsync(It.Is<SharedListUser>(
             slu => slu.SharedListId == 1 && slu.UserId == 5)), Times.Once);
@@ -305,14 +269,11 @@ public class SharedListServiceTests
     [Fact]
     public async Task InviteUserAsync_NonOwner_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "Not Yours", OwnerId = 1 };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
 
-        // Act
         var result = await _service.InviteUserAsync(1, 99, "someone");
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Тільки власник може запрошувати користувачів", result.ErrorMessage);
         _sharedListUserRepoMock.Verify(r => r.AddAsync(It.IsAny<SharedListUser>()), Times.Never);
@@ -321,15 +282,12 @@ public class SharedListServiceTests
     [Fact]
     public async Task InviteUserAsync_UserNotFound_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "My List", OwnerId = 1 };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
         _userRepoMock.Setup(r => r.FindByUserNameAsync("ghost_user")).ReturnsAsync((ApplicationUser?)null);
 
-        // Act
         var result = await _service.InviteUserAsync(1, 1, "ghost_user");
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Користувача не знайдено", result.ErrorMessage);
     }
@@ -337,7 +295,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task InviteUserAsync_AlreadyMember_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "My List", OwnerId = 1 };
         var existingUser = new ApplicationUser { Id = 5, UserName = "already_here" };
 
@@ -345,10 +302,8 @@ public class SharedListServiceTests
         _userRepoMock.Setup(r => r.FindByUserNameAsync("already_here")).ReturnsAsync(existingUser);
         _sharedListUserRepoMock.Setup(r => r.AnyAsync(It.IsAny<Expression<Func<SharedListUser, bool>>>())).ReturnsAsync(true);
 
-        // Act
         var result = await _service.InviteUserAsync(1, 1, "already_here");
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Користувач вже є учасником списку", result.ErrorMessage);
         _sharedListUserRepoMock.Verify(r => r.AddAsync(It.IsAny<SharedListUser>()), Times.Never);
@@ -357,7 +312,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task RemoveUserAsync_OwnerRemovesMember_ReturnsSuccess()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "My List", OwnerId = 1 };
         var membership = new SharedListUser { SharedListId = 1, UserId = 5 };
 
@@ -368,10 +322,8 @@ public class SharedListServiceTests
         _sharedListUserRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
         _sharedListUserRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.RemoveUserAsync(1, 1, 5);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _sharedListUserRepoMock.Verify(r => r.Remove(membership), Times.Once);
         _sharedListUserRepoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
@@ -380,14 +332,11 @@ public class SharedListServiceTests
     [Fact]
     public async Task RemoveUserAsync_NonOwner_ReturnsFailure()
     {
-        // Arrange
         var sharedList = new SharedList { Id = 1, Title = "Protected", OwnerId = 1 };
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
 
-        // Act
         var result = await _service.RemoveUserAsync(1, 99, 5);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Тільки власник може видаляти учасників", result.ErrorMessage);
         _sharedListUserRepoMock.Verify(r => r.Remove(It.IsAny<SharedListUser>()), Times.Never);
@@ -396,7 +345,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task AddRecipeAsync_MemberAdds_ReturnsSuccess()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var member = new ApplicationUser { Id = 2, UserName = "bob_cook" };
         var sharedList = new SharedList { Id = 1, Title = "Shared Recipes", OwnerId = 1, Owner = owner };
@@ -411,10 +359,8 @@ public class SharedListServiceTests
         _sharedListRecipeRepoMock.Setup(r => r.AddAsync(It.IsAny<SharedListRecipe>())).Returns(Task.CompletedTask);
         _sharedListRecipeRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.AddRecipeAsync(1, 2, 10);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _sharedListRecipeRepoMock.Verify(r => r.AddAsync(It.Is<SharedListRecipe>(
             slr => slr.SharedListId == 1 && slr.RecipeId == 10)), Times.Once);
@@ -424,7 +370,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task AddRecipeAsync_NonMember_ReturnsFailure()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "Private List", OwnerId = 1, Owner = owner };
 
@@ -432,10 +377,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.AddRecipeAsync(1, 99, 10);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("У вас немає доступу до цього списку", result.ErrorMessage);
         _sharedListRecipeRepoMock.Verify(r => r.AddAsync(It.IsAny<SharedListRecipe>()), Times.Never);
@@ -444,7 +387,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task AddRecipeAsync_DuplicateRecipe_ReturnsFailure()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "My Recipes", OwnerId = 1, Owner = owner };
 
@@ -455,10 +397,8 @@ public class SharedListServiceTests
         _recipeRepoMock.Setup(r => r.ExistsAsync(10)).ReturnsAsync(true);
         _sharedListRecipeRepoMock.Setup(r => r.AnyAsync(It.IsAny<Expression<Func<SharedListRecipe, bool>>>())).ReturnsAsync(true);
 
-        // Act
         var result = await _service.AddRecipeAsync(1, 1, 10);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Рецепт вже додано до списку", result.ErrorMessage);
         _sharedListRecipeRepoMock.Verify(r => r.AddAsync(It.IsAny<SharedListRecipe>()), Times.Never);
@@ -467,7 +407,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task RemoveRecipeAsync_MemberRemoves_ReturnsSuccess()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var member = new ApplicationUser { Id = 2, UserName = "bob_cook" };
         var sharedList = new SharedList { Id = 1, Title = "Shared Recipes", OwnerId = 1, Owner = owner };
@@ -483,10 +422,8 @@ public class SharedListServiceTests
         _sharedListRecipeRepoMock.Setup(r => r.GetQueryable()).Returns(mockRecipeDbSet.Object);
         _sharedListRecipeRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.RemoveRecipeAsync(1, 2, 10);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _sharedListRecipeRepoMock.Verify(r => r.Remove(entry), Times.Once);
         _sharedListRecipeRepoMock.Verify(r => r.SaveChangesAsync(), Times.Once);
@@ -495,7 +432,6 @@ public class SharedListServiceTests
     [Fact]
     public async Task RemoveRecipeAsync_NonMember_ReturnsFailure()
     {
-        // Arrange
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "Private List", OwnerId = 1, Owner = owner };
 
@@ -503,10 +439,8 @@ public class SharedListServiceTests
         var mockDbSet = lists.AsQueryable().BuildMockDbSet();
         _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
 
-        // Act
         var result = await _service.RemoveRecipeAsync(1, 99, 10);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("У вас немає доступу до цього списку", result.ErrorMessage);
         _sharedListRecipeRepoMock.Verify(r => r.Remove(It.IsAny<SharedListRecipe>()), Times.Never);

@@ -37,7 +37,6 @@ public class RecipeController : Controller
         _logger = logger;
     }
 
-    // Діагностика claims користувача
     [HttpGet("diagnostics/claims")]
     public IActionResult ShowClaims()
     {
@@ -326,7 +325,6 @@ public class RecipeController : Controller
             TempData["ErrorMessage"] = result.ErrorMessage;
         }
 
-        // Якщо адмін — повертаємо на головну, якщо користувач — на профіль
         if (isAdmin)
             return RedirectToAction("Index", "Home");
         return RedirectToAction("Profile", "User", new { id = userId });
