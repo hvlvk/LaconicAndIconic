@@ -36,6 +36,15 @@ public class RecipeController : Controller
         _logger = logger;
     }
 
+    // Діагностика claims користувача
+    [HttpGet("diagnostics/claims")]
+    public IActionResult ShowClaims()
+    {
+        var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
+        _logger.LogInformation("User claims: {Claims}", string.Join(", ", claims));
+        return Content(string.Join("\n", claims));
+    }
+
     [HttpGet("Recipe/{id:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> Details(int id)
@@ -201,6 +210,7 @@ public class RecipeController : Controller
     public async Task<IActionResult> Edit(int id)
     {
         var userId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin");
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
 
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
@@ -208,7 +218,8 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        if (recipeResult.Value.AuthorId != userId)
+        // Дозволяємо автору або адміну
+        if (recipeResult.Value.AuthorId != userId && !isAdmin)
         {
             return Forbid();
         }
@@ -236,6 +247,7 @@ public class RecipeController : Controller
     public async Task<IActionResult> Edit(int id, EditRecipeViewModel model)
     {
         var userId = User.GetUserId();
+        var isAdmin = User.IsInRole("Admin");
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
 
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
@@ -243,7 +255,7 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        if (recipeResult.Value.AuthorId != userId)
+        if (recipeResult.Value.AuthorId != userId && !isAdmin)
         {
             return Forbid();
         }
@@ -267,7 +279,8 @@ public class RecipeController : Controller
             Image = model.Image
         };
 
-        var updateResult = await _recipeService.UpdateRecipeAsync(id, userId, updateDto);
+        var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
+        var updateResult = await _recipeService.UpdateRecipeAsync(id, executionUserId, updateDto);
         if (updateResult.IsSuccess)
         {
             return RedirectToAction(nameof(Details), new { id });
@@ -284,13 +297,30 @@ public class RecipeController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var userId = User.GetUserId();
-        var result = await _recipeService.DeleteRecipeAsync(id, userId);
+        var isAdmin = User.IsInRole("Admin");
+        var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
+
+        if (!recipeResult.IsSuccess || recipeResult.Value == null)
+        {
+            return NotFound();
+        }
+
+        if (recipeResult.Value.AuthorId != userId && !isAdmin)
+        {
+            return Forbid();
+        }
+
+        var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
+        var result = await _recipeService.DeleteRecipeAsync(id, executionUserId);
 
         if (!result.IsSuccess)
         {
             TempData["ErrorMessage"] = result.ErrorMessage;
         }
 
+        // Якщо адмін — повертаємо на головну, якщо користувач — на профіль
+        if (isAdmin)
+            return RedirectToAction("Index", "Home");
         return RedirectToAction("Profile", "User", new { id = userId });
     }
 

@@ -345,7 +345,7 @@
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
                 <div class="recipe-owner-actions">
-                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == Model.AuthorId)
+                    @if (User.Identity?.IsAuthenticated == true && (User.GetUserId() == Model.AuthorId || User.IsInRole("Admin")))
                     {
                         <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="recipe-save" title="Edit recipe">
                             Редагувати
