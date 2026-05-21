@@ -10,6 +10,10 @@
 </head>
 <body>
     <partial name="_Header"/>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div id="notificationHost" class="notification-host" aria-live="polite" aria-atomic="true"></div>
+    }
     <div class="container">
         <main role="main" class="pb-3 pt-3">
             @RenderBody()
@@ -17,6 +21,10 @@
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script src="~/lib/signalr/signalr.min.js"></script>
+    }
     <script src="~/js/site.bundle.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
