@@ -56,8 +56,6 @@ public sealed class RateLimitingAttribute : ActionFilterAttribute
 
         base.OnActionExecuting(context);
     }
-
-    public int MaxRequestsPerMinute { get; }
 }
 
 

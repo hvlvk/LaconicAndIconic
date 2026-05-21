@@ -6,6 +6,7 @@ using LaconicAndIconic.Web.Services;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.Web.Models;
 using Serilog;
+using WebOptimizer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +15,29 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfig
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.AddCssBundle("/css/main.bundle.css",
+        "css/cookit.css",
+        "css/site.css");
+
+    pipeline.AddCssBundle("/css/auth.bundle.css",
+        "css/cookit.css",
+        "css/auth.css");
+
+    pipeline.AddCssBundle("/css/user-list.bundle.css",
+        "css/user-list.css");
+
+    pipeline.AddJavaScriptBundle("/js/site.bundle.js",
+        "js/site.js");
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
+builder.Services.AddMemoryCache();
+builder.Services.Configure<LaconicAndIconic.BLL.CachingOptions>(
+    builder.Configuration.GetSection("Caching"));
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.Configure<TheMealDbOptions>(builder.Configuration.GetSection(TheMealDbOptions.SectionName));
 builder.Services.AddHttpClient<IExternalRecipeClient, TheMealDbClient>((serviceProvider, client) =>
@@ -48,6 +69,7 @@ app.UseMiddleware<ExecutionTimeMiddleware>();
 
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+app.UseWebOptimizer();
 app.UseStaticFiles();
 
 app.UseRouting();
