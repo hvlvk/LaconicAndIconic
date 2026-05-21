@@ -1,5 +1,6 @@
 using LaconicAndIconic.BLL;
 using LaconicAndIconic.DAL;
+using LaconicAndIconic.Web.Hubs;
 using LaconicAndIconic.Web.Middleware;
 using LaconicAndIconic.Web.Seeding;
 using LaconicAndIconic.Web.Services;
@@ -33,12 +34,14 @@ builder.Services.AddWebOptimizer(pipeline =>
 });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
 builder.Services.AddMemoryCache();
 builder.Services.Configure<LaconicAndIconic.BLL.CachingOptions>(
     builder.Configuration.GetSection("Caching"));
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddHostedService<NotificationBackgroundService>();
 builder.Services.Configure<TheMealDbOptions>(builder.Configuration.GetSection(TheMealDbOptions.SectionName));
 builder.Services.AddHttpClient<IExternalRecipeClient, TheMealDbClient>((serviceProvider, client) =>
 {
@@ -83,6 +86,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
 await TestUserSeeder.SeedAsync(app.Services);
 
