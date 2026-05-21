@@ -18,4 +18,7 @@ public class RecipeDto
     public int AuthorId { get; set; }
     public string AuthorName { get; set; } = string.Empty;
     public string? AuthorProfilePicturePath { get; set; }
+    public bool IsExternal { get; set; }
+    public string? ExternalSource { get; set; }
+    public string? ExternalId { get; set; }
 }

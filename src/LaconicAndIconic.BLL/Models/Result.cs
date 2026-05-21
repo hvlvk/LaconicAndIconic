@@ -25,8 +25,13 @@ public sealed class Result<T> : Result
         Value = value;
     }
 
-#pragma warning disable CA1000 // Factory methods on generic types require type argument at call site
+#pragma warning disable CA1000 // Factory methods on generic types require type argument at call site.
     public static Result<T> Success(T value) => new(true, value, null);
     public static new Result<T> Failure(string errorMessage) => new(false, default, errorMessage);
 #pragma warning restore CA1000
+
+    #pragma warning disable CA2225 // The factory methods above are the named alternatives for these conversions.
+    public static implicit operator Result<T>(T value) => Success(value);
+    public static implicit operator Result<T>(string errorMessage) => Failure(errorMessage);
+    #pragma warning restore CA2225
 }

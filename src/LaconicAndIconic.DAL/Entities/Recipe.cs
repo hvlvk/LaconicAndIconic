@@ -11,6 +11,8 @@ public class Recipe : BaseEntity
     public int Servings { get; set; }
     public string Ingredients { get; set; } = string.Empty;
     public string CookingMethod { get; set; } = string.Empty;
+    public string? ExternalSource { get; set; }
+    public string? ExternalId { get; set; }
 
     public Category Category { get; set; } = null!;
     public ApplicationUser Author { get; set; } = null!;

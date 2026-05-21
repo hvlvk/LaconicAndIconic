@@ -4,6 +4,7 @@ using LaconicAndIconic.Web.Extensions;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace LaconicAndIconic.Web.Controllers;
 
@@ -24,7 +25,7 @@ public class RecipeController : Controller
         IUserService userService,
         ICommentService commentService,
         IReportService reportService,
-        Microsoft.Extensions.Options.IOptions<AppSettings> appSettings,
+        IOptions<AppSettings> appSettings,
         ILogger<RecipeController> logger)
     {
         _recipeService = recipeService;
@@ -84,7 +85,8 @@ public class RecipeController : Controller
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
             AuthorProfilePicturePath = result.Value.AuthorProfilePicturePath,
-            IsSubscribedToAuthor = isSubscribed
+            IsSubscribedToAuthor = isSubscribed,
+            IsExternal = result.Value.IsExternal
         };
 
         var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id);
@@ -100,14 +102,7 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Rate(int id, int score)
     {
-        var userId = User.GetUserId();
-        if (score < 1 || score > 5)
-        {
-            _logger.LogWarning("Invalid score value: {Score}", score);
-            TempData["ErrorMessage"] = "Некоректне значення оцінки.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        var result = await _recipeService.RateRecipeAsync(id, userId, score);
+        var result = await _recipeService.RateRecipeAsync(id, User.GetUserId(), score);
 
         if (!result.IsSuccess)
         {
@@ -124,6 +119,11 @@ public class RecipeController : Controller
     [HttpGet]
     public async Task<IActionResult> Report(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return View(id);
+        }
+
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
         {
@@ -184,7 +184,6 @@ public class RecipeController : Controller
             await LoadCategoriesAsync();
             return View(model);
         }
-        // Валідація мінімальної довжини назви рецепту через AppSettings
         if (model.Title == null || model.Title.Length < _appSettings.MinSearchLength)
         {
             ModelState.AddModelError("Title", $"Назва рецепту має містити щонайменше {_appSettings.MinSearchLength} символи.");
@@ -218,7 +217,11 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        // Дозволяємо автору або адміну
+      if (recipeResult.Value.IsExternal)
+        {
+            return Forbid();
+        }
+
         if (recipeResult.Value.AuthorId != userId && !isAdmin)
         {
             return Forbid();
@@ -253,6 +256,11 @@ public class RecipeController : Controller
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
         {
             return NotFound();
+        }
+
+      if (recipeResult.Value.IsExternal)
+        {
+            return Forbid();
         }
 
         if (recipeResult.Value.AuthorId != userId && !isAdmin)

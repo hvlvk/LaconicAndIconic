@@ -1,19 +1,24 @@
+using LaconicAndIconic.BLL;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
 
 namespace LaconicAndIconic.Tests.Services;
 
-public class RecipeServiceTests
+public class RecipeServiceTests : IDisposable
 {
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Rating>> _ratingRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<ICacheInvalidationService> _cacheInvalidationServiceMock;
+    private readonly MemoryCache _memoryCache;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
@@ -22,13 +27,36 @@ public class RecipeServiceTests
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _ratingRepositoryMock = new Mock<IRepository<Rating>>();
         _userRepositoryMock = new Mock<IUserRepository>();
+        _cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var fileServiceMock = new Mock<IFileService>();
+        var cachingOptions = Options.Create(new CachingOptions());
+
+        // Use real MemoryCache for tests
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
         _service = new RecipeService(
             _recipeRepositoryMock.Object,
             fileServiceMock.Object,
             _categoryRepositoryMock.Object,
             _ratingRepositoryMock.Object,
-            _userRepositoryMock.Object);
+            _userRepositoryMock.Object,
+            _memoryCache,
+            _cacheInvalidationServiceMock.Object,
+            cachingOptions);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _memoryCache?.Dispose();
+        }
     }
 
     [Fact]

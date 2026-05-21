@@ -345,20 +345,13 @@
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
                 <div class="recipe-owner-actions">
-                    @if (User.Identity?.IsAuthenticated == true && (User.GetUserId() == Model.AuthorId || User.IsInRole("Admin")))
-                    {
+                     @if (User.Identity?.IsAuthenticated == true && (User.GetUserId() == Model.AuthorId || User.IsInRole("Admin")) && !Model.IsExternal)     {
                         <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="recipe-save" title="Edit recipe">
                             Редагувати
                         </a>
                     }
 
-                    <a href="#" class="recipe-save" title="Save recipe">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                        Зберегти
-                    </a>
-                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
+                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId && !Model.IsExternal)
                     {
                         <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитися</a>
                     }
@@ -391,7 +384,7 @@
                 }
                 <a asp-controller="User" asp-action="Profile" asp-route-id="@Model.AuthorId" class="recipe-author-link">@($"@{Model.AuthorName}")</a>
 
-                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
+                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId && !Model.IsExternal)
                 {
                     if (Model.IsSubscribedToAuthor)
                     {
@@ -425,7 +418,7 @@
                     }
                 </div>
 
-                @if (User.Identity?.IsAuthenticated == true)
+                @if (User.Identity?.IsAuthenticated == true && !Model.IsExternal)
                 {
                     <form asp-controller="Recipe" asp-action="Rate" asp-route-id="@Model.Id" method="post" class="recipe-rate-form">
                         <span class="recipe-rate-label">Оцініть рецепт:</span>
@@ -442,7 +435,7 @@
                         </div>
                     </form>
                 }
-                else
+                else if (!Model.IsExternal)
                 {
                     <div class="recipe-rate-note">Увійдіть, щоб поставити оцінку.</div>
                 }
@@ -490,7 +483,7 @@
             </div>
         }
 
-        @if (User.Identity?.IsAuthenticated == true)
+        @if (User.Identity?.IsAuthenticated == true && !Model.IsExternal)
         {
             <form asp-controller="Comment" asp-action="Create" method="post" class="comment-form">
                 <input type="hidden" name="RecipeId" value="@Model.Id" />
@@ -503,7 +496,7 @@
                 </button>
             </form>
         }
-        else
+        else if (!Model.IsExternal)
         {
             <p><a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Увійдіть</a>, щоб залишити коментар.</p>
         }
