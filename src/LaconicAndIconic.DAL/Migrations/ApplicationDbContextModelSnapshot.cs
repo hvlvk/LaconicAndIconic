@@ -757,7 +757,7 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.HasOne("LaconicAndIconic.DAL.Entities.Recipe", "Recipe")
                         .WithMany("SharedListRecipes")
                         .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.SharedList", "SharedList")
