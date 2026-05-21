@@ -64,12 +64,18 @@ public class CommentService : ICommentService
 
         if (comment == null)
         {
-            return Result.Failure("Коментар не знайдено");
+            return Result.Failure("Коментар не знадено");
         }
 
-        if (comment.AuthorId != userId)
+        
+
+        
+        if (userId != 0)
         {
-            return Result.Failure("Ви не можете видалити чужий коментар");
+            if (comment.AuthorId != userId)
+            {
+                return Result.Failure("Ви не можете видалити чужий коментар");
+            }
         }
 
         _commentRepository.Remove(comment);
