@@ -2,57 +2,73 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class RecipeService : IRecipeService
 {
+    private const string AllRecipesCacheKeyPrefix = "all_recipes";
+    private const string RecipeCacheKeyPrefix = "recipe_";
+    private const string AuthorRecipesCacheKeyPrefix = "author_recipes_";
+
     private readonly IRecipeRepository _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<Rating> _ratingRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ICacheInvalidationService _cacheInvalidationService;
+    private readonly TimeSpan _recipesCacheDuration;
 
     public RecipeService(
         IRecipeRepository recipeRepository,
         IFileService fileService,
         IRepository<Category> categoryRepository,
         IRepository<Rating> ratingRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IMemoryCache memoryCache,
+        ICacheInvalidationService cacheInvalidationService,
+        IOptions<CachingOptions> cachingOptions)
     {
         _recipeRepository = recipeRepository;
         _fileService = fileService;
         _categoryRepository = categoryRepository;
         _ratingRepository = ratingRepository;
         _userRepository = userRepository;
+        _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+        _cacheInvalidationService = cacheInvalidationService ?? throw new ArgumentNullException(nameof(cacheInvalidationService));
+        ArgumentNullException.ThrowIfNull(cachingOptions);
+        _recipesCacheDuration = TimeSpan.FromMinutes(cachingOptions.Value.RecipesCacheLifetimeMinutes);
     }
 
     public async Task<Result<RecipeDto>> CreateRecipeAsync(int authorId, CreateRecipeDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
-            return Result<RecipeDto>.Failure("Назва обов'язкова");
+            return "Назва обов'язкова";
         }
 
         if (dto.Servings <= 0)
         {
-            return Result<RecipeDto>.Failure("Кількість порцій має бути більше 0");
+            return "Кількість порцій має бути більше 0";
         }
 
         if (string.IsNullOrWhiteSpace(dto.Ingredients))
         {
-            return Result<RecipeDto>.Failure("Інгредієнти обов'язкові");
+            return "Інгредієнти обов'язкові";
         }
 
         if (string.IsNullOrWhiteSpace(dto.CookingMethod))
         {
-            return Result<RecipeDto>.Failure("Спосіб приготування обов'язковий");
+            return "Спосіб приготування обов'язковий";
         }
 
         var categoryExists = await _categoryRepository.ExistsAsync(dto.CategoryId);
         if (!categoryExists)
         {
-            return Result<RecipeDto>.Failure("Категорія не знайдена");
+            return "Категорія не знайдена";
         }
 
         string? imagePath = null;
@@ -77,6 +93,9 @@ public class RecipeService : IRecipeService
         await _recipeRepository.AddAsync(recipe);
         await _recipeRepository.SaveChangesAsync();
 
+        _cacheInvalidationService.InvalidateRecipesCache();
+        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
+
         var responseDto = new RecipeDto
         {
             Id = recipe.Id,
@@ -91,7 +110,7 @@ public class RecipeService : IRecipeService
             AuthorId = recipe.AuthorId
         };
 
-        return Result<RecipeDto>.Success(responseDto);
+        return responseDto;
     }
 
     public async Task<Result> UpdateRecipeAsync(int recipeId, int authorId, UpdateRecipeDto dto)
@@ -122,6 +141,11 @@ public class RecipeService : IRecipeService
             return Result.Failure("Рецепт не знайдено");
         }
 
+        if (!string.IsNullOrWhiteSpace(recipe.ExternalSource))
+        {
+            return Result.Failure("Імпортовані рецепти не можна редагувати");
+        }
+
         if (recipe.AuthorId != authorId)
         {
             return Result.Failure("Ви можете редагувати тільки свої рецепти");
@@ -149,42 +173,83 @@ public class RecipeService : IRecipeService
         _recipeRepository.Update(recipe);
         await _recipeRepository.SaveChangesAsync();
 
+        _cacheInvalidationService.InvalidateRecipesCache();
+        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
+        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
+
         return Result.Success();
     }
 
     public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId, int? currentUserId = null)
     {
+        var cacheKey = $"{RecipeCacheKeyPrefix}{recipeId}";
+        if (currentUserId == null && _memoryCache.TryGetValue(cacheKey, out RecipeDto? cachedRecipe))
+        {
+            return cachedRecipe!;
+        }
+
         var recipes = await _recipeRepository.FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author, r => r.Ratings);
         var recipe = recipes.FirstOrDefault();
 
         if (recipe == null)
         {
-            return Result<RecipeDto>.Failure("Рецепт не знайдено");
+            return "Рецепт не знайдено";
         }
 
-        return Result<RecipeDto>.Success(MapToDto(recipe, currentUserId));
+        var dto = MapToDto(recipe, currentUserId);
+
+        if (currentUserId == null)
+        {
+            _memoryCache.Set(cacheKey, dto, _recipesCacheDuration);
+        }
+
+        return dto;
     }
 
     public async Task<Result<IEnumerable<RecipeDto>>> GetRecipesByAuthorIdAsync(int authorId)
     {
+        var cacheKey = $"{AuthorRecipesCacheKeyPrefix}{authorId}";
+
+        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
+        {
+            return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
+        }
+
         var recipes = await _recipeRepository
-            .FindAsync(r => r.AuthorId == authorId, r => r.Category, r => r.Author, r => r.Ratings);
+            .FindAsync(
+                r => r.AuthorId == authorId,
+                r => r.Category,
+                r => r.Author,
+                r => r.Ratings);
 
         var dtos = recipes
             .OrderByDescending(r => r.CreatedAt)
-            .Select(recipe => MapToDto(recipe));
+            .Select(recipe => MapToDto(recipe))
+            .ToList();
+
+        _memoryCache.Set(cacheKey, dtos, _recipesCacheDuration);
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
 
     public async Task<Result<IEnumerable<RecipeDto>>> GetAllRecipesAsync()
     {
+        const string cacheKey = AllRecipesCacheKeyPrefix;
+
+        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
+        {
+            return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
+        }
+
         var recipes = await _recipeRepository
             .FindAsync(_ => true, r => r.Category, r => r.Author, r => r.Ratings);
 
         var dtos = recipes
             .OrderByDescending(r => r.CreatedAt)
-            .Select(recipe => MapToDto(recipe));
+            .Select(recipe => MapToDto(recipe))
+            .ToList();
+
+        _memoryCache.Set(cacheKey, dtos, _recipesCacheDuration);
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
@@ -197,6 +262,11 @@ public class RecipeService : IRecipeService
             return Result.Failure("Рецепт не знайдено");
         }
 
+        if (!string.IsNullOrWhiteSpace(recipe.ExternalSource))
+        {
+            return Result.Failure("Імпортовані рецепти не можна видаляти");
+        }
+
         if (recipe.AuthorId != authorId)
         {
             return Result.Failure("Ви можете видаляти тільки свої рецепти");
@@ -204,6 +274,10 @@ public class RecipeService : IRecipeService
 
         _recipeRepository.Remove(recipe);
         await _recipeRepository.SaveChangesAsync();
+
+        _cacheInvalidationService.InvalidateRecipesCache();
+        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
+        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
 
         return Result.Success();
     }
@@ -250,6 +324,10 @@ public class RecipeService : IRecipeService
         }
 
         await _ratingRepository.SaveChangesAsync();
+
+        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
+        _cacheInvalidationService.InvalidateRecipeRatingsCache(recipeId);
+
         return Result.Success();
     }
 
@@ -279,7 +357,7 @@ public class RecipeService : IRecipeService
             SortBy = dalResult.SortBy
         };
 
-        return Result<RecipeSearchResultDto>.Success(result);
+        return result;
     }
 
     private static RecipeDto MapToDto(Recipe recipe, int? currentUserId = null)
@@ -308,7 +386,10 @@ public class RecipeService : IRecipeService
             CategoryName = recipe.Category.Name,
             AuthorId = recipe.AuthorId,
             AuthorName = recipe.Author.UserName ?? string.Empty,
-            AuthorProfilePicturePath = recipe.Author.ProfilePicturePath
+            AuthorProfilePicturePath = recipe.Author.ProfilePicturePath,
+            IsExternal = !string.IsNullOrWhiteSpace(recipe.ExternalSource),
+            ExternalSource = recipe.ExternalSource,
+            ExternalId = recipe.ExternalId
         };
     }
 }

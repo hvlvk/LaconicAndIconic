@@ -4,6 +4,7 @@ using LaconicAndIconic.Web.Extensions;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace LaconicAndIconic.Web.Controllers;
 
@@ -24,7 +25,7 @@ public class RecipeController : Controller
         IUserService userService,
         ICommentService commentService,
         IReportService reportService,
-        Microsoft.Extensions.Options.IOptions<AppSettings> appSettings,
+        IOptions<AppSettings> appSettings,
         ILogger<RecipeController> logger)
     {
         _recipeService = recipeService;
@@ -34,6 +35,14 @@ public class RecipeController : Controller
         _reportService = reportService;
         _appSettings = appSettings.Value;
         _logger = logger;
+    }
+
+    [HttpGet("diagnostics/claims")]
+    public IActionResult ShowClaims()
+    {
+        var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
+        _logger.LogInformation("User claims: {Claims}", string.Join(", ", claims));
+        return Content(string.Join("\n", claims));
     }
 
     [HttpGet("Recipe/{id:int}")]
@@ -75,10 +84,11 @@ public class RecipeController : Controller
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
             AuthorProfilePicturePath = result.Value.AuthorProfilePicturePath,
-            IsSubscribedToAuthor = isSubscribed
+            IsSubscribedToAuthor = isSubscribed,
+            IsExternal = result.Value.IsExternal
         };
 
-        var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id);
+        var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id, currentUserId);
         if (commentsResult.IsSuccess && commentsResult.Value != null)
         {
             model.Comments = commentsResult.Value.ToList().AsReadOnly();
@@ -91,14 +101,7 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Rate(int id, int score)
     {
-        var userId = User.GetUserId();
-        if (score < 1 || score > 5)
-        {
-            _logger.LogWarning("Invalid score value: {Score}", score);
-            TempData["ErrorMessage"] = "Некоректне значення оцінки.";
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        var result = await _recipeService.RateRecipeAsync(id, userId, score);
+        var result = await _recipeService.RateRecipeAsync(id, User.GetUserId(), score);
 
         if (!result.IsSuccess)
         {
@@ -115,6 +118,11 @@ public class RecipeController : Controller
     [HttpGet]
     public async Task<IActionResult> Report(int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return View(id);
+        }
+
         var recipeResult = await _recipeService.GetRecipeByIdAsync(id);
         if (!recipeResult.IsSuccess || recipeResult.Value == null)
         {
@@ -169,13 +177,12 @@ public class RecipeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateRecipeDto model)
     {
-
         if (!ModelState.IsValid)
         {
             await LoadCategoriesAsync();
             return View(model);
         }
-  
+
         if (model.Title == null || model.Title.Length < _appSettings.MinSearchLength)
         {
             ModelState.AddModelError("Title", $"Назва рецепту має містити щонайменше {_appSettings.MinSearchLength} символи.");
@@ -197,7 +204,7 @@ public class RecipeController : Controller
         return View(model);
     }
 
- [HttpGet]
+    [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
         var userId = User.GetUserId();
@@ -209,10 +216,18 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-
-        if (!isAdmin && recipeResult.Value.AuthorId != userId)
+        // Звичайні користувачі не можуть редагувати зовнішні або чужі рецепти
+        if (!isAdmin)
         {
-            return Forbid();
+            if (recipeResult.Value.IsExternal)
+            {
+                return Forbid();
+            }
+
+            if (recipeResult.Value.AuthorId != userId)
+            {
+                return Forbid();
+            }
         }
 
         await LoadCategoriesAsync();
@@ -246,9 +261,18 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-        if (!isAdmin && recipeResult.Value.AuthorId != userId)
+        // Обмеження для звичайних користувачів на збереження змін
+        if (!isAdmin)
         {
-            return Forbid();
+            if (recipeResult.Value.IsExternal)
+            {
+                return Forbid();
+            }
+
+            if (recipeResult.Value.AuthorId != userId)
+            {
+                return Forbid();
+            }
         }
 
         if (!ModelState.IsValid)
@@ -270,7 +294,6 @@ public class RecipeController : Controller
             Image = model.Image
         };
 
-       
         var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
         var updateResult = await _recipeService.UpdateRecipeAsync(id, executionUserId, updateDto);
         
@@ -298,10 +321,10 @@ public class RecipeController : Controller
             return NotFound();
         }
 
-
+        // Обмеження для звичайних користувачів на видалення
         if (!isAdmin)
         {
-            
+            // Безпечно перевіряємо IsExternal через dynamic, якщо властивість динамічна
             try
             {
                 dynamic dynamicRecipe = recipeResult.Value;
@@ -312,16 +335,14 @@ public class RecipeController : Controller
             }
             catch(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
             {
-               
+                // Якщо поля IsExternal немає в RecipeDto, ігноруємо
             }
-
 
             if (recipeResult.Value.AuthorId != userId)
             {
                 return Forbid();
             }
         }
-
 
         var executionUserId = isAdmin ? recipeResult.Value.AuthorId : userId;
         var result = await _recipeService.DeleteRecipeAsync(id, executionUserId);
@@ -332,7 +353,6 @@ public class RecipeController : Controller
             return RedirectToAction(nameof(Details), new { id });
         }
 
-
         if (isAdmin)
         {
             return RedirectToAction("Index", "Home");
@@ -341,10 +361,9 @@ public class RecipeController : Controller
         return RedirectToAction("Profile", "User", new { id = userId });
     }
 
-
     private async Task LoadCategoriesAsync()
     {
         var categoryResult = await _categoryService.GetAllCategoriesAsync();
         ViewBag.Categories = categoryResult.IsSuccess ? categoryResult.Value : new List<CategoryDto>();
     }
-} 
+}

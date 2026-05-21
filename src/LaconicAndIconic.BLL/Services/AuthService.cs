@@ -29,7 +29,7 @@ public partial class AuthService : IAuthService
         if (user is null)
         {
             LogLoginAttemptNonExistent(_logger, email);
-            return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
+            return LoginResult.InvalidCredentials;
         }
 
         var signInResult = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
@@ -37,17 +37,17 @@ public partial class AuthService : IAuthService
         if (signInResult.Succeeded)
         {
             LogLoginSuccess(_logger, email);
-            return Result<LoginResult>.Success(LoginResult.Success);
+            return LoginResult.Success;
         }
 
         if (signInResult.IsLockedOut)
         {
             LogAccountLockedOut(_logger, email);
-            return Result<LoginResult>.Success(LoginResult.LockedOut);
+            return LoginResult.LockedOut;
         }
 
         LogInvalidCredentials(_logger, email);
-        return Result<LoginResult>.Success(LoginResult.InvalidCredentials);
+        return LoginResult.InvalidCredentials;
     }
 
     public async Task<Result> RegisterAsync(RegisterRequest request)

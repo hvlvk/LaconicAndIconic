@@ -11,8 +11,10 @@ public static class TestUserSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        const string adminEmail = "admin@gmail.com";
+        const string    adminEmail = "admin@gmail.com";
+#pragma warning disable S2068
         const string adminPassword = "Admin123!";
+#pragma warning restore S2068
         const string adminRole = "Admin";
 
         if (!await roleManager.RoleExistsAsync(adminRole))
@@ -39,7 +41,9 @@ public static class TestUserSeeder
         }
 
         const string testEmail = "test@example.com";
+#pragma warning disable S2068
         const string testPassword = "Test1234!";
+#pragma warning restore S2068
 
         if (await userManager.FindByEmailAsync(testEmail) is null)
         {

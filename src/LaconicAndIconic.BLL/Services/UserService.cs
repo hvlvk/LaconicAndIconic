@@ -33,7 +33,7 @@ public class UserService : IUserService
         if (user is null)
         {
             _logger.LogWarning("GetUserProfileByIdAsync: User with ID {Id} was not found", id);
-            return Result<UserProfileDto>.Failure("Користувача не знайдено");
+            return "Користувача не знайдено";
         }
 
         var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == id);
@@ -56,7 +56,7 @@ public class UserService : IUserService
         };
 
         _logger.LogInformation("GetUserProfileByIdAsync: Successfully retrieved profile for user ID {Id}", id);
-        return Result<UserProfileDto>.Success(dto);
+        return dto;
     }
 
     public async Task<Result<string>> UpdateProfilePictureAsync(int id, IFormFile file)
@@ -272,13 +272,11 @@ public class UserService : IUserService
             return Result.Failure("Користувача не знайдено");
         }
 
-        // Видалення профільної фотографії
         if (!string.IsNullOrEmpty(user.ProfilePicturePath))
         {
             _fileService.DeleteFile(user.ProfilePicturePath);
         }
 
-        // Видалення підписок користувача
         var userSubscriptions = await _subscriptionRepository.FindAsync(
             s => s.FollowerId == id || s.UserId == id);
         foreach (var subscription in userSubscriptions)
@@ -288,7 +286,6 @@ public class UserService : IUserService
 
         await _subscriptionRepository.SaveChangesAsync();
 
-        // Видалення користувача
         var result = await _userRepository.DeleteAsync(user);
         if (!result.Succeeded)
         {

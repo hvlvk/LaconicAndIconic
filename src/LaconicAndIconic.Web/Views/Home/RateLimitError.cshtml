@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Перевищено ліміт запитів";
+}
+
+<div class="container text-center mt-5">
+    <h1 class="display-4 text-danger">Забагато запитів</h1>
+    <p class="lead">Ви перевищили максимальну дозволену кількість запитів за хвилину.</p>
+    <p>Будь ласка, зачекайте хвилинку і спробуйте знову.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Повернутися на головну</a>
+</div>

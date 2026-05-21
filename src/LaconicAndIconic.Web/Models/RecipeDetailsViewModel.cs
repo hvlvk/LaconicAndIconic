@@ -21,5 +21,6 @@ public class RecipeDetailsViewModel
     public string AuthorName { get; set; } = string.Empty;
     public string? AuthorProfilePicturePath { get; set; }
     public bool IsSubscribedToAuthor { get; set; }
+    public bool IsExternal { get; set; }
     public ReadOnlyCollection<CommentDto> Comments { get; set; } = new List<CommentDto>().AsReadOnly();
 }

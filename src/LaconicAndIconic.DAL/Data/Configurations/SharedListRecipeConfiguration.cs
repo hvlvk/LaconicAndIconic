@@ -18,6 +18,6 @@ public class SharedListRecipeConfiguration : IEntityTypeConfiguration<SharedList
         builder.HasOne(slr => slr.Recipe)
             .WithMany(r => r.SharedListRecipes)
             .HasForeignKey(slr => slr.RecipeId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

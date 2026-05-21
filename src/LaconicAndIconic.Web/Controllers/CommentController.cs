@@ -1,4 +1,4 @@
-﻿using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -78,5 +78,20 @@ public async Task<IActionResult> Delete(int id, int recipeId, bool isFromServerA
         }
 
         return RedirectToAction("Details", "Recipe", new { id = dto.RecipeId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleLike(int id, int recipeId)
+    {
+        var userId = User.GetUserId();
+        var result = await _commentService.ToggleLikeAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage ?? "Помилка при лайканні коментаря";
+        }
+
+        return RedirectToAction("Details", "Recipe", new { id = recipeId });
     }
 }

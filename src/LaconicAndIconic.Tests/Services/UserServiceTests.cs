@@ -36,15 +36,12 @@ public class UserServiceTests
     [Fact]
     public async Task GetUserProfileByIdAsync_WhenUserExists_ReturnsSuccess()
     {
-        // Arrange
         var userId = 1;
         var user = new ApplicationUser { Id = userId, UserName = "testuser" };
         _userRepositoryMock.Setup(repo => repo.FindByIdAsync(userId)).ReturnsAsync(user);
 
-        // Act
         var result = await _userService.GetUserProfileByIdAsync(userId);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(userId, result.Value.Id);
@@ -54,14 +51,11 @@ public class UserServiceTests
     [Fact]
     public async Task GetUserProfileByIdAsync_WhenUserDoesNotExist_ReturnsFailure()
     {
-        // Arrange
         var userId = 1;
         _userRepositoryMock.Setup(repo => repo.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser?)null);
 
-        // Act
         var result = await _userService.GetUserProfileByIdAsync(userId);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Null(result.Value);
         Assert.Equal("Користувача не знайдено", result.ErrorMessage);
@@ -70,21 +64,17 @@ public class UserServiceTests
     [Fact]
     public async Task DeleteUserAsync_WhenAdminDeletesExistingUser_ReturnsSuccess()
     {
-    // Arrange
     var userId = 1;
     var user = new ApplicationUser { Id = userId, UserName = "TargetUser" };
 
     _userRepositoryMock.Setup(repo => repo.FindByIdAsync(userId))
         .ReturnsAsync(user);
 
-    // ВАЖЛИВО: Ваш метод повертає IdentityResult.Success, а не true
     _userRepositoryMock.Setup(repo => repo.DeleteAsync(user))
         .ReturnsAsync(IdentityResult.Success);
 
-    // Act
     var result = await _userService.DeleteUserAsync(userId);
 
-    // Assert
     Assert.True(result.IsSuccess);
     _userRepositoryMock.Verify(repo => repo.DeleteAsync(user), Times.Once);
     }

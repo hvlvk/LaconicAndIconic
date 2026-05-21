@@ -1,10 +1,13 @@
 using LaconicAndIconic.BLL;
 using LaconicAndIconic.DAL;
+using LaconicAndIconic.Web.Hubs;
 using LaconicAndIconic.Web.Middleware;
 using LaconicAndIconic.Web.Seeding;
 using LaconicAndIconic.Web.Services;
 using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.Web.Models;
 using Serilog;
+using WebOptimizer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,14 +16,40 @@ builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfig
     .ReadFrom.Services(services)
     .Enrich.FromLogContext());
 
+builder.Services.AddWebOptimizer(pipeline =>
+{
+    pipeline.AddCssBundle("/css/main.bundle.css",
+        "css/cookit.css",
+        "css/site.css");
+
+    pipeline.AddCssBundle("/css/auth.bundle.css",
+        "css/cookit.css",
+        "css/auth.css");
+
+    pipeline.AddCssBundle("/css/user-list.bundle.css",
+        "css/user-list.css");
+
+    pipeline.AddJavaScriptBundle("/js/site.bundle.js",
+        "js/site.js");
+});
+
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
+builder.Services.AddMemoryCache();
+builder.Services.Configure<LaconicAndIconic.BLL.CachingOptions>(
+    builder.Configuration.GetSection("Caching"));
 builder.Services.AddScoped<IFileService, FileService>();
-
-// Реєстрація AppSettings через IOptions
-builder.Services.Configure<LaconicAndIconic.Web.Models.AppSettings>(
-    builder.Configuration.GetSection("AppSettings"));
+builder.Services.AddHostedService<NotificationBackgroundService>();
+builder.Services.Configure<TheMealDbOptions>(builder.Configuration.GetSection(TheMealDbOptions.SectionName));
+builder.Services.AddHttpClient<IExternalRecipeClient, TheMealDbClient>((serviceProvider, client) =>
+{
+    var options = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<TheMealDbOptions>>().Value;
+    client.BaseAddress = options.BaseUrl;
+    client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -39,18 +68,25 @@ else
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 }
 
+app.UseMiddleware<ExecutionTimeMiddleware>();
+
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
+app.UseWebOptimizer();
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAuthentication();
+
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<NotificationsHub>("/hubs/notifications");
 
 await TestUserSeeder.SeedAsync(app.Services);
 

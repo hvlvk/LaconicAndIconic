@@ -128,55 +128,55 @@ namespace LaconicAndIconic.DAL.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1442),
                             Name = "Сніданки"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1445),
                             Name = "Перші страви"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1447),
                             Name = "Основні страви"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1449),
                             Name = "Салати"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5690),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1451),
                             Name = "Десерти"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1452),
                             Name = "Закуски"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1454),
                             Name = "Випічка"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1456),
                             Name = "Вегетаріанські страви"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 4, 23, 17, 24, 37, 178, DateTimeKind.Utc).AddTicks(5700),
+                            CreatedAt = new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1457),
                             Name = "Напої"
                         });
                 });
@@ -218,6 +218,36 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.HasIndex("RecipeId");
 
                     b.ToTable("Comments");
+                });
+
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.CommentLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CommentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("CommentLikes");
                 });
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Rating", b =>
@@ -288,6 +318,14 @@ namespace LaconicAndIconic.DAL.Migrations
                         .HasMaxLength(3000)
                         .HasColumnType("character varying(3000)");
 
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ExternalSource")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("ImagePath")
                         .HasColumnType("text");
 
@@ -317,6 +355,10 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.HasIndex("AuthorId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("ExternalSource", "ExternalId")
+                        .IsUnique()
+                        .HasFilter("\"ExternalSource\" IS NOT NULL AND \"ExternalId\" IS NOT NULL");
 
                     b.ToTable("Recipes");
                 });
@@ -602,6 +644,11 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Navigation("Recipe");
                 });
 
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Comment", b =>
+                {
+                    b.Navigation("Likes");
+                });
+
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Rating", b =>
                 {
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
@@ -621,6 +668,25 @@ namespace LaconicAndIconic.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Recipe");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.CommentLike", b =>
+                {
+                    b.HasOne("LaconicAndIconic.DAL.Entities.Comment", "Comment")
+                        .WithMany("Likes")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "User")
+                        .WithMany("CommentLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
 
                     b.Navigation("User");
                 });
@@ -691,7 +757,7 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.HasOne("LaconicAndIconic.DAL.Entities.Recipe", "Recipe")
                         .WithMany("SharedListRecipes")
                         .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("LaconicAndIconic.DAL.Entities.SharedList", "SharedList")
@@ -804,6 +870,8 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("CommentLikes");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Followers");

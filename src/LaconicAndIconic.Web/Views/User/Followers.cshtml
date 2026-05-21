@@ -4,7 +4,7 @@
     var profileUrl = Url.Action("Profile", "User", new { id = Model.UserId }) ?? string.Empty;
 }
 
-<link rel="stylesheet" href="~/css/user-list.css" />
+<link rel="stylesheet" href="~/css/user-list.bundle.css" asp-append-version="true" />
 
 <div class="user-list-container">
     <div class="user-list-header">

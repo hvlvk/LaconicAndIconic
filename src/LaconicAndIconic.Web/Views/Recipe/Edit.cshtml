@@ -75,9 +75,23 @@
                 <div class="recipe-actions">
                     <button type="submit" class="ck-btn recipe-submit-btn">Зберегти зміни</button>
                     <a asp-controller="Recipe" asp-action="Details" asp-route-id="@Model.Id" class="ck-btn recipe-cancel-btn">Скасувати</a>
+                    
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a href="javascript:void(0);" onclick="if(confirm('Ви впевнені, що хочете видалити цей рецепт?')) { document.getElementById('deleteRecipeForm').submit(); }" class="ck-btn" style="background-color: #dc3545; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-weight: 600; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s;">
+                            Видалити
+                        </a>
+                    }
                 </div>
             </div>
         </form>
     </div>
 </div>
+
+@if (User.IsInRole("Admin"))
+{
+    <form id="deleteRecipeForm" asp-controller="Recipe" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: none;">
+        @Html.AntiForgeryToken()
+    </form>
+}
 

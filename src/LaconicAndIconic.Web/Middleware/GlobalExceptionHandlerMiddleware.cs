@@ -17,7 +17,7 @@ public class GlobalExceptionHandlerMiddleware
         {
             await _next(context);
         }
-#pragma warning disable CA1031 // Intentional catch-all in global exception handler
+#pragma warning disable CA1031
         catch (Exception ex)
         {
 #pragma warning restore CA1031

@@ -1,10 +1,8 @@
-using System.Threading.Tasks;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LaconicAndIconic.Web.Controllers;
@@ -39,8 +37,7 @@ public class UserController : Controller
 
         var recipesResult = await _recipeService.GetRecipesByAuthorIdAsync(id);
         var isOwnProfile = currentUserId == id;
-        var activeTab = isOwnProfile &&
-                        string.Equals(tab, "lists", StringComparison.OrdinalIgnoreCase)
+        var activeTab = isOwnProfile && string.Equals(tab, "lists", StringComparison.OrdinalIgnoreCase)
             ? "lists"
             : "recipes";
 

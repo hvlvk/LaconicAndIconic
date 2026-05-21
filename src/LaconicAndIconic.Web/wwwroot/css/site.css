@@ -20,3 +20,42 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.notification-host {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1080;
+  display: grid;
+  gap: 12px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.notification-toast {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #d6d1c8;
+  border-left: 4px solid #2f7d5c;
+  border-radius: 6px;
+  background: #fff;
+  color: #28231f;
+  box-shadow: 0 12px 30px rgba(30, 25, 20, 0.16);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.notification-toast strong {
+  font-size: 0.95rem;
+}
+
+.notification-toast span {
+  color: #5c554d;
+  line-height: 1.35;
+}
+
+.notification-toast-hidden {
+  opacity: 0;
+  transform: translateY(8px);
+}

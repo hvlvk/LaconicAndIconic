@@ -1,9 +1,36 @@
-﻿@model RecipeListViewModel
+@model RecipeListViewModel
 @{
     ViewData["Title"] = "Recipes";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert-danger">@TempData["ErrorMessage"]</div>
+}
 
+<div class="home-search-panels">
+    <form asp-controller="Home" asp-action="Index" method="get" class="home-search-form">
+        <label for="localSearch">Пошук у нашій базі</label>
+        <div>
+            <input id="localSearch" type="search" name="searchTerm" value="@Model.SearchTerm" placeholder="Назва, категорія або опис" />
+            <button type="submit" class="ck-btn ck-btn-sm">Шукати</button>
+        </div>
+    </form>
+
+    <form asp-controller="Home" asp-action="Index" method="get" class="home-search-form">
+        <label for="externalSearch">Пошук у TheMealDB</label>
+        <div>
+            <input id="externalSearch" type="search" name="externalSearchTerm" value="@Model.ExternalSearchTerm" placeholder="Наприклад: chicken" />
+            <button type="submit" class="ck-btn ck-btn-sm">Шукати</button>
+        </div>
+    </form>
+</div>
+
+<h2 class="home-external-title">Рецепти з бази</h2>
 <div class="recipe-grid">
     @if (Model.Recipes.Count == 0)
     {
@@ -13,24 +40,23 @@
     {
         @foreach (var recipe in Model.Recipes)
         {
-                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card home-recipe-link">
+                <div class="recipe-card">
                 <div class="recipe-image">
-                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
-                    {
-                        <img src="@recipe.ImagePath" alt="@recipe.Title">
-                    }
-                    else
-                    {
-                        <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
-                    }
-                    <button class="favorite-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                    </button>
+                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="home-recipe-link">
+                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                        {
+                            <img src="@recipe.ImagePath" alt="@recipe.Title">
+                        }
+                        else
+                        {
+                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                        }
+                    </a>
                 </div>
                 <div class="recipe-details">
-                    <h3 class="recipe-title">@recipe.Title</h3>
+                    <h3 class="recipe-title">
+                        <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="home-recipe-link">@recipe.Title</a>
+                    </h3>
                     <div class="recipe-meta">
                         <span class="recipe-rating">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -41,10 +67,43 @@
                         <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
                     </div>
                 </div>
-                </a>
+                </div>
         }
     }
 </div>
+
+@if (Model.ExternalRecipes.Count > 0)
+{
+    <h2 class="home-external-title">Рецепти з TheMealDB</h2>
+    <div class="recipe-grid">
+        @foreach (var recipe in Model.ExternalRecipes)
+        {
+            <div class="recipe-card">
+                <div class="recipe-image">
+                    <a asp-controller="ExternalRecipes" asp-action="Details" asp-route-externalId="@recipe.ExternalId" class="home-recipe-link">
+                        @if (!string.IsNullOrEmpty(recipe.ImagePath))
+                        {
+                            <img src="@recipe.ImagePath" alt="@recipe.Title">
+                        }
+                        else
+                        {
+                            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+                        }
+                    </a>
+                </div>
+                <div class="recipe-details">
+                    <h3 class="recipe-title">
+                        <a asp-controller="ExternalRecipes" asp-action="Details" asp-route-externalId="@recipe.ExternalId" class="home-recipe-link">@recipe.Title</a>
+                    </h3>
+                    <div class="recipe-meta">
+                        <span class="recipe-author">@recipe.AuthorName</span>
+                        <span class="recipe-author">@recipe.CategoryName</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
 
 @if (Model.TotalPages > 1)
 {
@@ -53,6 +112,7 @@
         {
             <a asp-controller="Home" asp-action="Index"
                asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-externalSearchTerm="@Model.ExternalSearchTerm"
                asp-route-categoryId="@Model.CategoryId"
                asp-route-sortBy="@Model.SortBy"
                asp-route-pageNumber="@(Model.PageNumber - 1)"
@@ -75,6 +135,7 @@
         {
             <a asp-controller="Home" asp-action="Index"
                asp-route-searchTerm="@Model.SearchTerm"
+               asp-route-externalSearchTerm="@Model.ExternalSearchTerm"
                asp-route-categoryId="@Model.CategoryId"
                asp-route-sortBy="@Model.SortBy"
                asp-route-pageNumber="@(Model.PageNumber + 1)"

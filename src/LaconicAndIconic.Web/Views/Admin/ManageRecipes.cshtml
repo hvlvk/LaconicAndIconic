@@ -1,0 +1,99 @@
+@model LaconicAndIconic.Web.Models.AdminRecipeReportsViewModel
+
+@{
+    ViewData["Title"] = "Управління рецептами";
+}
+
+<div style="background: var(--ck-bg); min-height: 100vh; padding: 24px;">
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <div style="margin-bottom: 24px;">
+            <a asp-action="Index" style="display: inline-block; color: var(--ck-orange); text-decoration: none; font-weight: 600; transition: color 0.3s;">
+                ← Назад до меню
+            </a>
+        </div>
+
+        <h1 style="color: var(--ck-text); margin-bottom: 24px; font-size: 1.8rem;">Управління рецептами</h1>
+
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div style="background: #E8F5E9; border-left: 4px solid #4CAF50; padding: 16px; border-radius: var(--ck-radius); margin-bottom: 20px; color: #2E7D32;">
+                <strong>✓</strong> @successMessage
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div style="background: var(--ck-error-bg); border-left: 4px solid var(--ck-error); padding: 16px; border-radius: var(--ck-radius); margin-bottom: 20px; color: var(--ck-error);">
+                <strong>✕</strong> @errorMessage
+            </div>
+        }
+
+        @if (Model.Reports.Count > 0)
+        {
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); overflow: hidden; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--ck-input-bg); border-bottom: 1px solid var(--ck-border);">
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Рецепт</th>
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Скаржник</th>
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Автор</th>
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Причина</th>
+                            <th style="padding: 16px; text-align: left; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Дата</th>
+                            <th style="padding: 16px; text-align: right; color: var(--ck-text); font-weight: 600; font-size: 0.95rem;">Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in Model.Reports)
+                        {
+                            <tr style="border-bottom: 1px solid var(--ck-border); transition: background 0.2s;">
+                                <td style="padding: 16px; color: var(--ck-text);">
+                                    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@report.RecipeId" style="color: var(--ck-orange); font-weight: 600; text-decoration: none;">
+                                        @report.RecipeTitle
+                                    </a>
+                                </td>
+                                <td style="padding: 16px; color: var(--ck-text-muted);">@report.ReporterName</td>
+                                <td style="padding: 16px; color: var(--ck-text-muted);">@report.ReportedUserName</td>
+                                <td style="padding: 16px; color: var(--ck-text); max-width: 320px; white-space: pre-wrap;">@report.Reason</td>
+                                <td style="padding: 16px; color: var(--ck-text-muted); white-space: nowrap;">@report.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td style="padding: 16px; text-align: right; white-space: nowrap;">
+                                    <form asp-action="DismissReport" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@report.Id" />
+                                        <button type="submit" style="padding: 8px 14px; background: var(--ck-orange); color: white; border: none; border-radius: var(--ck-radius); font-weight: 600; cursor: pointer; transition: background 0.3s;">Відхилити</button>
+                                    </form>
+                                    <form asp-action="DeleteReportedRecipe" method="post" style="display: inline; margin-left: 8px;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@report.Id" />
+                                        <button type="submit" style="padding: 8px 14px; background: var(--ck-error); color: white; border: none; border-radius: var(--ck-radius); font-weight: 600; cursor: pointer; transition: background 0.3s;" onclick="return confirm('Видалити рецепт разом з усіма пов’язаними даними?')">Видалити рецепт</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="background: var(--ck-white); border-radius: var(--ck-radius-lg); padding: 32px; text-align: center; box-shadow: 0 2px 8px rgba(60, 40, 20, 0.06);">
+                <i class="fas fa-check-circle" style="font-size: 2.5rem; color: var(--ck-text-muted); margin-bottom: 16px; display: block;"></i>
+                <p style="color: var(--ck-text-muted); font-size: 0.95rem;">Активних скарг на рецепти немає.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    a:hover {
+        color: var(--ck-orange-hover) !important;
+    }
+
+    tr:hover {
+        background: var(--ck-input-bg) !important;
+    }
+</style>

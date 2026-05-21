@@ -1,19 +1,24 @@
+using LaconicAndIconic.BLL;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
 
 namespace LaconicAndIconic.Tests.Services;
 
-public class RecipeServiceTests
+public class RecipeServiceTests : IDisposable
 {
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Rating>> _ratingRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
+    private readonly Mock<ICacheInvalidationService> _cacheInvalidationServiceMock;
+    private readonly MemoryCache _memoryCache;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
@@ -22,19 +27,40 @@ public class RecipeServiceTests
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _ratingRepositoryMock = new Mock<IRepository<Rating>>();
         _userRepositoryMock = new Mock<IUserRepository>();
+        _cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var fileServiceMock = new Mock<IFileService>();
+        var cachingOptions = Options.Create(new CachingOptions());
+
+        _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
         _service = new RecipeService(
             _recipeRepositoryMock.Object,
             fileServiceMock.Object,
             _categoryRepositoryMock.Object,
             _ratingRepositoryMock.Object,
-            _userRepositoryMock.Object);
+            _userRepositoryMock.Object,
+            _memoryCache,
+            _cacheInvalidationServiceMock.Object,
+            cachingOptions);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _memoryCache?.Dispose();
+        }
     }
 
     [Fact]
     public async Task CreateRecipeAsync_ValidData_ReturnsSuccess()
     {
-        // Arrange
         var dto = new CreateRecipeDto
         {
             Title = "Test Recipe",
@@ -50,10 +76,8 @@ public class RecipeServiceTests
         _recipeRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<Recipe>())).Returns(Task.CompletedTask);
         _recipeRepositoryMock.Setup(repo => repo.GetByIdAsync(0)).ReturnsAsync(new Recipe { Id = 1, Title = "Test Recipe", CategoryId = 1, AuthorId = 1, PrepTimeMin = 30, Description = "A delicious test recipe" });
 
-        // Act
         var result = await _service.CreateRecipeAsync(1, dto);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Test Recipe", result.Value.Title);
@@ -64,13 +88,10 @@ public class RecipeServiceTests
     [Fact]
     public async Task CreateRecipeAsync_MissingTitle_ReturnsFailure()
     {
-        // Arrange
         var dto = new CreateRecipeDto { Title = "  " };
 
-        // Act
         var result = await _service.CreateRecipeAsync(1, dto);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Назва обов'язкова", result.ErrorMessage);
     }
@@ -78,7 +99,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task CreateRecipeAsync_CategoryNotFound_ReturnsFailure()
     {
-        // Arrange
         var dto = new CreateRecipeDto
         {
             Title = "Title",
@@ -91,10 +111,8 @@ public class RecipeServiceTests
         };
         _categoryRepositoryMock.Setup(repo => repo.ExistsAsync(99)).ReturnsAsync(false);
 
-        // Act
         var result = await _service.CreateRecipeAsync(1, dto);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Категорія не знайдена", result.ErrorMessage);
     }
@@ -102,7 +120,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetRecipesByAuthorIdAsync_ReturnsRecipes()
     {
-        // Arrange
         var authorId = 1;
         var recipes = new List<Recipe>
         {
@@ -131,10 +148,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync(recipes);
 
-        // Act
         var result = await _service.GetRecipesByAuthorIdAsync(authorId);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(2, result.Value!.Count());
@@ -144,7 +159,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetRecipeByIdAsync_RecipeExists_ReturnsMappedDto()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 5,
@@ -166,10 +180,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync([recipe]);
 
-        // Act
         var result = await _service.GetRecipeByIdAsync(5);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Pasta", result.Value!.Title);
@@ -183,7 +195,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetRecipeByIdAsync_RecipeExists_ReturnsRatingSummary()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 6,
@@ -224,10 +235,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Recipe, object>>[]>() ))
             .ReturnsAsync([recipe]);
 
-        // Act
         var result = await _service.GetRecipeByIdAsync(6, 10);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(4.0, result.Value!.AverageRating);
@@ -238,17 +247,14 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetRecipeByIdAsync_RecipeDoesNotExist_ReturnsFailure()
     {
-        // Arrange
         _recipeRepositoryMock
             .Setup(r => r.FindAsync(
                 It.IsAny<Expression<Func<Recipe, bool>>>(),
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync([]);
 
-        // Act
         var result = await _service.GetRecipeByIdAsync(404);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Рецепт не знайдено", result.ErrorMessage);
     }
@@ -256,17 +262,14 @@ public class RecipeServiceTests
     [Fact]
     public async Task DeleteRecipeAsync_ExistingRecipeAndValidAuthor_ReturnsSuccess()
     {
-        // Arrange
         var recipeId = 1;
         var authorId = 1;
         var recipe = new Recipe { Id = recipeId, AuthorId = authorId };
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync(recipe);
 
-        // Act
         var result = await _service.DeleteRecipeAsync(recipeId, authorId);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _recipeRepositoryMock.Verify(r => r.Remove(recipe), Times.Once);
         _recipeRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
@@ -275,16 +278,13 @@ public class RecipeServiceTests
     [Fact]
     public async Task DeleteRecipeAsync_RecipeNotFound_ReturnsFailure()
     {
-        // Arrange
         var recipeId = 99;
         var authorId = 1;
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync((Recipe?)null);
 
-        // Act
         var result = await _service.DeleteRecipeAsync(recipeId, authorId);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Рецепт не знайдено", result.ErrorMessage);
     }
@@ -292,17 +292,14 @@ public class RecipeServiceTests
     [Fact]
     public async Task DeleteRecipeAsync_WrongAuthor_ReturnsFailure()
     {
-        // Arrange
         var recipeId = 1;
-        var authorId = 2; // the requester
-        var recipe = new Recipe { Id = recipeId, AuthorId = 1 }; // original author is 1
+        var authorId = 2;
+        var recipe = new Recipe { Id = recipeId, AuthorId = 1 };
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(recipeId)).ReturnsAsync(recipe);
 
-        // Act
         var result = await _service.DeleteRecipeAsync(recipeId, authorId);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Ви можете видаляти тільки свої рецепти", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Remove(It.IsAny<Recipe>()), Times.Never);
@@ -311,7 +308,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task RateRecipeAsync_NewRating_AddsRating()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 20,
@@ -332,10 +328,8 @@ public class RecipeServiceTests
             .ReturnsAsync([]);
         _ratingRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Rating>())).Returns(Task.CompletedTask);
 
-        // Act
         var result = await _service.RateRecipeAsync(20, 7, 5);
 
-        // Assert
         Assert.True(result.IsSuccess);
         _ratingRepositoryMock.Verify(r => r.AddAsync(It.Is<Rating>(x => x.Score == 5 && x.RecipeId == 20 && x.UserId == 7)), Times.Once);
         _ratingRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
@@ -344,7 +338,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task RateRecipeAsync_ExistingRating_UpdatesRating()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 21,
@@ -372,10 +365,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Rating, object>>[]>() ))
             .ReturnsAsync([existingRating]);
 
-        // Act
         var result = await _service.RateRecipeAsync(21, 8, 5);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(5, existingRating.Score);
         _ratingRepositoryMock.Verify(r => r.Update(existingRating), Times.Once);
@@ -385,7 +376,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task UpdateRecipeAsync_WrongAuthor_ReturnsFailure()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 7,
@@ -409,10 +399,8 @@ public class RecipeServiceTests
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(7)).ReturnsAsync(recipe);
 
-        // Act
         var result = await _service.UpdateRecipeAsync(7, 2, updateDto);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal("Ви можете редагувати тільки свої рецепти", result.ErrorMessage);
         _recipeRepositoryMock.Verify(r => r.Update(It.IsAny<Recipe>()), Times.Never);
@@ -421,7 +409,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task UpdateRecipeAsync_ValidOwner_UpdatesRecipeAndReturnsSuccess()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 8,
@@ -449,10 +436,8 @@ public class RecipeServiceTests
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(8)).ReturnsAsync(recipe);
         _categoryRepositoryMock.Setup(r => r.ExistsAsync(3)).ReturnsAsync(true);
 
-        // Act
         var result = await _service.UpdateRecipeAsync(8, 4, updateDto);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal("After", recipe.Title);
         Assert.Equal("After desc", recipe.Description);
@@ -465,12 +450,10 @@ public class RecipeServiceTests
         _recipeRepositoryMock.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
-    // --- GetAllRecipesAsync tests ---
 
     [Fact]
     public async Task GetAllRecipesAsync_RecipesExist_ReturnsMappedDtosOrderedByDateDescending()
     {
-        // Arrange
         var now = DateTime.UtcNow;
         var recipes = new List<Recipe>
         {
@@ -500,10 +483,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync(recipes);
 
-        // Act
         var result = await _service.GetAllRecipesAsync();
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(2, result.Value!.Count());
@@ -513,17 +494,14 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetAllRecipesAsync_NoRecipes_ReturnsSuccessWithEmptyCollection()
     {
-        // Arrange
         _recipeRepositoryMock
             .Setup(r => r.FindAsync(
                 It.IsAny<Expression<Func<Recipe, bool>>>(),
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync([]);
 
-        // Act
         var result = await _service.GetAllRecipesAsync();
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Empty(result.Value!);
@@ -532,7 +510,6 @@ public class RecipeServiceTests
     [Fact]
     public async Task GetAllRecipesAsync_RecipesExist_MapsCategoryNameAndAuthorName()
     {
-        // Arrange
         var recipe = new Recipe
         {
             Id = 1,
@@ -547,10 +524,8 @@ public class RecipeServiceTests
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
             .ReturnsAsync([recipe]);
 
-        // Act
         var result = await _service.GetAllRecipesAsync();
 
-        // Assert
         Assert.True(result.IsSuccess);
         var dto = Assert.Single(result.Value!);
         Assert.Equal("Italian", dto.CategoryName);

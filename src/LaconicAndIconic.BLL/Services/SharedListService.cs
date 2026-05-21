@@ -32,7 +32,7 @@ public class SharedListService : ISharedListService
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
         {
-            return Result<SharedListDto>.Failure("Назва обов'язкова");
+            return "Назва обов'язкова";
         }
 
         var sharedList = new SharedList
@@ -58,7 +58,7 @@ public class SharedListService : ISharedListService
             RecipeCount = 0
         };
 
-        return Result<SharedListDto>.Success(result);
+        return result;
     }
 
     public async Task<Result> UpdateAsync(int sharedListId, int userId, UpdateSharedListDto dto)
@@ -119,12 +119,12 @@ public class SharedListService : ISharedListService
 
         if (sharedList == null)
         {
-            return Result<SharedListDetailDto>.Failure("Список не знайдено");
+            return "Список не знайдено";
         }
 
         if (!IsOwnerOrMember(sharedList, userId))
         {
-            return Result<SharedListDetailDto>.Failure("У вас немає доступу до цього списку");
+            return "У вас немає доступу до цього списку";
         }
 
         var dto = new SharedListDetailDto
@@ -148,7 +148,7 @@ public class SharedListService : ISharedListService
             }).ToList().AsReadOnly()
         };
 
-        return Result<SharedListDetailDto>.Success(dto);
+        return dto;
     }
 
     public async Task<Result<IEnumerable<SharedListDto>>> GetListsByUserAsync(int userId)
