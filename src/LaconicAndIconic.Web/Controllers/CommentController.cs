@@ -37,20 +37,27 @@ public class CommentController : Controller
         return RedirectToAction("Details", "Recipe", new { id = dto.RecipeId });
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id, int recipeId)
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Delete(int id, int recipeId, bool isFromServerAdmin = false)
+{
+    var userId = User.GetUserId();
+    
+    // Якщо форма принесла true (бо ми захардкодили його для адміна), або .NET розпізнав роль
+    var isUserAdmin = isFromServerAdmin || User.IsInRole("Admin") || User.Identity?.Name == "Admin" || User.Identity?.Name == "admin@gmail.com";
+
+    // Якщо це адмін — передаємо 0 (наш чарівний ключ доступу), якщо ні — передаємо реальний userId
+    var executionUserId = isUserAdmin ? 0 : userId;
+
+    var result = await _commentService.DeleteAsync(id, executionUserId);
+
+    if (!result.IsSuccess)
     {
-        var userId = User.GetUserId();
-        var result = await _commentService.DeleteAsync(id, userId);
-
-        if (!result.IsSuccess)
-        {
-            TempData["ErrorMessage"] = result.ErrorMessage ?? "Помилка при видаленні коментаря";
-        }
-
-        return RedirectToAction("Details", "Recipe", new { id = recipeId });
+        TempData["ErrorMessage"] = result.ErrorMessage;
     }
+
+    return RedirectToAction("Details", "Recipe", new { id = recipeId });
+}
 
     [HttpPost]
     [ValidateAntiForgeryToken]

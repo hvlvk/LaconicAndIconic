@@ -131,19 +131,16 @@
         gap: 2rem;
         padding: 1.1rem 1.5rem 1.5rem;
         border-bottom: 1px solid #ece8e2;
+    }
 
     .recipe-save svg {
         color: #e3953f;
-    }
     }
 
     .recipe-sections h2 {
         margin-top: 0;
         margin-bottom: 0.8rem;
         font-size: 1.85rem;
-    }
-
-    .recipe-sections h2 {
         display: inline-flex;
         align-items: center;
         color: #2f2f2f;
@@ -213,7 +210,7 @@
         background: #e3953f;
         color: #fff;
         font-weight: 700;
-        padding: 0.2rem 0.8rem
+        padding: 0.2rem 0.8rem;
     }
 
     .comments-list {
@@ -381,13 +378,43 @@
             <div class="recipe-title-row">
                 <h1>@Model.Title</h1>
                 <div class="recipe-owner-actions">
-                     @if (User.Identity?.IsAuthenticated == true && (User.GetUserId() == Model.AuthorId || User.IsInRole("Admin")) && !Model.IsExternal)     {
+                    @{
+                        bool canEditOrDelete = false;
+                        if (User.Identity?.IsAuthenticated == true)
+                        {
+                            if (User.IsInRole("Admin"))
+                            {
+                                canEditOrDelete = true;
+                            }
+                            else if (User.GetUserId() == Model.AuthorId && !Model.IsExternal)
+                            {
+                                canEditOrDelete = true;
+                            }
+                        }
+                    }
+                
+                    @if (canEditOrDelete)
+                    {
                         <a asp-controller="Recipe" asp-action="Edit" asp-route-id="@Model.Id" class="recipe-save" title="Edit recipe">
                             Редагувати
                         </a>
+                        
+                        <form asp-controller="Recipe" asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display: inline;" onsubmit="return confirm('Ви впевнені, що хочете видалити цей рецепт?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="recipe-save recipe-report-btn" title="Delete recipe">
+                                Видалити рецепт
+                            </button>
+                        </form>
                     }
-
-                    @if (!User.IsInRole("Admin") && User.GetUserId() != Model.AuthorId && !Model.IsExternal)
+                
+                    <a href="#" class="recipe-save" title="Save recipe">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        Зберегти
+                    </a>
+                    
+                    @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId && !User.IsInRole("Admin") && !Model.IsExternal)
                     {
                         <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитись на рецепт</a>
                     }
@@ -483,9 +510,7 @@
 
     <section class="recipe-sections">
         <div>
-            <h2>
-                Інградієнти
-            </h2>
+            <h2>Інградієнти</h2>
             <ul class="ingredients-list">
                 @foreach (var ingredient in string.IsNullOrWhiteSpace(Model.Ingredients) ? Array.Empty<string>() : Model.Ingredients.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
@@ -495,9 +520,7 @@
         </div>
 
         <div>
-            <h2>
-                Спосіб приготування
-            </h2>
+            <h2>Спосіб приготування</h2>
             <ol class="steps-list">
                 @foreach (var step in string.IsNullOrWhiteSpace(Model.CookingMethod) ? Array.Empty<string>() : Model.CookingMethod.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
@@ -508,9 +531,7 @@
     </section>
 
     <section class="recipe-comments">
-        <h2 class="recipe-comments-title">
-            Коментарі
-        </h2>
+        <h2 class="recipe-comments-title">Коментарі</h2>
 
         @if (TempData["ErrorMessage"] != null)
         {
@@ -554,14 +575,20 @@
                             <span class="comment-author">@comment.AuthorName</span>
                             <span style="display: inline-flex; align-items: center; gap: 0.6rem;">
                                 <span class="comment-date">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
-                                @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == comment.AuthorId)
+                                
+                                @if (User.Identity?.IsAuthenticated == true)
                                 {
-                                    <button type="button" class="comment-edit-btn" onclick="toggleEditComment(@comment.Id)" title="Редагувати коментар">✎</button>
-                                    <form asp-controller="Comment" asp-action="Delete" method="post" style="margin: 0;">
-                                        <input type="hidden" name="id" value="@comment.Id" />
-                                        <input type="hidden" name="recipeId" value="@Model.Id" />
-                                        <button type="submit" class="comment-delete" title="Видалити коментар">✕</button>
-                                    </form>
+                                    bool isAdmin = User.IsInRole("Admin");
+                                    bool isCommentAuthor = User.GetUserId() == comment.AuthorId;
+                                    if (isCommentAuthor || isAdmin)
+                                    {
+                                        <form asp-controller="Comment" asp-action="Delete" method="post" style="margin: 0; display: inline-block;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@comment.Id" />
+                                            <input type="hidden" name="recipeId" value="@Model.Id" />
+                                            <button type="submit" style="color: #c0392b; font-weight: bold; font-size: 1.1rem; cursor: pointer; border: none; background: none; padding: 0;">✕</button>
+                                        </form>
+                                    }
                                 }
                             </span>
                         </div>
