@@ -220,6 +220,36 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.CommentLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CommentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CommentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("CommentLikes");
+                });
+
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Rating", b =>
                 {
                     b.Property<int>("Id")
@@ -614,6 +644,11 @@ namespace LaconicAndIconic.DAL.Migrations
                     b.Navigation("Recipe");
                 });
 
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Comment", b =>
+                {
+                    b.Navigation("Likes");
+                });
+
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.Rating", b =>
                 {
                     b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", null)
@@ -633,6 +668,25 @@ namespace LaconicAndIconic.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Recipe");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LaconicAndIconic.DAL.Entities.CommentLike", b =>
+                {
+                    b.HasOne("LaconicAndIconic.DAL.Entities.Comment", "Comment")
+                        .WithMany("Likes")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LaconicAndIconic.DAL.Entities.ApplicationUser", "User")
+                        .WithMany("CommentLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
 
                     b.Navigation("User");
                 });
@@ -816,6 +870,8 @@ namespace LaconicAndIconic.DAL.Migrations
 
             modelBuilder.Entity("LaconicAndIconic.DAL.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("CommentLikes");
+
                     b.Navigation("Comments");
 
                     b.Navigation("Followers");

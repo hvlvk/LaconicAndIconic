@@ -11,7 +11,7 @@ public static class TestUserSeeder
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        const string adminEmail = "admin@gmail.com";
+        const string    adminEmail = "admin@gmail.com";
 #pragma warning disable S2068
         const string adminPassword = "Admin123!";
 #pragma warning restore S2068

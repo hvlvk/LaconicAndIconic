@@ -255,6 +255,42 @@
         white-space: pre-wrap;
     }
 
+    .comment-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.75rem;
+    }
+
+    .comment-like-form {
+        margin: 0;
+    }
+
+    .comment-like {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: 1px solid #e1d8ce;
+        border-radius: var(--ck-radius);
+        background: #fff;
+        color: #6c6258;
+        font-weight: 700;
+        padding: 0.25rem 0.55rem;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+
+    .comment-like:hover,
+    .comment-like--active {
+        border-color: #e3953f;
+        background: #fff7ee;
+        color: #e3953f;
+    }
+
+    .comment-like[disabled] {
+        cursor: default;
+        opacity: 0.75;
+    }
+
     .comment-delete {
         background: none;
         border: none;
@@ -524,6 +560,27 @@
                         </div>
                         <div id="comment-content-@comment.Id">
                             <p class="comment-content">@comment.Content</p>
+                        </div>
+
+                        <div class="comment-footer">
+                            @if (User.Identity?.IsAuthenticated == true && !Model.IsExternal)
+                            {
+                                <form asp-controller="Comment" asp-action="ToggleLike" method="post" class="comment-like-form">
+                                    <input type="hidden" name="id" value="@comment.Id" />
+                                    <input type="hidden" name="recipeId" value="@Model.Id" />
+                                    <button type="submit" class="comment-like @(comment.IsLikedByCurrentUser ? "comment-like--active" : string.Empty)" title="Лайкнути коментар">
+                                        <span aria-hidden="true">♥</span>
+                                        <span>@comment.LikesCount</span>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <button type="button" class="comment-like" disabled title="Увійдіть, щоб лайкнути коментар">
+                                    <span aria-hidden="true">♥</span>
+                                    <span>@comment.LikesCount</span>
+                                </button>
+                            }
                         </div>
 
                         @if (User.Identity?.IsAuthenticated == true && User.GetUserId() == comment.AuthorId)

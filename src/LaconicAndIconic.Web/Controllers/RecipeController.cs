@@ -89,7 +89,7 @@ public class RecipeController : Controller
             IsExternal = result.Value.IsExternal
         };
 
-        var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id);
+        var commentsResult = await _commentService.GetCommentsByRecipeIdAsync(id, currentUserId);
         if (commentsResult.IsSuccess && commentsResult.Value != null)
         {
             model.Comments = commentsResult.Value.ToList().AsReadOnly();

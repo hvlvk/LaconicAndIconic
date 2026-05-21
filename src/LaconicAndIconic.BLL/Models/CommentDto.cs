@@ -8,4 +8,6 @@ public class CommentDto
     public string AuthorName { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+    public int LikesCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
 }
