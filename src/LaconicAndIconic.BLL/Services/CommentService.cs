@@ -9,10 +9,12 @@ namespace LaconicAndIconic.BLL.Services;
 public class CommentService : ICommentService
 {
     private readonly IRepository<Comment> _commentRepository;
+    private readonly IRepository<CommentLike> _commentLikeRepository;
 
-    public CommentService(IRepository<Comment> commentRepository)
+    public CommentService(IRepository<Comment> commentRepository, IRepository<CommentLike> commentLikeRepository)
     {
         _commentRepository = commentRepository;
+        _commentLikeRepository = commentLikeRepository;
     }
 
     public async Task<Result> CreateAsync(CreateCommentDto dto, int userId)
@@ -37,12 +39,13 @@ public class CommentService : ICommentService
         return Result.Success();
     }
 
-    public async Task<Result<IEnumerable<CommentDto>>> GetCommentsByRecipeIdAsync(int recipeId)
+    public async Task<Result<IEnumerable<CommentDto>>> GetCommentsByRecipeIdAsync(int recipeId, int? currentUserId = null)
     {
         var comments = await _commentRepository.GetQueryable()
             .Where(c => c.RecipeId == recipeId)
             .Include(c => c.Author)
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.Likes.Count)
+            .ThenByDescending(c => c.CreatedAt)
             .Select(c => new CommentDto
             {
                 Id = c.Id,
@@ -50,11 +53,44 @@ public class CommentService : ICommentService
                 AuthorId = c.AuthorId,
                 AuthorName = c.Author.UserName ?? string.Empty,
                 Content = c.Content,
-                CreatedAt = c.CreatedAt
+                CreatedAt = c.CreatedAt,
+                LikesCount = c.Likes.Count,
+                IsLikedByCurrentUser = currentUserId.HasValue && c.Likes.Any(l => l.UserId == currentUserId.Value)
             })
             .ToListAsync();
 
         return comments;
+    }
+
+    public async Task<Result> ToggleLikeAsync(int commentId, int userId)
+    {
+        var commentExists = await _commentRepository.ExistsAsync(commentId);
+        if (!commentExists)
+        {
+            return Result.Failure("Коментар не знайдено");
+        }
+
+        var existingLike = await _commentLikeRepository.GetQueryable()
+            .FirstOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
+
+        if (existingLike == null)
+        {
+            await _commentLikeRepository.AddAsync(new CommentLike
+            {
+                CommentId = commentId,
+                UserId = userId,
+                Comment = null!,
+                User = null!
+            });
+        }
+        else
+        {
+            _commentLikeRepository.Remove(existingLike);
+        }
+
+        await _commentLikeRepository.SaveChangesAsync();
+
+        return Result.Success();
     }
 
     public async Task<Result> DeleteAsync(int commentId, int userId)
@@ -108,6 +144,7 @@ public class CommentService : ICommentService
     {
         var comment = await _commentRepository.GetQueryable()
             .Include(c => c.Author)
+            .Include(c => c.Likes)
             .FirstOrDefaultAsync(c => c.Id == commentId);
 
         if (comment == null)
@@ -122,7 +159,9 @@ public class CommentService : ICommentService
             AuthorId = comment.AuthorId,
             AuthorName = comment.Author.UserName ?? string.Empty,
             Content = comment.Content,
-            CreatedAt = comment.CreatedAt
+            CreatedAt = comment.CreatedAt,
+            LikesCount = comment.Likes.Count,
+            IsLikedByCurrentUser = false
         };
 
         return dto;

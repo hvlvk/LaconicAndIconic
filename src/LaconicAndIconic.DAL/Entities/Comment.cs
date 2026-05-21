@@ -8,4 +8,5 @@ public class Comment : BaseEntity
 
     public required Recipe Recipe { get; set; }
     public required ApplicationUser Author { get; set; }
+    public ICollection<CommentLike> Likes { get; } = [];
 }
