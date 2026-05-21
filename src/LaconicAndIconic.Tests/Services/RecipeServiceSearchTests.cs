@@ -22,6 +22,7 @@ public class RecipeServiceSearchTests : IDisposable
         var fileServiceMock = new Mock<IFileService>();
         var categoryRepoMock = new Mock<IRepository<Category>>();
         var ratingRepoMock = new Mock<IRepository<Rating>>();
+        var savedRecipeRepoMock = new Mock<IRepository<SavedRecipe>>();
         var userRepoMock = new Mock<IUserRepository>();
         var cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var cachingOptions = Options.Create(new CachingOptions());
@@ -34,6 +35,7 @@ public class RecipeServiceSearchTests : IDisposable
             fileServiceMock.Object,
             categoryRepoMock.Object,
             ratingRepoMock.Object,
+            savedRecipeRepoMock.Object,
             userRepoMock.Object,
             _memoryCache,
             cacheInvalidationServiceMock.Object,

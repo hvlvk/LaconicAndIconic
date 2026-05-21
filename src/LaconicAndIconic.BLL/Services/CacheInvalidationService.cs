@@ -13,6 +13,7 @@ public class CacheInvalidationService : ICacheInvalidationService
     private const string RecipeCacheKeyPrefix = "recipe_";
     private const string AuthorRecipesCacheKeyPrefix = "author_recipes_";
     private const string RecipeRatingsCacheKeyPrefix = "recipe_ratings_";
+    private const string SavedRecipesCacheKeyPrefix = "saved_recipes_";
 
     private readonly IMemoryCache _memoryCache;
 
@@ -44,5 +45,10 @@ public class CacheInvalidationService : ICacheInvalidationService
     public void InvalidateRecipeRatingsCache(int recipeId)
     {
         _memoryCache.Remove($"{RecipeRatingsCacheKeyPrefix}{recipeId}");
+    }
+
+    public void InvalidateSavedRecipesCache(int userId)
+    {
+        _memoryCache.Remove($"{SavedRecipesCacheKeyPrefix}{userId}");
     }
 }

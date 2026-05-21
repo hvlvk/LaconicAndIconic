@@ -1,92 +1,158 @@
 ﻿@model RecipeListViewModel
 @{
-    ViewData["Title"] = "Recipes";
+ViewData["Title"] = "Recipes";
 }
 
+<style>
+    .favorite-btn svg[fill="none"] {
+        stroke: #999;
+        color: #999;
+        transition: stroke 0.15s, color 0.15s;
+    }
+
+    .favorite-btn:hover svg[fill="none"] {
+        stroke: var(--ck-orange);
+        color: var(--ck-orange);
+    }
+
+    .favorite-btn svg[fill="currentColor"] {
+        color: #E85454;
+        fill: #E85454;
+        stroke: #E85454;
+        transition: color 0.15s, fill 0.15s, stroke 0.15s;
+    }
+
+    .favorite-btn:hover svg[fill="currentColor"] {
+        color: #d43737;
+        fill: #d43737;
+        stroke: #d43737;
+    }
+
+    .favorite-btn {
+        border: none;
+        background: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .recipe-card {
+        position: relative;
+    }
+</style>
 
 <div class="recipe-grid">
     @if (Model.Recipes.Count == 0)
     {
-        <p class="home-empty-results">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
+    <p class="home-empty-results">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
     }
     else
     {
-        @foreach (var recipe in Model.Recipes)
-        {
-                <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card home-recipe-link">
-                <div class="recipe-image">
-                    @if (!string.IsNullOrEmpty(recipe.ImagePath))
-                    {
-                        <img src="@recipe.ImagePath" alt="@recipe.Title">
-                    }
-                    else
-                    {
-                        <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
-                    }
-                    <button class="favorite-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="recipe-details">
-                    <h3 class="recipe-title">@recipe.Title</h3>
-                    <div class="recipe-meta">
+    @foreach (var recipe in Model.Recipes)
+    {
+    <a asp-controller="Recipe" asp-action="Details" asp-route-id="@recipe.Id" class="recipe-card home-recipe-link">
+        <div class="recipe-image">
+            @if (!string.IsNullOrEmpty(recipe.ImagePath))
+            {
+            <img src="@recipe.ImagePath" alt="@recipe.Title">
+            }
+            else
+            {
+            <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=300&h=200&fit=crop" alt="Placeholder">
+            }
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+            @if (recipe.IsSaved)
+            {
+            <form asp-controller="Recipe" asp-action="Unsave" asp-route-id="@recipe.Id" method="post" style="display:inline;">
+                <button type="submit" class="favorite-btn" title="Remove from saved" onclick="event.stopPropagation(); event.preventDefault(); this.form.submit();">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <!-- Виправлений шлях для зафарбованого серця -->
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </button>
+            </form>
+            }
+            else
+            {
+            <form asp-controller="Recipe" asp-action="Save" asp-route-id="@recipe.Id" method="post" style="display:inline;">
+                <button type="submit" class="favorite-btn" title="Save recipe" onclick="event.stopPropagation(); event.preventDefault(); this.form.submit();">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </button>
+            </form>
+            }
+            }
+            else
+            {
+            <button class="favorite-btn" onclick="alert('Будь ласка, увійдіть до свого облікового запису'); return false;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+            </button>
+            }
+        </div>
+        <div class="recipe-details">
+            <h3 class="recipe-title">@recipe.Title</h3>
+            <div class="recipe-meta">
                         <span class="recipe-rating">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                             </svg>
                             @recipe.AverageRating.ToString("0.0")
                         </span>
-                        <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
-                    </div>
-                </div>
-                </a>
-        }
+                <span class="recipe-author">@($"@{recipe.AuthorName}")</span>
+            </div>
+        </div>
+    </a>
+    }
     }
 </div>
 
 @if (Model.TotalPages > 1)
 {
-    <div class="home-pagination">
-        @if (Model.HasPreviousPage)
-        {
-            <a asp-controller="Home" asp-action="Index"
-               asp-route-searchTerm="@Model.SearchTerm"
-               asp-route-categoryId="@Model.CategoryId"
-               asp-route-sortBy="@Model.SortBy"
-               asp-route-pageNumber="@(Model.PageNumber - 1)"
-               class="home-pagination-link">
-                Previous
-            </a>
-        }
-        else
-        {
-            <button class="home-pagination-disabled" disabled>
-                Previous
-            </button>
-        }
+<div class="home-pagination">
+    @if (Model.HasPreviousPage)
+    {
+    <a asp-controller="Home" asp-action="Index"
+       asp-route-searchTerm="@Model.SearchTerm"
+       asp-route-categoryId="@Model.CategoryId"
+       asp-route-sortBy="@Model.SortBy"
+       asp-route-pageNumber="@(Model.PageNumber - 1)"
+       class="home-pagination-link">
+        Previous
+    </a>
+    }
+    else
+    {
+    <button class="home-pagination-disabled" disabled>
+        Previous
+    </button>
+    }
 
-        <span class="home-pagination-current">
+    <span class="home-pagination-current">
             Page @Model.PageNumber of @Model.TotalPages
         </span>
 
-        @if (Model.HasNextPage)
-        {
-            <a asp-controller="Home" asp-action="Index"
-               asp-route-searchTerm="@Model.SearchTerm"
-               asp-route-categoryId="@Model.CategoryId"
-               asp-route-sortBy="@Model.SortBy"
-               asp-route-pageNumber="@(Model.PageNumber + 1)"
-               class="home-pagination-link">
-                Next
-            </a>
-        }
-        else
-        {
-            <button class="home-pagination-disabled" disabled>
-                Next
-            </button>
-        }
-    </div>
+    @if (Model.HasNextPage)
+    {
+    <a asp-controller="Home" asp-action="Index"
+       asp-route-searchTerm="@Model.SearchTerm"
+       asp-route-categoryId="@Model.CategoryId"
+       asp-route-sortBy="@Model.SortBy"
+       asp-route-pageNumber="@(Model.PageNumber + 1)"
+       class="home-pagination-link">
+        Next
+    </a>
+    }
+    else
+    {
+    <button class="home-pagination-disabled" disabled>
+        Next
+    </button>
+    }
+</div>
 }

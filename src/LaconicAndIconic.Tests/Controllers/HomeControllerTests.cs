@@ -41,7 +41,7 @@ public sealed class HomeControllerTests : IDisposable
         };
 
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
+            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>(), It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeSearchResultDto>.Success(searchResult));
 
         _categoryServiceMock
@@ -64,7 +64,7 @@ public sealed class HomeControllerTests : IDisposable
         // Arrange
         var searchResult = new RecipeSearchResultDto { Recipes = [], TotalCount = 0 };
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
+            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>(), It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeSearchResultDto>.Success(searchResult));
 
         _categoryServiceMock
@@ -85,7 +85,7 @@ public sealed class HomeControllerTests : IDisposable
     {
         // Arrange
         _recipeServiceMock
-            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>()))
+            .Setup(s => s.SearchRecipesAsync(It.IsAny<RecipeSearchFilterDto>(), It.IsAny<int?>()))
             .ReturnsAsync(Result<RecipeSearchResultDto>.Failure("error"));
 
         _categoryServiceMock

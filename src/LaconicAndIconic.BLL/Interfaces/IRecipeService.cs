@@ -11,5 +11,9 @@ public interface IRecipeService
     Task<Result<IEnumerable<RecipeDto>>> GetAllRecipesAsync();
     Task<Result> DeleteRecipeAsync(int recipeId, int authorId);
     Task<Result> RateRecipeAsync(int recipeId, int userId, int score);
-    Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter);
+    Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter, int? currentUserId = null);
+    Task<Result> SaveRecipeAsync(int recipeId, int userId);
+    Task<Result> UnsaveRecipeAsync(int recipeId, int userId);
+    Task<Result<IEnumerable<RecipeDto>>> GetSavedRecipesByUserIdAsync(int userId);
+    Task<Result<bool>> IsRecipeSavedAsync(int recipeId, int userId);
 }

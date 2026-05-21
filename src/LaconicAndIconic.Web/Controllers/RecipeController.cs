@@ -59,6 +59,7 @@ public class RecipeController : Controller
             AverageRating = result.Value.AverageRating,
             RatingCount = result.Value.RatingCount,
             CurrentUserRating = result.Value.CurrentUserRating,
+            IsSaved = result.Value.IsSaved,
             CategoryName = result.Value.CategoryName,
             AuthorId = result.Value.AuthorId,
             AuthorName = result.Value.AuthorName,
@@ -265,6 +266,44 @@ public class RecipeController : Controller
         }
 
         return RedirectToAction("Profile", "User", new { id = userId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Save(int id)
+    {
+        var userId = User.GetUserId();
+        var result = await _recipeService.SaveRecipeAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Рецепт збережено";
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unsave(int id)
+    {
+        var userId = User.GetUserId();
+        var result = await _recipeService.UnsaveRecipeAsync(id, userId);
+
+        if (!result.IsSuccess)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Рецепт видалено зі збережених";
+        }
+
+        return RedirectToAction(nameof(Details), new { id });
     }
 
     private async Task LoadCategoriesAsync()

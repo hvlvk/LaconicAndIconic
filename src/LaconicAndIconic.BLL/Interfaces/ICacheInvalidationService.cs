@@ -29,4 +29,9 @@ public interface ICacheInvalidationService
     /// Invalidates cache for ratings of a specific recipe.
     /// </summary>
     void InvalidateRecipeRatingsCache(int recipeId);
+
+    /// <summary>
+    /// Invalidates cache for saved recipes by a specific user.
+    /// </summary>
+    void InvalidateSavedRecipesCache(int userId);
 }

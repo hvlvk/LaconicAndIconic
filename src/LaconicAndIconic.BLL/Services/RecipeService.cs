@@ -12,11 +12,13 @@ public class RecipeService : IRecipeService
     private const string AllRecipesCacheKeyPrefix = "all_recipes";
     private const string RecipeCacheKeyPrefix = "recipe_";
     private const string AuthorRecipesCacheKeyPrefix = "author_recipes_";
+    private const string SavedRecipesCacheKeyPrefix = "saved_recipes_";
 
     private readonly IRecipeRepository _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<Rating> _ratingRepository;
+    private readonly IRepository<SavedRecipe> _savedRecipeRepository;
     private readonly IUserRepository _userRepository;
     private readonly IMemoryCache _memoryCache;
     private readonly ICacheInvalidationService _cacheInvalidationService;
@@ -27,6 +29,7 @@ public class RecipeService : IRecipeService
         IFileService fileService,
         IRepository<Category> categoryRepository,
         IRepository<Rating> ratingRepository,
+        IRepository<SavedRecipe> savedRecipeRepository,
         IUserRepository userRepository,
         IMemoryCache memoryCache,
         ICacheInvalidationService cacheInvalidationService,
@@ -36,6 +39,7 @@ public class RecipeService : IRecipeService
         _fileService = fileService;
         _categoryRepository = categoryRepository;
         _ratingRepository = ratingRepository;
+        _savedRecipeRepository = savedRecipeRepository;
         _userRepository = userRepository;
         _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
         _cacheInvalidationService = cacheInvalidationService ?? throw new ArgumentNullException(nameof(cacheInvalidationService));
@@ -93,9 +97,19 @@ public class RecipeService : IRecipeService
         await _recipeRepository.AddAsync(recipe);
         await _recipeRepository.SaveChangesAsync();
 
+        // Automatically save the recipe for the author
+        var savedRecipe = new SavedRecipe
+        {
+            RecipeId = recipe.Id,
+            UserId = authorId
+        };
+        await _savedRecipeRepository.AddAsync(savedRecipe);
+        await _savedRecipeRepository.SaveChangesAsync();
+
         // Invalidate relevant caches
         _cacheInvalidationService.InvalidateRecipesCache();
         _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
+        _cacheInvalidationService.InvalidateSavedRecipesCache(authorId);
 
         var responseDto = new RecipeDto
         {
@@ -179,7 +193,7 @@ public class RecipeService : IRecipeService
 
     public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId, int? currentUserId = null)
     {
-        // Try to get from cache (but only if no current user rating is needed)
+        // Try to get from cache (but only if no current user is involved)
         var cacheKey = $"{RecipeCacheKeyPrefix}{recipeId}";
         if (currentUserId == null && _memoryCache.TryGetValue(cacheKey, out RecipeDto? cachedRecipe))
         {
@@ -194,7 +208,14 @@ public class RecipeService : IRecipeService
             return Result<RecipeDto>.Failure("Рецепт не знайдено");
         }
 
-        var dto = MapToDto(recipe, currentUserId);
+        bool isSaved = false;
+        if (currentUserId.HasValue)
+        {
+            var savedRecipes = await _savedRecipeRepository.FindAsync(sr => sr.RecipeId == recipeId && sr.UserId == currentUserId.Value);
+            isSaved = savedRecipes.Any();
+        }
+
+        var dto = MapToDto(recipe, currentUserId, isSaved);
 
         // Cache only if no current user is involved (user-specific data shouldn't be cached)
         if (currentUserId == null)
@@ -327,7 +348,7 @@ public class RecipeService : IRecipeService
         return Result.Success();
     }
 
-    public async Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter)
+    public async Task<Result<RecipeSearchResultDto>> SearchRecipesAsync(RecipeSearchFilterDto filter, int? currentUserId = null)
     {
         var dalFilter = new RecipeSearchFilter
         {
@@ -340,7 +361,15 @@ public class RecipeService : IRecipeService
 
         var dalResult = await _recipeRepository.SearchAsync(dalFilter);
 
-        var dtos = dalResult.Recipes.Select(recipe => MapToDto(recipe)).ToList();
+        var dtos = dalResult.Recipes.Select(recipe =>
+        {
+            bool isSaved = false;
+            if (currentUserId.HasValue && recipe.SavedRecipes != null)
+            {
+                isSaved = recipe.SavedRecipes.Any(sr => sr.UserId == currentUserId.Value);
+            }
+            return MapToDto(recipe, currentUserId, isSaved);
+        }).ToList();
 
         var result = new RecipeSearchResultDto
         {
@@ -356,7 +385,7 @@ public class RecipeService : IRecipeService
         return Result<RecipeSearchResultDto>.Success(result);
     }
 
-    private static RecipeDto MapToDto(Recipe recipe, int? currentUserId = null)
+    private static RecipeDto MapToDto(Recipe recipe, int? currentUserId = null, bool isSaved = false)
     {
         var ratings = recipe.Ratings.ToList();
         var ratingCount = ratings.Count;
@@ -378,11 +407,100 @@ public class RecipeService : IRecipeService
             AverageRating = averageRating,
             RatingCount = ratingCount,
             CurrentUserRating = currentUserRating,
+            IsSaved = isSaved,
             CategoryId = recipe.CategoryId,
             CategoryName = recipe.Category.Name,
             AuthorId = recipe.AuthorId,
             AuthorName = recipe.Author.UserName ?? string.Empty,
             AuthorProfilePicturePath = recipe.Author.ProfilePicturePath
         };
+    }
+
+    public async Task<Result> SaveRecipeAsync(int recipeId, int userId)
+    {
+        var recipe = await _recipeRepository.GetByIdAsync(recipeId);
+        if (recipe == null)
+        {
+            return Result.Failure("Рецепт не знайдено");
+        }
+
+        var user = await _userRepository.FindByIdAsync(userId);
+        if (user == null)
+        {
+            return Result.Failure("Користувача не знайдено");
+        }
+
+        var savedRecipes = await _savedRecipeRepository.FindAsync(sr => sr.RecipeId == recipeId && sr.UserId == userId);
+        if (savedRecipes.Any())
+        {
+            return Result.Failure("Рецепт вже збережено");
+        }
+
+        var savedRecipe = new SavedRecipe
+        {
+            RecipeId = recipeId,
+            UserId = userId
+        };
+
+        await _savedRecipeRepository.AddAsync(savedRecipe);
+        await _savedRecipeRepository.SaveChangesAsync();
+
+        // Invalidate saved recipes cache for this user
+        _cacheInvalidationService.InvalidateSavedRecipesCache(userId);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UnsaveRecipeAsync(int recipeId, int userId)
+    {
+        var savedRecipes = await _savedRecipeRepository.FindAsync(sr => sr.RecipeId == recipeId && sr.UserId == userId);
+        var savedRecipe = savedRecipes.FirstOrDefault();
+
+        if (savedRecipe == null)
+        {
+            return Result.Failure("Рецепт не збережено");
+        }
+
+        _savedRecipeRepository.Remove(savedRecipe);
+        await _savedRecipeRepository.SaveChangesAsync();
+
+        // Invalidate saved recipes cache for this user
+        _cacheInvalidationService.InvalidateSavedRecipesCache(userId);
+
+        return Result.Success();
+    }
+
+    public async Task<Result<IEnumerable<RecipeDto>>> GetSavedRecipesByUserIdAsync(int userId)
+    {
+        var cacheKey = $"{SavedRecipesCacheKeyPrefix}{userId}";
+
+        // Try to get from cache
+        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
+        {
+            return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
+        }
+
+        var savedRecipes = await _savedRecipeRepository.FindAsync(
+            sr => sr.UserId == userId,
+            sr => sr.Recipe,
+            sr => sr.Recipe.Category,
+            sr => sr.Recipe.Author,
+            sr => sr.Recipe.Ratings);
+
+        var dtos = savedRecipes
+            .OrderByDescending(sr => sr.CreatedAt)
+            .Select(sr => MapToDto(sr.Recipe))
+            .ToList();
+
+        // Cache the result
+        _memoryCache.Set(cacheKey, dtos, _recipesCacheDuration);
+
+        return Result<IEnumerable<RecipeDto>>.Success(dtos);
+    }
+
+    public async Task<Result<bool>> IsRecipeSavedAsync(int recipeId, int userId)
+    {
+        var savedRecipes = await _savedRecipeRepository.FindAsync(sr => sr.RecipeId == recipeId && sr.UserId == userId);
+        return Result<bool>.Success(savedRecipes.Any());
     }
 }

@@ -16,6 +16,7 @@ public class RecipeServiceTests : IDisposable
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Rating>> _ratingRepositoryMock;
+    private readonly Mock<IRepository<SavedRecipe>> _savedRecipeRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<ICacheInvalidationService> _cacheInvalidationServiceMock;
     private readonly MemoryCache _memoryCache;
@@ -26,6 +27,7 @@ public class RecipeServiceTests : IDisposable
         _recipeRepositoryMock = new Mock<IRecipeRepository>();
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _ratingRepositoryMock = new Mock<IRepository<Rating>>();
+        _savedRecipeRepositoryMock = new Mock<IRepository<SavedRecipe>>();
         _userRepositoryMock = new Mock<IUserRepository>();
         _cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var fileServiceMock = new Mock<IFileService>();
@@ -39,6 +41,7 @@ public class RecipeServiceTests : IDisposable
             fileServiceMock.Object,
             _categoryRepositoryMock.Object,
             _ratingRepositoryMock.Object,
+            _savedRecipeRepositoryMock.Object,
             _userRepositoryMock.Object,
             _memoryCache,
             _cacheInvalidationServiceMock.Object,

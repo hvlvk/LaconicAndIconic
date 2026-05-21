@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<SharedList> SharedLists => Set<SharedList>();
     public DbSet<SharedListUser> SharedListUsers => Set<SharedListUser>();
     public DbSet<SharedListRecipe> SharedListRecipes => Set<SharedListRecipe>();
+    public DbSet<SavedRecipe> SavedRecipes => Set<SavedRecipe>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

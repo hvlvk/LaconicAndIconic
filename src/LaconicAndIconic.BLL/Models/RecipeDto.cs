@@ -13,6 +13,7 @@ public class RecipeDto
     public double AverageRating { get; set; }
     public int RatingCount { get; set; }
     public int? CurrentUserRating { get; set; }
+    public bool IsSaved { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public int AuthorId { get; set; }

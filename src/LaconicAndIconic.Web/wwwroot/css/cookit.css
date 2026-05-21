@@ -804,7 +804,7 @@ body {
 .favorite-btn svg {
     width: 16px;
     height: 16px;
-    color: var(--ck-text-muted);
+    color: #E85454;
 }
 
 .favorite-btn.active svg {

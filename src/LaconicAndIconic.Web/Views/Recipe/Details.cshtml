@@ -54,11 +54,66 @@
         color: #2f2f2f;
         text-decoration: none;
         transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+        cursor: pointer;
     }
 
     .recipe-save:hover {
         color: var(--ck-orange);
         border-color: var(--ck-orange);
+    }
+
+    .recipe-save svg {
+        width: 20px;
+        height: 20px;
+        transition: color 0.15s, fill 0.15s;
+    }
+
+    /* Outline heart (not saved) */
+    .recipe-save svg[fill="none"] {
+        stroke: #999;
+        color: #999;
+    }
+
+    .recipe-save:hover svg[fill="none"] {
+        stroke: var(--ck-orange);
+        color: var(--ck-orange);
+    }
+
+    /* Filled heart (saved) - custom red color #E85454 */
+    .recipe-save svg[fill="currentColor"] {
+        color: #E85454;
+        fill: #E85454;
+        stroke: #E85454;
+    }
+
+    .recipe-save:hover svg[fill="currentColor"] {
+        color: #d43737;
+        fill: #d43737;
+        stroke: #d43737;
+    }
+
+    .recipe-save button {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-weight: 600;
+        color: #2f2f2f;
+        transition: color 0.15s;
+    }
+
+    .recipe-save button:hover {
+        color: var(--ck-orange);
+    }
+
+    .recipe-save button:hover svg[fill="currentColor"] {
+        color: var(--ck-orange);
+        fill: var(--ck-orange);
+        stroke: var(--ck-orange);
     }
 
     .recipe-report-btn {
@@ -131,10 +186,6 @@
         gap: 2rem;
         padding: 1.1rem 1.5rem 1.5rem;
         border-bottom: 1px solid #ece8e2;
-
-    .recipe-save svg {
-        color: #e3953f;
-    }
     }
 
     .recipe-sections h2 {
@@ -352,12 +403,40 @@
                         </a>
                     }
 
-                    <a href="#" class="recipe-save" title="Save recipe">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                        </svg>
-                        Зберегти
-                    </a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        if (Model.IsSaved)
+                        {
+                            <form asp-controller="Recipe" asp-action="Unsave" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                                <button type="submit" class="recipe-save" title="Remove from saved">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    Видалити зі збережених
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Recipe" asp-action="Save" asp-route-id="@Model.Id" method="post" style="display:inline;">
+                                <button type="submit" class="recipe-save" title="Save recipe">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                    Зберегти
+                                </button>
+                            </form>
+                        }
+                    }
+                    else
+                    {
+                        <a href="#" class="recipe-save" title="Save recipe" onclick="alert('Будь ласка, увійдіть до свого облікового запису'); return false;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="recipe-save-icon">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                            Зберегти
+                        </a>
+                    }
                     @if (User.Identity?.IsAuthenticated == true && User.GetUserId() != Model.AuthorId)
                     {
                         <a asp-controller="Recipe" asp-action="Report" asp-route-id="@Model.Id" class="recipe-save recipe-report-btn">Скаржитися</a>

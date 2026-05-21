@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
+using LaconicAndIconic.Web.Extensions;
 using LaconicAndIconic.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,9 @@ public class HomeController : Controller
             pageNumber = 1;
         }
 
+        // Get current user ID if authenticated to populate IsSaved status
+        int? currentUserId = User.Identity?.IsAuthenticated == true ? User.GetUserId() : (int?)null;
+
         var result = await _recipeService.SearchRecipesAsync(new RecipeSearchFilterDto
         {
             SearchTerm = searchTerm ?? string.Empty,
@@ -36,7 +40,7 @@ public class HomeController : Controller
             SortBy = sortBy ?? string.Empty,
             PageNumber = pageNumber,
             PageSize = 10
-        });
+        }, currentUserId);
 
         var categoriesResult = await _categoryService.GetAllCategoriesAsync();
         var categories = categoriesResult.IsSuccess && categoriesResult.Value is not null

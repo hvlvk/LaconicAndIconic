@@ -39,10 +39,16 @@ public class UserController : Controller
 
         var recipesResult = await _recipeService.GetRecipesByAuthorIdAsync(id);
         var isOwnProfile = currentUserId == id;
-        var activeTab = isOwnProfile &&
-                        string.Equals(tab, "lists", StringComparison.OrdinalIgnoreCase)
-            ? "lists"
-            : "recipes";
+        var activeTab = "recipes";
+
+        if (isOwnProfile && string.Equals(tab, "lists", StringComparison.OrdinalIgnoreCase))
+        {
+            activeTab = "lists";
+        }
+        else if (isOwnProfile && string.Equals(tab, "saved", StringComparison.OrdinalIgnoreCase))
+        {
+            activeTab = "saved";
+        }
 
         var viewModel = new UserProfileViewModel
         {
@@ -64,6 +70,10 @@ public class UserController : Controller
 
             var allRecipesResult = await _recipeService.GetAllRecipesAsync();
             viewModel.AllRecipes = allRecipesResult.IsSuccess && allRecipesResult.Value != null ? allRecipesResult.Value : [];
+
+            // Load saved recipes
+            var savedRecipesResult = await _recipeService.GetSavedRecipesByUserIdAsync(id);
+            viewModel.SavedRecipes = savedRecipesResult.IsSuccess && savedRecipesResult.Value != null ? savedRecipesResult.Value : [];
 
             var sharedListsResult = await _sharedListService.GetListsByUserAsync(id);
             if (sharedListsResult.IsSuccess && sharedListsResult.Value != null)
