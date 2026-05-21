@@ -36,13 +36,11 @@ public class CategoryService : ICategoryService
 
     public async Task<Result<IEnumerable<CategoryDto>>> GetAllAsync()
     {
-        // Try to get from cache first
         if (_memoryCache.TryGetValue(AllCategoriesCacheKey, out IEnumerable<CategoryDto>? cachedCategories))
         {
             return Result<IEnumerable<CategoryDto>>.Success(cachedCategories!);
         }
 
-        // If not in cache, fetch from database
         var categories = await _categoryRepository.GetAllAsync();
         var dtos = categories.Select(c => new CategoryDto
         {
@@ -50,7 +48,6 @@ public class CategoryService : ICategoryService
             Name = c.Name
         }).ToList();
 
-        // Store in cache
         _memoryCache.Set(AllCategoriesCacheKey, dtos, _cacheDuration);
 
         return Result<IEnumerable<CategoryDto>>.Success(dtos);
@@ -78,7 +75,6 @@ public class CategoryService : ICategoryService
         await _categoryRepository.AddAsync(new Category { Name = name });
         await _categoryRepository.SaveChangesAsync();
 
-        // Invalidate cache when a new category is created
         _cacheInvalidationService.InvalidateCategoriesCache();
 
         return Result.Success();
@@ -103,7 +99,6 @@ public class CategoryService : ICategoryService
             return Result.Failure("Категорію не знайдено.");
         }
 
-        // Тут теж використовуємо ToUpper і пригнічуємо варнінги
 #pragma warning disable CA1862, CA1304, CA1311, RCS1155, CA1308
         var exists = await _categoryRepository.AnyAsync(c =>
             c.Id != id && c.Name.ToUpper() == name.ToUpper());
@@ -118,7 +113,6 @@ public class CategoryService : ICategoryService
         _categoryRepository.Update(category);
         await _categoryRepository.SaveChangesAsync();
 
-        // Invalidate cache when a category is updated
         _cacheInvalidationService.InvalidateCategoriesCache();
 
         return Result.Success();
@@ -140,7 +134,6 @@ public class CategoryService : ICategoryService
         _categoryRepository.Remove(category);
         await _categoryRepository.SaveChangesAsync();
 
-        // Invalidate cache when a category is deleted
         _cacheInvalidationService.InvalidateCategoriesCache();
 
         return Result.Success();

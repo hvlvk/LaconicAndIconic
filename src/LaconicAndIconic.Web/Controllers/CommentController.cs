@@ -1,4 +1,4 @@
-﻿using LaconicAndIconic.BLL.Interfaces;
+using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.Web.Extensions;
 using Microsoft.AspNetCore.Authorization;

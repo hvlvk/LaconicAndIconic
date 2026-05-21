@@ -29,7 +29,7 @@ public sealed class NotificationBackgroundService(
             {
                 break;
             }
-#pragma warning disable CA1031 // Keep the hosted service alive when one notification check fails.
+#pragma warning disable CA1031
             catch (Exception ex)
 #pragma warning restore CA1031
             {
@@ -65,8 +65,6 @@ public sealed class NotificationBackgroundService(
             "info",
             DateTimeOffset.UtcNow);
 
-        /*await hubContext.Clients.Users(userIds)
-            .SendAsync("ReceiveNotification", notification, cancellationToken);*/
 
         logger.LogInformation(
             "Notification was sent via SignalR to {UserCount} users",

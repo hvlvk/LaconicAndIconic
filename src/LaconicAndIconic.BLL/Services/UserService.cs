@@ -272,13 +272,11 @@ public class UserService : IUserService
             return Result.Failure("Користувача не знайдено");
         }
 
-        // Видалення профільної фотографії
         if (!string.IsNullOrEmpty(user.ProfilePicturePath))
         {
             _fileService.DeleteFile(user.ProfilePicturePath);
         }
 
-        // Видалення підписок користувача
         var userSubscriptions = await _subscriptionRepository.FindAsync(
             s => s.FollowerId == id || s.UserId == id);
         foreach (var subscription in userSubscriptions)
@@ -288,7 +286,6 @@ public class UserService : IUserService
 
         await _subscriptionRepository.SaveChangesAsync();
 
-        // Видалення користувача
         var result = await _userRepository.DeleteAsync(user);
         if (!result.Succeeded)
         {

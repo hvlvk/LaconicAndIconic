@@ -1,4 +1,4 @@
-﻿namespace LaconicAndIconic.BLL.Models;
+namespace LaconicAndIconic.BLL.Models;
 
 public class CommentDto
 {

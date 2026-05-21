@@ -93,7 +93,6 @@ public class RecipeService : IRecipeService
         await _recipeRepository.AddAsync(recipe);
         await _recipeRepository.SaveChangesAsync();
 
-        // Invalidate relevant caches
         _cacheInvalidationService.InvalidateRecipesCache();
         _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
 
@@ -174,7 +173,6 @@ public class RecipeService : IRecipeService
         _recipeRepository.Update(recipe);
         await _recipeRepository.SaveChangesAsync();
 
-        // Invalidate relevant caches
         _cacheInvalidationService.InvalidateRecipesCache();
         _cacheInvalidationService.InvalidateRecipeCache(recipeId);
         _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
@@ -238,7 +236,6 @@ public class RecipeService : IRecipeService
     {
         const string cacheKey = AllRecipesCacheKeyPrefix;
 
-        // Try to get from cache
         if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
         {
             return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
@@ -328,7 +325,6 @@ public class RecipeService : IRecipeService
 
         await _ratingRepository.SaveChangesAsync();
 
-        // Invalidate relevant caches when a rating is added or updated
         _cacheInvalidationService.InvalidateRecipeCache(recipeId);
         _cacheInvalidationService.InvalidateRecipeRatingsCache(recipeId);
 

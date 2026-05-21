@@ -3,9 +3,6 @@ using LaconicAndIconic.BLL.Interfaces;
 
 namespace LaconicAndIconic.BLL.Services;
 
-/// <summary>
-/// Service for managing cache invalidation across the application.
-/// </summary>
 public class CacheInvalidationService : ICacheInvalidationService
 {
     private const string AllCategoriesCacheKey = "all_categories";

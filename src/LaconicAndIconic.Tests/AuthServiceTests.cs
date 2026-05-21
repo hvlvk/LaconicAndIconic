@@ -39,12 +39,10 @@ public class AuthServiceTests
         Mock<IUserRepository> userRepositoryMock)
         => new(signInManagerMock.Object, userRepositoryMock.Object, NullLogger<AuthService>.Instance);
 
-    // --- RegisterAsync tests ---
 
     [Fact]
     public async Task RegisterAsync_ValidRequest_ReturnsSuccess()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
 
@@ -62,10 +60,8 @@ public class AuthServiceTests
             Password = "P@ssw0rd!",
         };
 
-        // Act
         var result = await sut.RegisterAsync(request);
 
-        // Assert
         Assert.True(result.IsSuccess);
         userRepoMock.Verify(
             r => r.CreateAsync(
@@ -77,7 +73,6 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_DuplicateEmail_ReturnsFailureWithError()
     {
-        // Arrange
         var duplicateError = IdentityResult.Failed(
             new IdentityError { Code = "DuplicateEmail", Description = "Email 'alice@example.com' is already taken." });
 
@@ -98,10 +93,8 @@ public class AuthServiceTests
             Password = "P@ssw0rd!",
         };
 
-        // Act
         var result = await sut.RegisterAsync(request);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("already taken", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
@@ -109,13 +102,11 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_NullRequest_ThrowsArgumentNullException()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
         var userRepoMock = new Mock<IUserRepository>();
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(
             () => sut.RegisterAsync(null!));
     }
@@ -123,7 +114,6 @@ public class AuthServiceTests
     [Fact]
     public async Task RegisterAsync_PasswordTooShort_ReturnsFailureWithError()
     {
-        // Arrange
         var passwordError = IdentityResult.Failed(
             new IdentityError { Code = "PasswordTooShort", Description = "Passwords must be at least 8 characters." });
 
@@ -144,20 +134,16 @@ public class AuthServiceTests
             Password = "123",
         };
 
-        // Act
         var result = await sut.RegisterAsync(request);
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("8 characters", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 
-    // --- LoginAsync tests ---
 
     [Fact]
     public async Task LoginAsync_ValidCredentials_ReturnsSuccessWithLoginResultSuccess()
     {
-        // Arrange
         var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
 
         var userManagerMock = CreateUserManagerMock();
@@ -171,10 +157,8 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.LoginAsync(user.Email!, "P@ssw0rd!", rememberMe: false);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(LoginResult.Success, result.Value);
     }
@@ -182,7 +166,6 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_NonExistentUser_ReturnsSuccessWithInvalidCredentials()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
 
@@ -191,10 +174,8 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.LoginAsync("ghost@example.com", "P@ssw0rd!", rememberMe: false);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(LoginResult.InvalidCredentials, result.Value);
     }
@@ -202,7 +183,6 @@ public class AuthServiceTests
     [Fact]
     public async Task LoginAsync_LockedOutUser_ReturnsSuccessWithLockedOut()
     {
-        // Arrange
         var user = new ApplicationUser { Email = "locked@example.com", UserName = "locked" };
 
         var userManagerMock = CreateUserManagerMock();
@@ -216,20 +196,16 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.LoginAsync(user.Email!, "wrong", rememberMe: false);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(LoginResult.LockedOut, result.Value);
     }
 
-    // --- LogoutAsync tests ---
 
     [Fact]
     public async Task LogoutAsync_ReturnsSuccess()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
         signInManagerMock.Setup(s => s.SignOutAsync()).Returns(Task.CompletedTask);
@@ -237,20 +213,16 @@ public class AuthServiceTests
         var userRepoMock = new Mock<IUserRepository>();
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.LogoutAsync();
 
-        // Assert
         Assert.True(result.IsSuccess);
         signInManagerMock.Verify(s => s.SignOutAsync(), Times.Once);
     }
 
-    // --- GeneratePasswordResetTokenAsync tests ---
 
     [Fact]
     public async Task GeneratePasswordResetTokenAsync_ValidEmail_ReturnsToken()
     {
-        // Arrange
         var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
 
         var userManagerMock = CreateUserManagerMock();
@@ -262,10 +234,8 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.GeneratePasswordResetTokenAsync(user.Email!);
 
-        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal("reset-token-123", result.Value);
         userRepoMock.Verify(r => r.GeneratePasswordResetTokenAsync(user), Times.Once);
@@ -274,7 +244,6 @@ public class AuthServiceTests
     [Fact]
     public async Task GeneratePasswordResetTokenAsync_InvalidEmail_ReturnsFailure()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
 
@@ -283,20 +252,16 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.GeneratePasswordResetTokenAsync("ghost@example.com");
 
-        // Assert
         Assert.False(result.IsSuccess);
         userRepoMock.Verify(r => r.GeneratePasswordResetTokenAsync(It.IsAny<ApplicationUser>()), Times.Never);
     }
 
-    // --- ResetPasswordAsync tests ---
 
     [Fact]
     public async Task ResetPasswordAsync_ValidToken_ReturnsSuccess()
     {
-        // Arrange
         var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
 
         var userManagerMock = CreateUserManagerMock();
@@ -309,10 +274,8 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.ResetPasswordAsync(user.Email!, "valid-token", "NewP@ss1!");
 
-        // Assert
         Assert.True(result.IsSuccess);
         userRepoMock.Verify(r => r.ResetPasswordAsync(user, "valid-token", "NewP@ss1!"), Times.Once);
     }
@@ -320,7 +283,6 @@ public class AuthServiceTests
     [Fact]
     public async Task ResetPasswordAsync_InvalidEmail_ReturnsFailure()
     {
-        // Arrange
         var userManagerMock = CreateUserManagerMock();
         var signInManagerMock = CreateSignInManagerMock(userManagerMock);
 
@@ -329,17 +291,14 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.ResetPasswordAsync("ghost@example.com", "token", "NewP@ss1!");
 
-        // Assert
         Assert.False(result.IsSuccess);
     }
 
     [Fact]
     public async Task ResetPasswordAsync_InvalidToken_ReturnsFailure()
     {
-        // Arrange
         var user = new ApplicationUser { Email = "user@example.com", UserName = "user" };
         var tokenError = IdentityResult.Failed(
             new IdentityError { Code = "InvalidToken", Description = "Invalid token." });
@@ -354,10 +313,8 @@ public class AuthServiceTests
 
         var sut = CreateSut(signInManagerMock, userRepoMock);
 
-        // Act
         var result = await sut.ResetPasswordAsync(user.Email!, "bad-token", "NewP@ss1!");
 
-        // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Invalid token", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
