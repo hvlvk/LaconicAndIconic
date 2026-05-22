@@ -18,6 +18,7 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
             .Include(r => r.Category)
             .Include(r => r.Author)
             .Include(r => r.Ratings)
+            .Include(r => r.SavedRecipes)
             .AsNoTracking();
 
         if (filter.CategoryId.HasValue)

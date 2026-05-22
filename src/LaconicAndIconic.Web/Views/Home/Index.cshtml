@@ -4,25 +4,25 @@ ViewData["Title"] = "Recipes";
 }
 
 <style>
-    .favorite-btn svg[fill="none"] {
+    .favorite-btn svg {
         stroke: #999;
         color: #999;
-        transition: stroke 0.15s, color 0.15s;
+        fill: none;
+        transition: stroke 0.15s, color 0.15s, fill 0.15s;
     }
 
-    .favorite-btn:hover svg[fill="none"] {
+    .favorite-btn:hover svg:not(.saved) {
         stroke: var(--ck-orange);
         color: var(--ck-orange);
     }
 
-    .favorite-btn svg[fill="currentColor"] {
+    .favorite-btn svg.saved {
         color: #E85454;
         fill: #E85454;
         stroke: #E85454;
-        transition: color 0.15s, fill 0.15s, stroke 0.15s;
     }
 
-    .favorite-btn:hover svg[fill="currentColor"] {
+    .favorite-btn:hover svg.saved {
         color: #d43737;
         fill: #d43737;
         stroke: #d43737;
@@ -43,7 +43,55 @@ ViewData["Title"] = "Recipes";
     }
 </style>
 
+<script>
+    function toggleSaveRecipe(event, recipeId, isSaved) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const button = event.target.closest('.favorite-btn');
+        const svg = button.querySelector('svg');
+
+        const url = isSaved
+            ? `/Recipe/Unsave/${recipeId}`
+            : `/Recipe/Save/${recipeId}`;
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+                      document.querySelector('input[name="csrf"]')?.value;
+
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                '__RequestVerificationToken': token || ''
+            })
+        };
+
+        fetch(url, fetchOptions)
+            .then(response => {
+                if (response.ok) {
+                    if (isSaved) {
+                        svg.classList.remove('saved');
+                        button.title = 'Save recipe';
+                    } else {
+                        svg.classList.add('saved');
+                        button.title = 'Remove from saved';
+                    }
+                } else {
+                    console.error('Error:', response.status, response.statusText);
+                    alert('Error saving/unsaving recipe');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error saving/unsaving recipe');
+            });
+    }
+</script>
+
 <div class="recipe-grid">
+    @Html.AntiForgeryToken()
     @if (Model.Recipes.Count == 0)
     {
     <p class="home-empty-results">Рецептів не знайдено. Спробуйте змінити пошук або фільтри.</p>
@@ -64,31 +112,17 @@ ViewData["Title"] = "Recipes";
             }
             @if (User.Identity?.IsAuthenticated == true)
             {
-            @if (recipe.IsSaved)
-            {
-            <form asp-controller="Recipe" asp-action="Unsave" asp-route-id="@recipe.Id" method="post" style="display:inline;">
-                <button type="submit" class="favorite-btn" title="Remove from saved" onclick="event.stopPropagation(); event.preventDefault(); this.form.submit();">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-                        <!-- Виправлений шлях для зафарбованого серця -->
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </button>
-            </form>
-            }
-            else
-            {
-            <form asp-controller="Recipe" asp-action="Save" asp-route-id="@recipe.Id" method="post" style="display:inline;">
-                <button type="submit" class="favorite-btn" title="Save recipe" onclick="event.stopPropagation(); event.preventDefault(); this.form.submit();">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <form style="display:inline;">
+                <button type="button" class="favorite-btn" title="@(recipe.IsSaved ? "Remove from saved" : "Save recipe")" onclick="toggleSaveRecipe(event, @recipe.Id, @(recipe.IsSaved ? "true" : "false"));">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="@(recipe.IsSaved ? "saved" : "")">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
                 </button>
             </form>
             }
-            }
             else
             {
-            <button class="favorite-btn" onclick="alert('Будь ласка, увійдіть до свого облікового запису'); return false;">
+            <button class="favorite-btn" type="button" onclick="alert('Будь ласка, увійдіть до свого облікового запису'); return false;" title="Login to save recipe">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.84-8.84 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                 </svg>
