@@ -116,3 +116,21 @@ jobs:
           aws elasticbeanstalk wait environment-updated \
             --application-name "${EB_APPLICATION_NAME}" \
             --environment-names "${EB_ENVIRONMENT_NAME}"
+
+      - name: Verify Elastic Beanstalk deployment
+        run: |
+          ACTUAL_VERSION="$(aws elasticbeanstalk describe-environments \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --environment-names "${EB_ENVIRONMENT_NAME}" \
+            --query 'Environments[0].VersionLabel' \
+            --output text)"
+
+          if [ "${ACTUAL_VERSION}" != "${VERSION_LABEL}" ]; then
+            aws elasticbeanstalk describe-events \
+              --application-name "${EB_APPLICATION_NAME}" \
+              --environment-name "${EB_ENVIRONMENT_NAME}" \
+              --max-records 10 \
+              --output table
+            echo "::error::Elastic Beanstalk is running ${ACTUAL_VERSION}, expected ${VERSION_LABEL}."
+            exit 1
+          fi
