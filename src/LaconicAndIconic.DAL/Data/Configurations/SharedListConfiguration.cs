@@ -20,6 +20,6 @@ public class SharedListConfiguration : IEntityTypeConfiguration<SharedList>
         builder.HasOne(sl => sl.Owner)
             .WithMany(u => u.OwnedSharedLists)
             .HasForeignKey(sl => sl.OwnerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
