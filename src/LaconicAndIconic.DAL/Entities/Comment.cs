@@ -7,8 +7,8 @@ public class Comment : BaseEntity
 
     public string Content { get; set; } = string.Empty;
 
-    public required Recipe Recipe { get; set; }
-    public required ApplicationUser Author { get; set; }
+    public Recipe Recipe { get; set; } = null!;
+    public ApplicationUser Author { get; set; } = null!;
 
     public ICollection<CommentLike> Likes { get; } = [];
 }
