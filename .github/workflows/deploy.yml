@@ -95,7 +95,7 @@ jobs:
       - name: Upload application version
         run: |
           set -euo pipefail
-          VERSION_LABEL="${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}"
+          VERSION_LABEL="${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
           S3_KEY="${EB_S3_KEY_PREFIX}/${VERSION_LABEL}.zip"
 
           aws s3 cp "${DEPLOY_PACKAGE}" "s3://${EB_S3_BUCKET}/${S3_KEY}"
