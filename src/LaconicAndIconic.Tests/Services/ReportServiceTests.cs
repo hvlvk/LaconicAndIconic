@@ -10,13 +10,13 @@ namespace LaconicAndIconic.Tests.Services;
 
 public class ReportServiceTests
 {
-    private readonly Mock<IRepository<Report>> _reportRepositoryMock;
+    private readonly Mock<IReportRepository> _reportRepositoryMock;
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly ReportService _service;
 
     public ReportServiceTests()
     {
-        _reportRepositoryMock = new Mock<IRepository<Report>>();
+        _reportRepositoryMock = new Mock<IReportRepository>();
         _recipeRepositoryMock = new Mock<IRecipeRepository>();
         _service = new ReportService(_reportRepositoryMock.Object, _recipeRepositoryMock.Object);
     }
@@ -125,11 +125,7 @@ public class ReportServiceTests
     {
         var olderReport = CreateReport(1, DateTime.UtcNow.AddHours(-2), "Older");
         var newerReport = CreateReport(2, DateTime.UtcNow, "Newer");
-        var mockDbSet = new List<Report> { olderReport, newerReport }
-            .AsQueryable()
-            .BuildMockDbSet();
-
-        _reportRepositoryMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _reportRepositoryMock.Setup(r => r.GetAllWithUsersAsync()).ReturnsAsync(new List<Report> { newerReport, olderReport });
 
         var result = await _service.GetAllAsync();
 
@@ -146,8 +142,7 @@ public class ReportServiceTests
     public async Task GetByIdAsync_ReportExists_ReturnsMappedReport()
     {
         var report = CreateReport(8, DateTime.UtcNow, "Borscht");
-        var mockDbSet = new List<Report> { report }.AsQueryable().BuildMockDbSet();
-        _reportRepositoryMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _reportRepositoryMock.Setup(r => r.GetByIdWithUsersAsync(8)).ReturnsAsync(report);
 
         var result = await _service.GetByIdAsync(8);
 
@@ -162,8 +157,7 @@ public class ReportServiceTests
     [Fact]
     public async Task GetByIdAsync_ReportMissing_ReturnsFailure()
     {
-        var mockDbSet = Array.Empty<Report>().AsQueryable().BuildMockDbSet();
-        _reportRepositoryMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _reportRepositoryMock.Setup(r => r.GetByIdWithUsersAsync(999)).ReturnsAsync((Report?)null);
 
         var result = await _service.GetByIdAsync(999);
 

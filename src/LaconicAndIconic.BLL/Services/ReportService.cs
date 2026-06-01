@@ -3,16 +3,16 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class ReportService : IReportService
 {
-    private readonly IRepository<Report> _reportRepository;
+    private readonly IReportRepository _reportRepository;
     private readonly IRecipeRepository _recipeRepository;
 
-    public ReportService(IRepository<Report> reportRepository, IRecipeRepository recipeRepository)
+    public ReportService(IReportRepository reportRepository, IRecipeRepository recipeRepository)
     {
         _reportRepository = reportRepository;
         _recipeRepository = recipeRepository;
@@ -59,35 +59,27 @@ public class ReportService : IReportService
 
     public async Task<Result<IEnumerable<ReportDto>>> GetAllAsync()
     {
-        var reports = await _reportRepository.GetQueryable()
-            .Include(r => r.Recipe)
-            .Include(r => r.Reporter)
-            .Include(r => r.ReportedUser)
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ReportDto
-            {
-                Id = r.Id,
-                RecipeId = r.RecipeId,
-                RecipeTitle = r.Recipe.Title,
-                ReporterId = r.ReporterId,
-                ReporterName = r.Reporter.UserName ?? string.Empty,
-                ReportedUserId = r.ReportedUserId,
-                ReportedUserName = r.ReportedUser.UserName ?? string.Empty,
-                Reason = r.Reason,
-                CreatedAt = r.CreatedAt
-            })
-            .ToListAsync();
+        var reportList = await _reportRepository.GetAllWithUsersAsync();
+        
+        var reports = reportList.Select(r => new ReportDto
+        {
+            Id = r.Id,
+            RecipeId = r.RecipeId,
+            RecipeTitle = r.Recipe.Title,
+            ReporterId = r.ReporterId,
+            ReporterName = r.Reporter?.UserName ?? string.Empty,
+            ReportedUserId = r.ReportedUserId,
+            ReportedUserName = r.ReportedUser?.UserName ?? string.Empty,
+            Reason = r.Reason,
+            CreatedAt = r.CreatedAt
+        }).ToList();
 
         return reports;
     }
 
     public async Task<Result<ReportDto>> GetByIdAsync(int reportId)
     {
-        var report = await _reportRepository.GetQueryable()
-            .Include(r => r.Recipe)
-            .Include(r => r.Reporter)
-            .Include(r => r.ReportedUser)
-            .FirstOrDefaultAsync(r => r.Id == reportId);
+        var report = await _reportRepository.GetByIdWithUsersAsync(reportId);
 
         if (report == null)
         {
