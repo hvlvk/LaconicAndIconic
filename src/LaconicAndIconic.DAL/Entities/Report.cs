@@ -7,7 +7,7 @@ public class Report : BaseEntity
     public int ReportedUserId { get; set; }
     public string Reason { get; set; } = string.Empty;
 
-    public Recipe Recipe { get; set; } = null!;
-    public ApplicationUser Reporter { get; set; } = null!;
-    public ApplicationUser ReportedUser { get; set; } = null!;
+    public required Recipe Recipe { get; set; }
+    public required ApplicationUser Reporter { get; set; }
+    public required ApplicationUser ReportedUser { get; set; }
 }

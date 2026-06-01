@@ -14,8 +14,8 @@ public class Recipe : BaseEntity
     public string? ExternalSource { get; set; }
     public string? ExternalId { get; set; }
 
-    public Category Category { get; set; } = null!;
-    public ApplicationUser Author { get; set; } = null!;
+    public required Category Category { get; set; }
+    public required ApplicationUser Author { get; set; }
     public ICollection<Rating> Ratings { get; } = [];
     public ICollection<Comment> Comments { get; } = [];
     public ICollection<SharedListRecipe> SharedListRecipes { get; } = [];

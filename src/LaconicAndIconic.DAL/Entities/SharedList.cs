@@ -6,7 +6,7 @@ public class SharedList : BaseEntity
     public string? Description { get; set; }
     public int OwnerId { get; set; }
 
-    public ApplicationUser Owner { get; set; } = null!;
+    public required ApplicationUser Owner { get; set; }
     public ICollection<SharedListUser> SharedListUsers { get; } = [];
     public ICollection<SharedListRecipe> SharedListRecipes { get; } = [];
 }
