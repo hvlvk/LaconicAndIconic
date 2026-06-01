@@ -1,4 +1,4 @@
-name: Build, Test & Deploy to Azure
+name: Build, Test & Deploy to AWS
 
 on:
   push:
@@ -8,12 +8,20 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 env:
   DOTNET_VERSION: '8.0.x'
-  AZURE_WEBAPP_NAME: 'app-laconic-and-iconic'
-  PROJECT_PATH: 'src/LaconicAndIconic.Web/LaconicAndIconic.Web.csproj'
-  TEST_PATH: 'src/LaconicAndIconic.Tests/LaconicAndIconic.Tests.csproj'
-  PUBLISH_DIR: '${{ github.workspace }}/publish'
+  SOLUTION_PATH: src/LaconicAndIconic.sln
+  PROJECT_PATH: src/LaconicAndIconic.Web/LaconicAndIconic.Web.csproj
+  PUBLISH_DIR: ${{ github.workspace }}/publish
+  DEPLOY_PACKAGE: ${{ github.workspace }}/deploy.zip
+  AWS_REGION: eu-central-1
+  EB_APPLICATION_NAME: cookit
+  EB_ENVIRONMENT_NAME: cookit-prod
+  EB_S3_BUCKET: elasticbeanstalk-eu-central-1-913529219550
+  EB_S3_KEY_PREFIX: cookit
 
 jobs:
   build-and-test:
@@ -30,50 +38,81 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore src/LaconicAndIconic.sln
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
 
       - name: Build solution
-        run: dotnet build src/LaconicAndIconic.sln --no-restore --configuration Release
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test ${{ env.TEST_PATH }} --no-build --configuration Release --verbosity normal
-
-      - name: Publish web app
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: >
-          dotnet publish ${{ env.PROJECT_PATH }}
-          --configuration Release
-          --runtime linux-x64
-          --self-contained true
-          --output ${{ env.PUBLISH_DIR }}
-
-      - name: Upload artifact for deployment
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/upload-artifact@v4
-        with:
-          name: webapp
-          path: ${{ env.PUBLISH_DIR }}
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-build --verbosity normal
 
   deploy:
-    name: Deploy to Azure
+    name: Deploy to Elastic Beanstalk
     runs-on: ubuntu-latest
     needs: build-and-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
+    permissions:
+      contents: read
+      id-token: write
+
     environment:
       name: production
-      url: https://app-laconic-and-iconic-cufqhuajgeeqg5ay.germanywestcentral-01.azurewebsites.net
+      url: http://cookit-prod.eba-qkxkengi.eu-central-1.elasticbeanstalk.com
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: webapp
-          path: ${{ env.PUBLISH_DIR }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.PUBLISH_DIR }}
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Publish web app
+        run: >
+          dotnet publish ${{ env.PROJECT_PATH }}
+          --configuration Release
+          --output ${{ env.PUBLISH_DIR }}
+
+      - name: Add Elastic Beanstalk Procfile
+        run: cp Procfile "${{ env.PUBLISH_DIR }}/Procfile"
+
+      - name: Create deployment package
+        run: |
+          cd "${{ env.PUBLISH_DIR }}"
+          zip -r "${{ env.DEPLOY_PACKAGE }}" .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Upload application version
+        run: |
+          set -euo pipefail
+          VERSION_LABEL="${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}"
+          S3_KEY="${EB_S3_KEY_PREFIX}/${VERSION_LABEL}.zip"
+
+          aws s3 cp "${DEPLOY_PACKAGE}" "s3://${EB_S3_BUCKET}/${S3_KEY}"
+          aws elasticbeanstalk create-application-version \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --version-label "${VERSION_LABEL}" \
+            --source-bundle S3Bucket="${EB_S3_BUCKET}",S3Key="${S3_KEY}"
+
+          echo "VERSION_LABEL=${VERSION_LABEL}" >> "$GITHUB_ENV"
+
+      - name: Deploy application version
+        run: |
+          aws elasticbeanstalk update-environment \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --environment-name "${EB_ENVIRONMENT_NAME}" \
+            --version-label "${VERSION_LABEL}"
+
+          aws elasticbeanstalk wait environment-updated \
+            --application-name "${EB_APPLICATION_NAME}" \
+            --environment-names "${EB_ENVIRONMENT_NAME}"
