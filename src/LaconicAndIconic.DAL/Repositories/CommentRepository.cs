@@ -16,6 +16,7 @@ public class CommentRepository : Repository<Comment>, ICommentRepository
         return await Context.Set<Comment>()
             .Where(c => c.RecipeId == recipeId)
             .Include(c => c.Author)
+            .Include(c => c.Likes)
             .OrderByDescending(c => c.Likes.Count)
             .ThenByDescending(c => c.CreatedAt)
             .ToListAsync();
