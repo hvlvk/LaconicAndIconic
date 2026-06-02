@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using LaconicAndIconic.DAL.Entities;
+using LaconicAndIconic.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 
 namespace LaconicAndIconic.DAL.Interfaces;
@@ -8,6 +9,8 @@ public interface IUserRepository
 {
     Task<ApplicationUser?> FindByEmailAsync(string email);
     Task<ApplicationUser?> FindByIdAsync(int id);
+    Task<UserProfileProjection?> GetUserProfileByIdAsync(int id, int? currentUserId = null);
+    Task<IEnumerable<UserProfileProjection>> GetUserProfilesAsync(IEnumerable<int>? userIds = null, int? currentUserId = null);
     Task<bool> AnyAsync(Expression<Func<ApplicationUser, bool>> predicate);
     Task<IdentityResult> CreateAsync(ApplicationUser user, string password);   
     Task<IdentityResult> UpdateAsync(ApplicationUser user);

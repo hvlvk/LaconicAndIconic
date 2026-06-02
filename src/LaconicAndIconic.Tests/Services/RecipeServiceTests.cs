@@ -175,10 +175,10 @@ public class RecipeServiceTests : IDisposable
         };
 
         _recipeRepositoryMock
-            .Setup(r => r.FindAsync(
+            .Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Recipe, bool>>>(),
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
-            .ReturnsAsync([recipe]);
+            .ReturnsAsync(recipe);
 
         var result = await _service.GetRecipeByIdAsync(5);
 
@@ -230,10 +230,10 @@ public class RecipeServiceTests : IDisposable
         });
 
         _recipeRepositoryMock
-            .Setup(r => r.FindAsync(
+            .Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Recipe, bool>>>(),
                 It.IsAny<Expression<Func<Recipe, object>>[]>() ))
-            .ReturnsAsync([recipe]);
+            .ReturnsAsync(recipe);
 
         var result = await _service.GetRecipeByIdAsync(6, 10);
 
@@ -248,10 +248,10 @@ public class RecipeServiceTests : IDisposable
     public async Task GetRecipeByIdAsync_RecipeDoesNotExist_ReturnsFailure()
     {
         _recipeRepositoryMock
-            .Setup(r => r.FindAsync(
+            .Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Recipe, bool>>>(),
                 It.IsAny<Expression<Func<Recipe, object>>[]>()))
-            .ReturnsAsync([]);
+            .ReturnsAsync((Recipe?)null);
 
         var result = await _service.GetRecipeByIdAsync(404);
 
@@ -322,10 +322,10 @@ public class RecipeServiceTests : IDisposable
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(20)).ReturnsAsync(recipe);
         _userRepositoryMock.Setup(r => r.FindByIdAsync(7)).ReturnsAsync(user);
-        _ratingRepositoryMock.Setup(r => r.FindAsync(
+        _ratingRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Rating, bool>>>(),
                 It.IsAny<Expression<Func<Rating, object>>[]>() ))
-            .ReturnsAsync([]);
+            .ReturnsAsync((Rating?)null);
         _ratingRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Rating>())).Returns(Task.CompletedTask);
 
         var result = await _service.RateRecipeAsync(20, 7, 5);
@@ -360,10 +360,10 @@ public class RecipeServiceTests : IDisposable
 
         _recipeRepositoryMock.Setup(r => r.GetByIdAsync(21)).ReturnsAsync(recipe);
         _userRepositoryMock.Setup(r => r.FindByIdAsync(8)).ReturnsAsync(user);
-        _ratingRepositoryMock.Setup(r => r.FindAsync(
+        _ratingRepositoryMock.Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Rating, bool>>>(),
                 It.IsAny<Expression<Func<Rating, object>>[]>() ))
-            .ReturnsAsync([existingRating]);
+            .ReturnsAsync(existingRating);
 
         var result = await _service.RateRecipeAsync(21, 8, 5);
 

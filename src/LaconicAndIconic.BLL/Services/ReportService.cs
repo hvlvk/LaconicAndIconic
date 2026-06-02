@@ -4,7 +4,6 @@ using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
 
-
 namespace LaconicAndIconic.BLL.Services;
 
 public class ReportService : IReportService

@@ -1,6 +1,7 @@
 using System.Globalization;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
+using LaconicAndIconic.DAL.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,36 @@ public class UserRepository : IUserRepository
 
     public Task<ApplicationUser?> FindByIdAsync(int id)
         => _userManager.FindByIdAsync(id.ToString(CultureInfo.InvariantCulture));
+
+    public async Task<UserProfileProjection?> GetUserProfileByIdAsync(int id, int? currentUserId = null)
+    {
+        return await _userManager.Users
+            .Where(u => u.Id == id)
+            .Select(u => new UserProfileProjection
+            {
+                User = u,
+                FollowerCount = u.Followers.Count,
+                FollowingCount = u.Following.Count,
+                IsSubscribed = currentUserId.HasValue && u.Followers.Any(f => f.FollowerId == currentUserId.Value)
+            }).FirstOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<UserProfileProjection>> GetUserProfilesAsync(IEnumerable<int>? userIds = null, int? currentUserId = null)
+    {
+        var query = _userManager.Users.AsQueryable();
+        if (userIds != null)
+        {
+            query = query.Where(u => userIds.Contains(u.Id));
+        }
+
+        return await query.Select(u => new UserProfileProjection
+        {
+            User = u,
+            FollowerCount = u.Followers.Count,
+            FollowingCount = u.Following.Count,
+            IsSubscribed = currentUserId.HasValue && u.Followers.Any(f => f.FollowerId == currentUserId.Value)
+        }).ToListAsync();
+    }
 
     public Task<bool> AnyAsync(System.Linq.Expressions.Expression<Func<ApplicationUser, bool>> predicate)
         => EntityFrameworkQueryableExtensions.AnyAsync(_userManager.Users, predicate);
