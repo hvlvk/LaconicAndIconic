@@ -10,7 +10,6 @@ public class ReportService : IReportService
 {
     private readonly IReportRepository _reportRepository;
     private readonly IRecipeRepository _recipeRepository;
-
     public ReportService(IReportRepository reportRepository, IRecipeRepository recipeRepository)
     {
         _reportRepository = reportRepository;

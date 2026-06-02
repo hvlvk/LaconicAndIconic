@@ -96,9 +96,6 @@ public class CommentService : ICommentService
             return Result.Failure("Коментар не знадено");
         }
 
-        
-
-        
         if (userId != 0)
         {
             if (comment.AuthorId != userId)

@@ -1,8 +1,9 @@
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
-using LaconicAndIconic.Web.Models;
-using Microsoft.AspNetCore.Mvc;
 using LaconicAndIconic.Web.Filters;
+using LaconicAndIconic.Web.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LaconicAndIconic.Web.Controllers;
 
@@ -16,6 +17,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     [RateLimiting(5)]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -24,6 +26,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
@@ -52,6 +55,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     [RateLimiting(5)]
     public IActionResult Register()
     {
@@ -59,6 +63,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
@@ -79,7 +84,7 @@ public class AccountController : Controller
         if (result.IsSuccess)
         {
             await _authService.LoginAsync(model.Email, model.Password, rememberMe: false);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
         ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Registration failed.");
@@ -87,20 +92,23 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
         await _authService.LogoutAsync();
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction(nameof(HomeController.Index), "Home");
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ForgotPassword()
     {
         return View();
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
     {
@@ -122,12 +130,14 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ForgotPasswordConfirmation()
     {
         return View();
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ResetPassword(string? token = null, string? email = null)
     {
         if (token is null)
@@ -145,6 +155,7 @@ public class AccountController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
@@ -165,6 +176,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult ResetPasswordConfirmation()
     {
         return View();
