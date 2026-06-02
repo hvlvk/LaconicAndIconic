@@ -37,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISharedListRepository, SharedListRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
 
         return services;
     }
