@@ -20,7 +20,6 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
             .Include(r => r.Ratings)
             .AsNoTracking()
             .AsSplitQuery();
-            
 
         if (filter.CategoryId.HasValue)
         {
@@ -32,10 +31,12 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
             var searchWords = filter.SearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             foreach (var word in searchWords)
             {
+                var pattern = $"%{EscapeLikePattern(word)}%";
+
                 query = query.Where(r =>
-                    r.Title.Contains(word) ||
-                    r.Category.Name.Contains(word) ||
-                    r.Description.Contains(word));
+                    EF.Functions.ILike(r.Title, pattern) ||
+                    EF.Functions.ILike(r.Category.Name, pattern) ||
+                    EF.Functions.ILike(r.Description, pattern));
             }
         }
 
@@ -58,6 +59,14 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
             CategoryId = filter.CategoryId,
             SortBy = filter.SortBy
         };
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value
+            .Replace(@"\", @"\\", StringComparison.Ordinal)
+            .Replace("%", @"\%", StringComparison.Ordinal)
+            .Replace("_", @"\_", StringComparison.Ordinal);
     }
 
     private static IQueryable<Recipe> ApplySorting(IQueryable<Recipe> query, string? sortBy)

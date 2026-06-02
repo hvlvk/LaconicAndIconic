@@ -138,8 +138,16 @@ namespace LaconicAndIconic.BLL.Decorators
 
             if (result.IsSuccess)
             {
+                var recipeResult = await _innerService.GetRecipeByIdAsync(recipeId);
+
+                _cacheInvalidationService.InvalidateRecipesCache();
                 _cacheInvalidationService.InvalidateRecipeCache(recipeId);
                 _cacheInvalidationService.InvalidateRecipeRatingsCache(recipeId);
+
+                if (recipeResult.IsSuccess)
+                {
+                    _cacheInvalidationService.InvalidateAuthorRecipesCache(recipeResult.Value!.AuthorId);
+                }
             }
 
             return result;
