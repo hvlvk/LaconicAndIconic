@@ -38,7 +38,14 @@ public class UserServiceTests
     {
         var userId = 1;
         var user = new ApplicationUser { Id = userId, UserName = "testuser" };
-        _userRepositoryMock.Setup(repo => repo.FindByIdAsync(userId)).ReturnsAsync(user);
+        var projection = new LaconicAndIconic.DAL.Models.UserProfileProjection
+        {
+            User = user,
+            FollowerCount = 0,
+            FollowingCount = 0,
+            IsSubscribed = false
+        };
+        _userRepositoryMock.Setup(repo => repo.GetUserProfileByIdAsync(userId, null)).ReturnsAsync(projection);
 
         var result = await _userService.GetUserProfileByIdAsync(userId);
 
@@ -52,7 +59,7 @@ public class UserServiceTests
     public async Task GetUserProfileByIdAsync_WhenUserDoesNotExist_ReturnsFailure()
     {
         var userId = 1;
-        _userRepositoryMock.Setup(repo => repo.FindByIdAsync(userId)).ReturnsAsync((ApplicationUser?)null);
+        _userRepositoryMock.Setup(repo => repo.GetUserProfileByIdAsync(userId, null)).ReturnsAsync((LaconicAndIconic.DAL.Models.UserProfileProjection?)null);
 
         var result = await _userService.GetUserProfileByIdAsync(userId);
 

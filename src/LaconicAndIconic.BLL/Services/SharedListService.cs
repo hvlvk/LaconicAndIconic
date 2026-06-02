@@ -2,20 +2,19 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class SharedListService : ISharedListService
 {
-    private readonly IRepository<SharedList> _sharedListRepository;
+    private readonly ISharedListRepository _sharedListRepository;
     private readonly IRepository<SharedListUser> _sharedListUserRepository;
     private readonly IRepository<SharedListRecipe> _sharedListRecipeRepository;
     private readonly IUserRepository _userRepository;
     private readonly IRepository<Recipe> _recipeRepository;
 
     public SharedListService(
-        IRepository<SharedList> sharedListRepository,
+        ISharedListRepository sharedListRepository,
         IRepository<SharedListUser> sharedListUserRepository,
         IRepository<SharedListRecipe> sharedListRecipeRepository,
         IUserRepository userRepository,
@@ -109,13 +108,7 @@ public class SharedListService : ISharedListService
 
     public async Task<Result<SharedListDetailDto>> GetByIdAsync(int sharedListId, int userId)
     {
-        var sharedList = await _sharedListRepository.GetQueryable()
-            .Include(sl => sl.Owner)
-            .Include(sl => sl.SharedListUsers)
-                .ThenInclude(slu => slu.User)
-            .Include(sl => sl.SharedListRecipes)
-                .ThenInclude(slr => slr.Recipe)
-            .FirstOrDefaultAsync(sl => sl.Id == sharedListId);
+        var sharedList = await _sharedListRepository.GetWithDetailsAsync(sharedListId);
 
         if (sharedList == null)
         {
@@ -153,12 +146,7 @@ public class SharedListService : ISharedListService
 
     public async Task<Result<IEnumerable<SharedListDto>>> GetListsByUserAsync(int userId)
     {
-        var lists = await _sharedListRepository.GetQueryable()
-            .Include(sl => sl.Owner)
-            .Include(sl => sl.SharedListUsers)
-            .Include(sl => sl.SharedListRecipes)
-            .Where(sl => sl.OwnerId == userId || sl.SharedListUsers.Any(slu => slu.UserId == userId))
-            .ToListAsync();
+        var lists = await _sharedListRepository.GetListsByUserAsync(userId);
 
         var dtos = lists.Select(sl => new SharedListDto
         {
@@ -237,7 +225,7 @@ public class SharedListService : ISharedListService
             return Result.Failure("Власник не може видалити себе зі списку");
         }
 
-        var membership = await _sharedListUserRepository.GetQueryable()
+        var membership = await _sharedListUserRepository
             .FirstOrDefaultAsync(slu => slu.SharedListId == sharedListId && slu.UserId == targetUserId);
 
         if (membership == null)
@@ -253,9 +241,8 @@ public class SharedListService : ISharedListService
 
     public async Task<Result> AddRecipeAsync(int sharedListId, int userId, int recipeId)
     {
-        var sharedList = await _sharedListRepository.GetQueryable()
-            .Include(sl => sl.SharedListUsers)
-            .FirstOrDefaultAsync(sl => sl.Id == sharedListId);
+        var sharedList = await _sharedListRepository
+            .FirstOrDefaultAsync(sl => sl.Id == sharedListId, sl => sl.SharedListUsers);
 
         if (sharedList == null)
         {
@@ -294,9 +281,8 @@ public class SharedListService : ISharedListService
 
     public async Task<Result> RemoveRecipeAsync(int sharedListId, int userId, int recipeId)
     {
-        var sharedList = await _sharedListRepository.GetQueryable()
-            .Include(sl => sl.SharedListUsers)
-            .FirstOrDefaultAsync(sl => sl.Id == sharedListId);
+        var sharedList = await _sharedListRepository
+            .FirstOrDefaultAsync(sl => sl.Id == sharedListId, sl => sl.SharedListUsers);
 
         if (sharedList == null)
         {
@@ -308,7 +294,7 @@ public class SharedListService : ISharedListService
             return Result.Failure("У вас немає доступу до цього списку");
         }
 
-        var entry = await _sharedListRecipeRepository.GetQueryable()
+        var entry = await _sharedListRecipeRepository
             .FirstOrDefaultAsync(slr => slr.SharedListId == sharedListId && slr.RecipeId == recipeId);
 
         if (entry == null)

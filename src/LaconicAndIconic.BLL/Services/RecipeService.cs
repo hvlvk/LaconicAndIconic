@@ -2,45 +2,28 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class RecipeService : IRecipeService
 {
-    private const string AllRecipesCacheKeyPrefix = "all_recipes";
-    private const string RecipeCacheKeyPrefix = "recipe_";
-    private const string AuthorRecipesCacheKeyPrefix = "author_recipes_";
-
     private readonly IRecipeRepository _recipeRepository;
     private readonly IFileService _fileService;
     private readonly IRepository<Category> _categoryRepository;
     private readonly IRepository<Rating> _ratingRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IMemoryCache _memoryCache;
-    private readonly ICacheInvalidationService _cacheInvalidationService;
-    private readonly TimeSpan _recipesCacheDuration;
-
     public RecipeService(
         IRecipeRepository recipeRepository,
         IFileService fileService,
         IRepository<Category> categoryRepository,
         IRepository<Rating> ratingRepository,
-        IUserRepository userRepository,
-        IMemoryCache memoryCache,
-        ICacheInvalidationService cacheInvalidationService,
-        IOptions<CachingOptions> cachingOptions)
+        IUserRepository userRepository)
     {
         _recipeRepository = recipeRepository;
         _fileService = fileService;
         _categoryRepository = categoryRepository;
         _ratingRepository = ratingRepository;
         _userRepository = userRepository;
-        _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
-        _cacheInvalidationService = cacheInvalidationService ?? throw new ArgumentNullException(nameof(cacheInvalidationService));
-        ArgumentNullException.ThrowIfNull(cachingOptions);
-        _recipesCacheDuration = TimeSpan.FromMinutes(cachingOptions.Value.RecipesCacheLifetimeMinutes);
     }
 
     public async Task<Result<RecipeDto>> CreateRecipeAsync(int authorId, CreateRecipeDto dto)
@@ -92,9 +75,6 @@ public class RecipeService : IRecipeService
 
         await _recipeRepository.AddAsync(recipe);
         await _recipeRepository.SaveChangesAsync();
-
-        _cacheInvalidationService.InvalidateRecipesCache();
-        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
 
         var responseDto = new RecipeDto
         {
@@ -173,48 +153,23 @@ public class RecipeService : IRecipeService
         _recipeRepository.Update(recipe);
         await _recipeRepository.SaveChangesAsync();
 
-        _cacheInvalidationService.InvalidateRecipesCache();
-        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
-        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
-
         return Result.Success();
     }
 
     public async Task<Result<RecipeDto>> GetRecipeByIdAsync(int recipeId, int? currentUserId = null)
     {
-        var cacheKey = $"{RecipeCacheKeyPrefix}{recipeId}";
-        if (currentUserId == null && _memoryCache.TryGetValue(cacheKey, out RecipeDto? cachedRecipe))
-        {
-            return cachedRecipe!;
-        }
-
-        var recipes = await _recipeRepository.FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author, r => r.Ratings);
-        var recipe = recipes.FirstOrDefault();
+        var recipe = await _recipeRepository.FirstOrDefaultAsync(r => r.Id == recipeId, r => r.Category, r => r.Author, r => r.Ratings);
 
         if (recipe == null)
         {
             return "Рецепт не знайдено";
         }
 
-        var dto = MapToDto(recipe, currentUserId);
-
-        if (currentUserId == null)
-        {
-            _memoryCache.Set(cacheKey, dto, _recipesCacheDuration);
-        }
-
-        return dto;
+        return MapToDto(recipe, currentUserId);
     }
 
     public async Task<Result<IEnumerable<RecipeDto>>> GetRecipesByAuthorIdAsync(int authorId)
     {
-        var cacheKey = $"{AuthorRecipesCacheKeyPrefix}{authorId}";
-
-        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
-        {
-            return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
-        }
-
         var recipes = await _recipeRepository
             .FindAsync(
                 r => r.AuthorId == authorId,
@@ -227,20 +182,11 @@ public class RecipeService : IRecipeService
             .Select(recipe => MapToDto(recipe))
             .ToList();
 
-        _memoryCache.Set(cacheKey, dtos, _recipesCacheDuration);
-
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
 
     public async Task<Result<IEnumerable<RecipeDto>>> GetAllRecipesAsync()
     {
-        const string cacheKey = AllRecipesCacheKeyPrefix;
-
-        if (_memoryCache.TryGetValue(cacheKey, out IEnumerable<RecipeDto>? cachedRecipes))
-        {
-            return Result<IEnumerable<RecipeDto>>.Success(cachedRecipes!);
-        }
-
         var recipes = await _recipeRepository
             .FindAsync(_ => true, r => r.Category, r => r.Author, r => r.Ratings);
 
@@ -248,8 +194,6 @@ public class RecipeService : IRecipeService
             .OrderByDescending(r => r.CreatedAt)
             .Select(recipe => MapToDto(recipe))
             .ToList();
-
-        _memoryCache.Set(cacheKey, dtos, _recipesCacheDuration);
 
         return Result<IEnumerable<RecipeDto>>.Success(dtos);
     }
@@ -275,10 +219,6 @@ public class RecipeService : IRecipeService
         _recipeRepository.Remove(recipe);
         await _recipeRepository.SaveChangesAsync();
 
-        _cacheInvalidationService.InvalidateRecipesCache();
-        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
-        _cacheInvalidationService.InvalidateAuthorRecipesCache(authorId);
-
         return Result.Success();
     }
 
@@ -301,8 +241,7 @@ public class RecipeService : IRecipeService
             return Result.Failure("Користувача не знайдено");
         }
 
-        var ratings = await _ratingRepository.FindAsync(r => r.RecipeId == recipeId && r.UserId == userId);
-        var rating = ratings.FirstOrDefault();
+        var rating = await _ratingRepository.FirstOrDefaultAsync(r => r.RecipeId == recipeId && r.UserId == userId);
 
         if (rating == null)
         {
@@ -324,9 +263,6 @@ public class RecipeService : IRecipeService
         }
 
         await _ratingRepository.SaveChangesAsync();
-
-        _cacheInvalidationService.InvalidateRecipeCache(recipeId);
-        _cacheInvalidationService.InvalidateRecipeRatingsCache(recipeId);
 
         return Result.Success();
     }

@@ -50,6 +50,6 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         builder.HasOne(r => r.Author)
             .WithMany(u => u.Recipes)
             .HasForeignKey(r => r.AuthorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

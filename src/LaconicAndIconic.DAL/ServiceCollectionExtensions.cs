@@ -34,6 +34,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<ISharedListRepository, SharedListRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
 
         return services;
     }

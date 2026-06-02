@@ -37,6 +37,18 @@ public class Repository<T> : IRepository<T> where T : class
         return await query.ToListAsync();
     }
 
+    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
+    {
+        IQueryable<T> query = Context.Set<T>().Where(predicate);
+
+        foreach (var include in includes)
+        {
+            query = query.Include(include);
+        }
+
+        return await query.FirstOrDefaultAsync();
+    }
+
     public async Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null)
     {
         if (predicate != null)
