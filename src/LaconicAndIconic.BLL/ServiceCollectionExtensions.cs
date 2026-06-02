@@ -14,13 +14,27 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<ISharedListService, SharedListService>();
         services.AddScoped<ICacheInvalidationService, CacheInvalidationService>();
 
+        services.AddScoped<CategoryService>();
         services.AddScoped<RecipeService>();
+
+        services.AddScoped<ICategoryService>(provider =>
+        {
+            var innerService = provider.GetRequiredService<CategoryService>();
+            var memoryCache = provider.GetRequiredService<IMemoryCache>();
+            var invalidationService = provider.GetRequiredService<ICacheInvalidationService>();
+            var options = provider.GetRequiredService<IOptions<CachingOptions>>();
+
+            return new CachedCategoryService(
+                innerService,
+                memoryCache,
+                invalidationService,
+                options);
+        });
 
         services.AddScoped<IRecipeService>(provider =>
         {

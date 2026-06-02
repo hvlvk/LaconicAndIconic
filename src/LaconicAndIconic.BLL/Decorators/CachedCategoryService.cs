@@ -44,6 +44,7 @@ public class CachedCategoryService : ICategoryService
 
         return result;
     }
+
     public async Task<Result> CreateAsync(string name)
     {
         var result = await _innerService.CreateAsync(name);
@@ -82,6 +83,6 @@ public class CachedCategoryService : ICategoryService
 
     public async Task<Result<IEnumerable<CategoryDto>>> GetAllCategoriesAsync()
     {
-        return await _innerService.GetAllCategoriesAsync();
+        return await GetAllAsync();
     }
 }

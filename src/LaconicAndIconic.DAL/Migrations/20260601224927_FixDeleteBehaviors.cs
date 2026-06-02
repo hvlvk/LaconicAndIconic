@@ -11,6 +11,54 @@ namespace LaconicAndIconic.DAL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Comments_AspNetUsers_ApplicationUserId",
+                table: "Comments");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Ratings_AspNetUsers_ApplicationUserId",
+                table: "Ratings");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Recipes_AspNetUsers_ApplicationUserId",
+                table: "Recipes");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_SharedLists_AspNetUsers_OwnerId",
+                table: "SharedLists");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_SharedListUsers_AspNetUsers_ApplicationUserId",
+                table: "SharedListUsers");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_ApplicationUserId",
+                table: "UserSubscriptions");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_FollowerId",
+                table: "UserSubscriptions");
+
+            migrationBuilder.DropIndex(
+                name: "IX_UserSubscriptions_ApplicationUserId",
+                table: "UserSubscriptions");
+
+            migrationBuilder.DropIndex(
+                name: "IX_SharedListUsers_ApplicationUserId",
+                table: "SharedListUsers");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Recipes_ApplicationUserId",
+                table: "Recipes");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Ratings_ApplicationUserId",
+                table: "Ratings");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Comments_ApplicationUserId",
+                table: "Comments");
+
             migrationBuilder.DropColumn(
                 name: "ApplicationUserId",
                 table: "UserSubscriptions");
@@ -22,6 +70,14 @@ namespace LaconicAndIconic.DAL.Migrations
             migrationBuilder.DropColumn(
                 name: "ApplicationUserId",
                 table: "Ratings");
+
+            migrationBuilder.DropColumn(
+                name: "ApplicationUserId",
+                table: "Recipes");
+
+            migrationBuilder.DropColumn(
+                name: "ApplicationUserId",
+                table: "Comments");
 
             migrationBuilder.UpdateData(
                 table: "Categories",
@@ -85,11 +141,35 @@ namespace LaconicAndIconic.DAL.Migrations
                 keyValue: 9,
                 column: "CreatedAt",
                 value: new DateTime(2026, 6, 1, 22, 49, 27, 117, DateTimeKind.Utc).AddTicks(3401));
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_SharedLists_AspNetUsers_OwnerId",
+                table: "SharedLists",
+                column: "OwnerId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_FollowerId",
+                table: "UserSubscriptions",
+                column: "FollowerId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_SharedLists_AspNetUsers_OwnerId",
+                table: "SharedLists");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_FollowerId",
+                table: "UserSubscriptions");
+
             migrationBuilder.AddColumn<int>(
                 name: "ApplicationUserId",
                 table: "UserSubscriptions",
@@ -107,6 +187,43 @@ namespace LaconicAndIconic.DAL.Migrations
                 table: "Ratings",
                 type: "integer",
                 nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "ApplicationUserId",
+                table: "Recipes",
+                type: "integer",
+                nullable: true);
+
+            migrationBuilder.AddColumn<int>(
+                name: "ApplicationUserId",
+                table: "Comments",
+                type: "integer",
+                nullable: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserSubscriptions_ApplicationUserId",
+                table: "UserSubscriptions",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SharedListUsers_ApplicationUserId",
+                table: "SharedListUsers",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Recipes_ApplicationUserId",
+                table: "Recipes",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ratings_ApplicationUserId",
+                table: "Ratings",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_ApplicationUserId",
+                table: "Comments",
+                column: "ApplicationUserId");
 
             migrationBuilder.UpdateData(
                 table: "Categories",
@@ -170,6 +287,57 @@ namespace LaconicAndIconic.DAL.Migrations
                 keyValue: 9,
                 column: "CreatedAt",
                 value: new DateTime(2026, 5, 7, 21, 27, 56, 979, DateTimeKind.Utc).AddTicks(1457));
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Comments_AspNetUsers_ApplicationUserId",
+                table: "Comments",
+                column: "ApplicationUserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Ratings_AspNetUsers_ApplicationUserId",
+                table: "Ratings",
+                column: "ApplicationUserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Recipes_AspNetUsers_ApplicationUserId",
+                table: "Recipes",
+                column: "ApplicationUserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_SharedLists_AspNetUsers_OwnerId",
+                table: "SharedLists",
+                column: "OwnerId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_SharedListUsers_AspNetUsers_ApplicationUserId",
+                table: "SharedListUsers",
+                column: "ApplicationUserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_ApplicationUserId",
+                table: "UserSubscriptions",
+                column: "ApplicationUserId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_UserSubscriptions_AspNetUsers_FollowerId",
+                table: "UserSubscriptions",
+                column: "FollowerId",
+                principalTable: "AspNetUsers",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
     }
 }
