@@ -29,30 +29,21 @@ public class UserService : IUserService
 
     public async Task<Result<UserProfileDto>> GetUserProfileByIdAsync(int id, int? currentUserId = null)
     {
-        var user = await _userRepository.FindByIdAsync(id);
-        if (user is null)
+        var projection = await _userRepository.GetUserProfileByIdAsync(id, currentUserId);
+        if (projection is null)
         {
             _logger.LogWarning("GetUserProfileByIdAsync: User with ID {Id} was not found", id);
             return "Користувача не знайдено";
         }
 
-        var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == id);
-        var followingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == id);
-
-        bool isSubscribed = false;
-        if (currentUserId.HasValue)
-        {
-            isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == id && s.FollowerId == currentUserId.Value);
-        }
-
         var dto = new UserProfileDto
         {
-            Id = user.Id,
-            UserName = user.UserName ?? string.Empty,
-            ProfilePicturePath = user.ProfilePicturePath,
-            FollowerCount = followerCount,
-            FollowingCount = followingCount,
-            IsSubscribed = isSubscribed
+            Id = projection.User.Id,
+            UserName = projection.User.UserName ?? string.Empty,
+            ProfilePicturePath = projection.User.ProfilePicturePath,
+            FollowerCount = projection.FollowerCount,
+            FollowingCount = projection.FollowingCount,
+            IsSubscribed = projection.IsSubscribed
         };
 
         _logger.LogInformation("GetUserProfileByIdAsync: Successfully retrieved profile for user ID {Id}", id);
@@ -103,10 +94,10 @@ public class UserService : IUserService
             return Result.Failure("Користувача для підписки не знайдено.");
         }
 
-        var existingSubscription = await _subscriptionRepository.FindAsync(
+        var isAlreadySubscribed = await _subscriptionRepository.AnyAsync(
             s => s.FollowerId == followerId && s.UserId == userId);
 
-        if (existingSubscription.Any())
+        if (isAlreadySubscribed)
         {
             _logger.LogWarning("SubscribeAsync: User ID {FollowerId} is already subscribed to User ID {UserId}", followerId, userId);
             return Result.Failure("Ви вже підписані на цього користувача.");
@@ -127,10 +118,8 @@ public class UserService : IUserService
 
     public async Task<Result> UnsubscribeAsync(int followerId, int userId)
     {
-        var existingSubscription = await _subscriptionRepository.FindAsync(
+        var subscription = await _subscriptionRepository.FirstOrDefaultAsync(
             s => s.FollowerId == followerId && s.UserId == userId);
-
-        var subscription = existingSubscription.FirstOrDefault();
         if (subscription is null)
         {
             _logger.LogWarning("UnsubscribeAsync: Subscription not found for user ID {FollowerId} following User ID {UserId}", followerId, userId);
@@ -154,13 +143,16 @@ public class UserService : IUserService
             return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
         }
 
-        var users = await _userRepository.FindAsync(u => friendIds.Contains(u.Id));
+        var projections = await _userRepository.GetUserProfilesAsync(friendIds);
 
-        var dtos = users.Select(user => new UserProfileDto
+        var dtos = projections.Select(p => new UserProfileDto
         {
-            Id = user.Id,
-            UserName = user.UserName ?? string.Empty,
-            ProfilePicturePath = user.ProfilePicturePath
+            Id = p.User.Id,
+            UserName = p.User.UserName ?? string.Empty,
+            ProfilePicturePath = p.User.ProfilePicturePath,
+            FollowerCount = p.FollowerCount,
+            FollowingCount = p.FollowingCount,
+            IsSubscribed = p.IsSubscribed
         }).ToList();
 
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);
@@ -176,27 +168,17 @@ public class UserService : IUserService
             return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
         }
 
-        var users = await _userRepository.FindAsync(u => followingUserIds.Contains(u.Id));
+        var projections = await _userRepository.GetUserProfilesAsync(followingUserIds, currentUserId);
 
-        var dtos = new List<UserProfileDto>();
-        foreach (var user in users)
+        var dtos = projections.Select(p => new UserProfileDto
         {
-            bool isSubscribed = false;
-            if (currentUserId.HasValue && currentUserId.Value != userId)
-            {
-                isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == user.Id && s.FollowerId == currentUserId.Value);
-            }
-
-            dtos.Add(new UserProfileDto
-            {
-                Id = user.Id,
-                UserName = user.UserName ?? string.Empty,
-                ProfilePicturePath = user.ProfilePicturePath,
-                FollowerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id),
-                FollowingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id),
-                IsSubscribed = isSubscribed
-            });
-        }
+            Id = p.User.Id,
+            UserName = p.User.UserName ?? string.Empty,
+            ProfilePicturePath = p.User.ProfilePicturePath,
+            FollowerCount = p.FollowerCount,
+            FollowingCount = p.FollowingCount,
+            IsSubscribed = p.IsSubscribed
+        }).ToList();
 
         _logger.LogInformation("GetSubscriptionsAsync: Retrieved {Count} subscriptions for user ID {UserId}", dtos.Count, userId);
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);
@@ -212,27 +194,17 @@ public class UserService : IUserService
             return Result<IEnumerable<UserProfileDto>>.Success(new List<UserProfileDto>());
         }
 
-        var users = await _userRepository.FindAsync(u => followerUserIds.Contains(u.Id));
+        var projections = await _userRepository.GetUserProfilesAsync(followerUserIds, currentUserId);
 
-        var dtos = new List<UserProfileDto>();
-        foreach (var user in users)
+        var dtos = projections.Select(p => new UserProfileDto
         {
-            bool isSubscribed = false;
-            if (currentUserId.HasValue && currentUserId.Value != userId)
-            {
-                isSubscribed = await _subscriptionRepository.AnyAsync(s => s.UserId == user.Id && s.FollowerId == currentUserId.Value);
-            }
-
-            dtos.Add(new UserProfileDto
-            {
-                Id = user.Id,
-                UserName = user.UserName ?? string.Empty,
-                ProfilePicturePath = user.ProfilePicturePath,
-                FollowerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id),
-                FollowingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id),
-                IsSubscribed = isSubscribed
-            });
-        }
+            Id = p.User.Id,
+            UserName = p.User.UserName ?? string.Empty,
+            ProfilePicturePath = p.User.ProfilePicturePath,
+            FollowerCount = p.FollowerCount,
+            FollowingCount = p.FollowingCount,
+            IsSubscribed = p.IsSubscribed
+        }).ToList();
 
         _logger.LogInformation("GetFollowersAsync: Retrieved {Count} followers for user ID {UserId}", dtos.Count, userId);
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);
@@ -240,24 +212,18 @@ public class UserService : IUserService
 
     public async Task<Result<IEnumerable<UserProfileDto>>> GetAllUsersAsync()
     {
-        var users = await _userRepository.FindAsync();
+        var projections = await _userRepository.GetUserProfilesAsync();
         
-        var dtos = new List<UserProfileDto>();
-        foreach (var user in users)
+        var dtos = projections.Select(p => new UserProfileDto
         {
-            var followerCount = await _subscriptionRepository.CountAsync(s => s.UserId == user.Id);
-            var followingCount = await _subscriptionRepository.CountAsync(s => s.FollowerId == user.Id);
-
-            dtos.Add(new UserProfileDto
-            {
-                Id = user.Id,
-                UserName = user.UserName ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                ProfilePicturePath = user.ProfilePicturePath,
-                FollowerCount = followerCount,
-                FollowingCount = followingCount
-            });
-        }
+            Id = p.User.Id,
+            UserName = p.User.UserName ?? string.Empty,
+            Email = p.User.Email ?? string.Empty,
+            ProfilePicturePath = p.User.ProfilePicturePath,
+            FollowerCount = p.FollowerCount,
+            FollowingCount = p.FollowingCount,
+            IsSubscribed = p.IsSubscribed
+        }).ToList();
 
         _logger.LogInformation("GetAllUsersAsync: Retrieved {Count} users", dtos.Count);
         return Result<IEnumerable<UserProfileDto>>.Success(dtos);

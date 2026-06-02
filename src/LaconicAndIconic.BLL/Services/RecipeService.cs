@@ -188,8 +188,7 @@ public class RecipeService : IRecipeService
             return cachedRecipe!;
         }
 
-        var recipes = await _recipeRepository.FindAsync(r => r.Id == recipeId, r => r.Category, r => r.Author, r => r.Ratings);
-        var recipe = recipes.FirstOrDefault();
+        var recipe = await _recipeRepository.FirstOrDefaultAsync(r => r.Id == recipeId, r => r.Category, r => r.Author, r => r.Ratings);
 
         if (recipe == null)
         {
@@ -301,8 +300,7 @@ public class RecipeService : IRecipeService
             return Result.Failure("Користувача не знайдено");
         }
 
-        var ratings = await _ratingRepository.FindAsync(r => r.RecipeId == recipeId && r.UserId == userId);
-        var rating = ratings.FirstOrDefault();
+        var rating = await _ratingRepository.FirstOrDefaultAsync(r => r.RecipeId == recipeId && r.UserId == userId);
 
         if (rating == null)
         {

@@ -18,6 +18,6 @@ public class SharedListUserConfiguration : IEntityTypeConfiguration<SharedListUs
         builder.HasOne(slu => slu.User)
             .WithMany(u => u.SharedListMemberships)
             .HasForeignKey(slu => slu.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

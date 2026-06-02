@@ -10,7 +10,7 @@ namespace LaconicAndIconic.Tests.Services;
 
 public class SharedListServiceTests
 {
-    private readonly Mock<IRepository<SharedList>> _sharedListRepoMock;
+    private readonly Mock<ISharedListRepository> _sharedListRepoMock;
     private readonly Mock<IRepository<SharedListUser>> _sharedListUserRepoMock;
     private readonly Mock<IRepository<SharedListRecipe>> _sharedListRecipeRepoMock;
     private readonly Mock<IUserRepository> _userRepoMock;
@@ -19,7 +19,7 @@ public class SharedListServiceTests
 
     public SharedListServiceTests()
     {
-        _sharedListRepoMock = new Mock<IRepository<SharedList>>();
+        _sharedListRepoMock = new Mock<ISharedListRepository>();
         _sharedListUserRepoMock = new Mock<IRepository<SharedListUser>>();
         _sharedListRecipeRepoMock = new Mock<IRepository<SharedListRecipe>>();
         _userRepoMock = new Mock<IUserRepository>();
@@ -155,9 +155,7 @@ public class SharedListServiceTests
         };
         sharedList.SharedListRecipes.Add(new SharedListRecipe { SharedListId = 1, RecipeId = 10, Recipe = recipe });
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.GetWithDetailsAsync(1)).ReturnsAsync(sharedList);
 
         var result = await _service.GetByIdAsync(1, 1);
 
@@ -185,9 +183,7 @@ public class SharedListServiceTests
         };
         sharedList.SharedListUsers.Add(new SharedListUser { SharedListId = 1, UserId = 2, User = member });
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.GetWithDetailsAsync(1)).ReturnsAsync(sharedList);
 
         var result = await _service.GetByIdAsync(1, 2);
 
@@ -210,9 +206,7 @@ public class SharedListServiceTests
             Owner = owner
         };
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.GetWithDetailsAsync(1)).ReturnsAsync(sharedList);
 
         var result = await _service.GetByIdAsync(1, 99);
 
@@ -233,8 +227,7 @@ public class SharedListServiceTests
         var unrelatedList = new SharedList { Id = 3, Title = "Unrelated", OwnerId = 3, Owner = new ApplicationUser { Id = 3, UserName = "stranger" } };
 
         var lists = new List<SharedList> { ownedList, memberList, unrelatedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.GetListsByUserAsync(1)).ReturnsAsync(new List<SharedList> { ownedList, memberList });
 
         var result = await _service.GetListsByUserAsync(1);
 
@@ -317,9 +310,9 @@ public class SharedListServiceTests
 
         _sharedListRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(sharedList);
 
-        var memberships = new List<SharedListUser> { membership };
-        var mockDbSet = memberships.AsQueryable().BuildMockDbSet();
-        _sharedListUserRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListUserRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedListUser, bool>>>(), 
+            It.IsAny<Expression<Func<SharedListUser, object>>[]>())).ReturnsAsync(membership);
         _sharedListUserRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
         var result = await _service.RemoveUserAsync(1, 1, 5);
@@ -350,9 +343,9 @@ public class SharedListServiceTests
         var sharedList = new SharedList { Id = 1, Title = "Shared Recipes", OwnerId = 1, Owner = owner };
         sharedList.SharedListUsers.Add(new SharedListUser { SharedListId = 1, UserId = 2, User = member });
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedList, bool>>>(), 
+            It.IsAny<Expression<Func<SharedList, object>>[]>())).ReturnsAsync(sharedList);
 
         _recipeRepoMock.Setup(r => r.ExistsAsync(10)).ReturnsAsync(true);
         _sharedListRecipeRepoMock.Setup(r => r.AnyAsync(It.IsAny<Expression<Func<SharedListRecipe, bool>>>())).ReturnsAsync(false);
@@ -373,9 +366,9 @@ public class SharedListServiceTests
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "Private List", OwnerId = 1, Owner = owner };
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedList, bool>>>(), 
+            It.IsAny<Expression<Func<SharedList, object>>[]>())).ReturnsAsync(sharedList);
 
         var result = await _service.AddRecipeAsync(1, 99, 10);
 
@@ -390,9 +383,9 @@ public class SharedListServiceTests
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "My Recipes", OwnerId = 1, Owner = owner };
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedList, bool>>>(), 
+            It.IsAny<Expression<Func<SharedList, object>>[]>())).ReturnsAsync(sharedList);
 
         _recipeRepoMock.Setup(r => r.ExistsAsync(10)).ReturnsAsync(true);
         _sharedListRecipeRepoMock.Setup(r => r.AnyAsync(It.IsAny<Expression<Func<SharedListRecipe, bool>>>())).ReturnsAsync(true);
@@ -412,14 +405,14 @@ public class SharedListServiceTests
         var sharedList = new SharedList { Id = 1, Title = "Shared Recipes", OwnerId = 1, Owner = owner };
         sharedList.SharedListUsers.Add(new SharedListUser { SharedListId = 1, UserId = 2, User = member });
 
-        var lists = new List<SharedList> { sharedList };
-        var mockListDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockListDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedList, bool>>>(), 
+            It.IsAny<Expression<Func<SharedList, object>>[]>())).ReturnsAsync(sharedList);
 
         var entry = new SharedListRecipe { SharedListId = 1, RecipeId = 10 };
-        var entries = new List<SharedListRecipe> { entry };
-        var mockRecipeDbSet = entries.AsQueryable().BuildMockDbSet();
-        _sharedListRecipeRepoMock.Setup(r => r.GetQueryable()).Returns(mockRecipeDbSet.Object);
+        _sharedListRecipeRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedListRecipe, bool>>>(), 
+            It.IsAny<Expression<Func<SharedListRecipe, object>>[]>())).ReturnsAsync(entry);
         _sharedListRecipeRepoMock.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
         var result = await _service.RemoveRecipeAsync(1, 2, 10);
@@ -435,9 +428,9 @@ public class SharedListServiceTests
         var owner = new ApplicationUser { Id = 1, UserName = "chef_anna" };
         var sharedList = new SharedList { Id = 1, Title = "Private List", OwnerId = 1, Owner = owner };
 
-        var lists = new List<SharedList> { sharedList };
-        var mockDbSet = lists.AsQueryable().BuildMockDbSet();
-        _sharedListRepoMock.Setup(r => r.GetQueryable()).Returns(mockDbSet.Object);
+        _sharedListRepoMock.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<SharedList, bool>>>(), 
+            It.IsAny<Expression<Func<SharedList, object>>[]>())).ReturnsAsync(sharedList);
 
         var result = await _service.RemoveRecipeAsync(1, 99, 10);
 

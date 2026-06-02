@@ -2,16 +2,15 @@ using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace LaconicAndIconic.BLL.Services;
 
 public class CommentService : ICommentService
 {
-    private readonly IRepository<Comment> _commentRepository;
+    private readonly ICommentRepository _commentRepository;
     private readonly IRepository<CommentLike> _commentLikeRepository;
 
-    public CommentService(IRepository<Comment> commentRepository, IRepository<CommentLike> commentLikeRepository)
+    public CommentService(ICommentRepository commentRepository, IRepository<CommentLike> commentLikeRepository)
     {
         _commentRepository = commentRepository;
         _commentLikeRepository = commentLikeRepository;
@@ -41,23 +40,19 @@ public class CommentService : ICommentService
 
     public async Task<Result<IEnumerable<CommentDto>>> GetCommentsByRecipeIdAsync(int recipeId, int? currentUserId = null)
     {
-        var comments = await _commentRepository.GetQueryable()
-            .Where(c => c.RecipeId == recipeId)
-            .Include(c => c.Author)
-            .OrderByDescending(c => c.Likes.Count)
-            .ThenByDescending(c => c.CreatedAt)
-            .Select(c => new CommentDto
-            {
-                Id = c.Id,
-                RecipeId = c.RecipeId,
-                AuthorId = c.AuthorId,
-                AuthorName = c.Author.UserName ?? string.Empty,
-                Content = c.Content,
-                CreatedAt = c.CreatedAt,
-                LikesCount = c.Likes.Count,
-                IsLikedByCurrentUser = currentUserId.HasValue && c.Likes.Any(l => l.UserId == currentUserId.Value)
-            })
-            .ToListAsync();
+        var commentsList = await _commentRepository.GetCommentsByRecipeIdAsync(recipeId);
+        
+        var comments = commentsList.Select(c => new CommentDto
+        {
+            Id = c.Id,
+            RecipeId = c.RecipeId,
+            AuthorId = c.AuthorId,
+            AuthorName = c.Author?.UserName ?? string.Empty,
+            Content = c.Content,
+            CreatedAt = c.CreatedAt,
+            LikesCount = c.Likes.Count,
+            IsLikedByCurrentUser = currentUserId.HasValue && c.Likes.Any(l => l.UserId == currentUserId.Value)
+        }).ToList();
 
         return comments;
     }
@@ -70,8 +65,7 @@ public class CommentService : ICommentService
             return Result.Failure("Коментар не знайдено");
         }
 
-        var existingLike = await _commentLikeRepository.GetQueryable()
-            .FirstOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
+        var existingLike = await _commentLikeRepository.FirstOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
 
         if (existingLike == null)
         {
@@ -95,8 +89,7 @@ public class CommentService : ICommentService
 
     public async Task<Result> DeleteAsync(int commentId, int userId)
     {
-        var comment = await _commentRepository.GetQueryable()
-            .FirstOrDefaultAsync(c => c.Id == commentId);
+        var comment = await _commentRepository.GetByIdAsync(commentId);
 
         if (comment == null)
         {
@@ -127,8 +120,7 @@ public class CommentService : ICommentService
             return Result.Failure("Коментар не може бути порожнім");
         }
 
-        var comment = await _commentRepository.GetQueryable()
-            .FirstOrDefaultAsync(c => c.Id == dto.Id);
+        var comment = await _commentRepository.GetByIdAsync(dto.Id);
 
         if (comment == null)
         {
@@ -148,10 +140,7 @@ public class CommentService : ICommentService
 
     public async Task<Result<CommentDto>> GetCommentByIdAsync(int commentId)
     {
-        var comment = await _commentRepository.GetQueryable()
-            .Include(c => c.Author)
-            .Include(c => c.Likes)
-            .FirstOrDefaultAsync(c => c.Id == commentId);
+        var comment = await _commentRepository.GetWithDetailsAsync(commentId);
 
         if (comment == null)
         {

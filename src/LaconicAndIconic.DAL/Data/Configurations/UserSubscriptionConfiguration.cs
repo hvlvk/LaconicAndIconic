@@ -13,11 +13,11 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
         builder.HasOne(us => us.Follower)
             .WithMany(u => u.Following)
             .HasForeignKey(us => us.FollowerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(us => us.User)
             .WithMany(u => u.Followers)
             .HasForeignKey(us => us.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
