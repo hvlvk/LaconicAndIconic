@@ -1,24 +1,19 @@
-using LaconicAndIconic.BLL;
 using LaconicAndIconic.BLL.Interfaces;
 using LaconicAndIconic.BLL.Models;
 using LaconicAndIconic.BLL.Services;
 using LaconicAndIconic.DAL.Entities;
 using LaconicAndIconic.DAL.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
 
 namespace LaconicAndIconic.Tests.Services;
 
-public class RecipeServiceTests : IDisposable
+public class RecipeServiceTests
 {
     private readonly Mock<IRecipeRepository> _recipeRepositoryMock;
     private readonly Mock<IRepository<Category>> _categoryRepositoryMock;
     private readonly Mock<IRepository<Rating>> _ratingRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<ICacheInvalidationService> _cacheInvalidationServiceMock;
-    private readonly MemoryCache _memoryCache;
     private readonly RecipeService _service;
 
     public RecipeServiceTests()
@@ -27,35 +22,14 @@ public class RecipeServiceTests : IDisposable
         _categoryRepositoryMock = new Mock<IRepository<Category>>();
         _ratingRepositoryMock = new Mock<IRepository<Rating>>();
         _userRepositoryMock = new Mock<IUserRepository>();
-        _cacheInvalidationServiceMock = new Mock<ICacheInvalidationService>();
         var fileServiceMock = new Mock<IFileService>();
-        var cachingOptions = Options.Create(new CachingOptions());
-
-        _memoryCache = new MemoryCache(new MemoryCacheOptions());
-
+        
         _service = new RecipeService(
             _recipeRepositoryMock.Object,
             fileServiceMock.Object,
             _categoryRepositoryMock.Object,
             _ratingRepositoryMock.Object,
-            _userRepositoryMock.Object,
-            _memoryCache,
-            _cacheInvalidationServiceMock.Object,
-            cachingOptions);
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _memoryCache?.Dispose();
-        }
+            _userRepositoryMock.Object);
     }
 
     [Fact]
@@ -530,5 +504,147 @@ public class RecipeServiceTests : IDisposable
         var dto = Assert.Single(result.Value!);
         Assert.Equal("Italian", dto.CategoryName);
         Assert.Equal("chef", dto.AuthorName);
+    }
+
+    [Fact]
+    public async Task SearchRecipesAsync_HandlesCyrillicCaseInsensitivity()
+    {
+        var searchTerm = "борщ";
+        var expectedTitle = "Борщ зі сметаною";
+        var pageNumber = 1;
+        var pageSize = 10;
+
+        var recipes = new List<Recipe>
+        {
+            new Recipe { Id = 1, Title = expectedTitle, Category = new Category { Name = "Супи" }, Author = new ApplicationUser { UserName = "chef" } },
+            new Recipe { Id = 2, Title = "Сирники смачні", Category = new Category { Name = "Сніданки" }, Author = new ApplicationUser { UserName = "chef" } }
+        };
+
+        var searchResult = new RecipeSearchResult
+        {
+            Recipes = [recipes[0]],
+            TotalCount = 1,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.SearchAsync(It.Is<RecipeSearchFilter>(f => f.SearchTerm == searchTerm)))
+            .ReturnsAsync(searchResult);
+
+        var filter = new RecipeSearchFilterDto { SearchTerm = searchTerm, PageNumber = pageNumber, PageSize = pageSize };
+
+        var result = await _service.SearchRecipesAsync(filter);
+
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!.Recipes);
+        Assert.Equal(expectedTitle, result.Value.Recipes[0].Title);
+
+        _recipeRepositoryMock.Verify(r => r.SearchAsync(It.Is<RecipeSearchFilter>(f => f.SearchTerm == searchTerm)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchRecipesAsync_SearchesInCategoryName()
+    {
+        var searchTerm = "сніданок";
+        var expectedTitle = "Омлет";
+
+        var recipes = new List<Recipe>
+        {
+            new Recipe { Id = 1, Title = expectedTitle, Category = new Category { Name = "Сніданок" }, Author = new ApplicationUser { UserName = "chef" } },
+            new Recipe { Id = 2, Title = "Котлета", Category = new Category { Name = "Обід" }, Author = new ApplicationUser { UserName = "chef" } }
+        };
+
+        var searchResult = new RecipeSearchResult
+        {
+            Recipes = [recipes[0]],
+            TotalCount = 1,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.SearchAsync(It.Is<RecipeSearchFilter>(f => f.SearchTerm == searchTerm)))
+            .ReturnsAsync(searchResult);
+
+        var filter = new RecipeSearchFilterDto { SearchTerm = searchTerm, PageNumber = 1, PageSize = 10 };
+
+        var result = await _service.SearchRecipesAsync(filter);
+
+        Assert.True(result.IsSuccess);
+        var found = Assert.Single(result.Value!.Recipes);
+        Assert.Equal(expectedTitle, found.Title);
+    }
+
+    [Fact]
+    public async Task SearchRecipesAsync_RespectsCategoryFilter()
+    {
+        var categoryId = 1;
+        var searchTerm = "сирники";
+
+        var recipes = new List<Recipe>
+        {
+            new Recipe { Id = 1, Title = "Сирники", CategoryId = categoryId, Category = new Category { Name = "Сніданок" }, Author = new ApplicationUser { UserName = "chef" } },
+            new Recipe { Id = 2, Title = "Сирники", CategoryId = 2, Category = new Category { Name = "Десерти" }, Author = new ApplicationUser { UserName = "chef" } }
+        };
+
+        var searchResult = new RecipeSearchResult
+        {
+            Recipes = [recipes[0]],
+            TotalCount = 1,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.SearchAsync(It.Is<RecipeSearchFilter>(f => f.SearchTerm == searchTerm && f.CategoryId == categoryId)))
+            .ReturnsAsync(searchResult);
+
+        var filter = new RecipeSearchFilterDto { SearchTerm = searchTerm, CategoryId = categoryId, PageNumber = 1, PageSize = 10 };
+
+        var result = await _service.SearchRecipesAsync(filter);
+
+        Assert.True(result.IsSuccess);
+        Assert.Single(result.Value!.Recipes);
+        Assert.Equal(categoryId, result.Value.Recipes[0].CategoryId);
+    }
+
+    [Fact]
+    public async Task SearchRecipesAsync_HandlesPagination()
+    {
+        var targetPageNumber = 2;
+        var targetPageSize = 10;
+        var totalCount = 15;
+
+        var recipes = new List<Recipe>();
+        for (int i = 1; i <= totalCount; i++)
+        {
+            recipes.Add(new Recipe { Id = i, Title = $"Recipe {i}", Category = new Category { Name = "Cat" }, Author = new ApplicationUser { UserName = "chef" } });
+        }
+
+        var pagedRecipes = recipes.Skip(10).Take(targetPageSize).ToList();
+
+        var searchResult = new RecipeSearchResult
+        {
+            Recipes = pagedRecipes,
+            TotalCount = totalCount,
+            PageNumber = targetPageNumber,
+            PageSize = targetPageSize
+        };
+
+        _recipeRepositoryMock
+            .Setup(r => r.SearchAsync(It.Is<RecipeSearchFilter>(f =>
+                f.PageNumber == targetPageNumber &&
+                f.PageSize == targetPageSize)))
+            .ReturnsAsync(searchResult);
+
+        var filter = new RecipeSearchFilterDto { PageNumber = targetPageNumber, PageSize = targetPageSize };
+
+        var result = await _service.SearchRecipesAsync(filter);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(5, result.Value!.Recipes.Count);
+        Assert.Equal(totalCount, result.Value.TotalCount);
+        Assert.Equal(targetPageNumber, result.Value.PageNumber);
     }
 }

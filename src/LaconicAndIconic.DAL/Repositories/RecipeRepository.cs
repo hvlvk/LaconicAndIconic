@@ -14,37 +14,39 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
 
     public async Task<RecipeSearchResult> SearchAsync(RecipeSearchFilter filter)
     {
-        var dbQuery = Context.Set<Recipe>()
+        var query = Context.Set<Recipe>()
             .Include(r => r.Category)
             .Include(r => r.Author)
             .Include(r => r.Ratings)
-            .AsNoTracking();
+            .AsNoTracking()
+            .AsSplitQuery();
+            
 
         if (filter.CategoryId.HasValue)
         {
-            dbQuery = dbQuery.Where(r => r.CategoryId == filter.CategoryId.Value);
+            query = query.Where(r => r.CategoryId == filter.CategoryId.Value);
         }
 
-        var candidates = await dbQuery.ToListAsync();
-
-        IEnumerable<Recipe> filteredResults = candidates;
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {
             var searchWords = filter.SearchTerm.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            filteredResults = filteredResults.Where(r =>
-                searchWords.All(word =>
-                    r.Title.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    r.Category.Name.Contains(word, StringComparison.OrdinalIgnoreCase) ||
-                    r.Description.Contains(word, StringComparison.OrdinalIgnoreCase)));
+            foreach (var word in searchWords)
+            {
+                query = query.Where(r =>
+                    r.Title.Contains(word) ||
+                    r.Category.Name.Contains(word) ||
+                    r.Description.Contains(word));
+            }
         }
 
-        var sortedResults = ApplySorting(filteredResults, filter.SortBy).ToList();
+        query = ApplySorting(query, filter.SortBy);
 
-        var totalCount = sortedResults.Count;
-        var pagedRecipes = sortedResults
+        var totalCount = await query.CountAsync();
+
+        var pagedRecipes = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .ToList();
+            .ToListAsync();
 
         return new RecipeSearchResult
         {
@@ -58,7 +60,7 @@ public class RecipeRepository : Repository<Recipe>, IRecipeRepository
         };
     }
 
-    private static IEnumerable<Recipe> ApplySorting(IEnumerable<Recipe> query, string? sortBy)
+    private static IQueryable<Recipe> ApplySorting(IQueryable<Recipe> query, string? sortBy)
     {
         return sortBy switch
         {

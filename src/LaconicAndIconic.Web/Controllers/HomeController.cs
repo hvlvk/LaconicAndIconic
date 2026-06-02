@@ -30,7 +30,7 @@ public class HomeController : Controller
 
     [HttpGet]
     [AllowAnonymous]
-    [RateLimiting(5)]
+    [RateLimiting(20)]
     public async Task<IActionResult> Index(
         string? searchTerm,
         string? externalSearchTerm,
